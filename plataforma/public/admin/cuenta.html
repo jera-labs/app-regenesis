@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mi cuenta · Admin · Neurohackers</title>
+  <script src="/shared/turbo.min.js?v=20260797"></script>
+  <link rel="stylesheet" href="/shared/styles.css?v=20260797">
+  <style>
+    .cuenta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); margin-top: var(--space-6); }
+    @media (max-width: 760px) { .cuenta-grid { grid-template-columns: 1fr; } }
+    .cuenta-card { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); padding: var(--space-6); }
+    .cuenta-card h2 { font-size: var(--text-lg); font-weight: 600; letter-spacing: -0.01em; margin-bottom: var(--space-4); }
+    .info-fila { display: flex; justify-content: space-between; padding: var(--space-3) 0; border-bottom: 1px solid var(--border-soft); font-size: var(--text-sm); }
+    .info-fila:last-child { border-bottom: 0; }
+    .info-label { color: var(--text-muted); }
+    .info-valor { font-weight: 500; }
+    .pwd-help { font-size: var(--text-xs); color: var(--text-muted); margin-top: 6px; line-height: 1.5; }
+  </style>
+</head>
+<body class="with-sidebar admin-mode">
+
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<script>(function(){try{var c=localStorage.getItem("nav-cache-admin-v4");var w=document.getElementById("sidebar-wrapper");if(c&&w&&!w.firstChild)w.innerHTML=c;}catch(e){}})();</script>
+<div data-nav data-active="admin-cuenta" data-base="../"></div>
+
+<div class="admin-strip">
+  <div class="admin-strip-inner">
+    <span class="admin-strip-dot"></span>
+    <span>MI CUENTA · ADMIN</span>
+  </div>
+</div>
+
+<main class="container-wide" id="main">
+
+  <section style="margin-bottom: var(--space-6);">
+    <span class="eyebrow">SEGURIDAD Y SESIÓN</span>
+    <h1 class="greeting-lg">Mi cuenta.</h1>
+    <p class="lead">Cambia tu contraseña y revisa los datos básicos de tu sesión.</p>
+  </section>
+
+  <div class="cuenta-grid">
+
+    <!-- BLOQUE 1: Datos -->
+    <div class="cuenta-card">
+      <h2>Tus datos</h2>
+      <div class="info-fila">
+        <span class="info-label">Nombre</span>
+        <span class="info-valor" id="info-nombre">-</span>
+      </div>
+      <div class="info-fila">
+        <span class="info-label">Email</span>
+        <span class="info-valor" id="info-email">-</span>
+      </div>
+      <div class="info-fila">
+        <span class="info-label">Rol</span>
+        <span class="info-valor" id="info-rol">-</span>
+      </div>
+      <div class="info-fila">
+        <span class="info-label">Último login</span>
+        <span class="info-valor" id="info-ultimo-login">-</span>
+      </div>
+      <p class="pwd-help" style="margin-top: var(--space-4);">
+        Para cambiar nombre o email, contacta a Frank (estos campos se editan en la BD por temas de auditoría).
+      </p>
+    </div>
+
+    <!-- BLOQUE 2: Cambiar contraseña -->
+    <div class="cuenta-card">
+      <h2>Cambiar contraseña</h2>
+      <form id="form-pwd">
+        <div class="field">
+          <label class="field-label" for="f-pwd-actual">Contraseña actual</label>
+          <input class="field-input" id="f-pwd-actual" type="password" autocomplete="current-password" required>
+        </div>
+        <div class="field">
+          <label class="field-label" for="f-pwd-nueva">Contraseña nueva</label>
+          <input class="field-input" id="f-pwd-nueva" type="password" autocomplete="new-password" minlength="8" required>
+          <div class="pwd-help">Mínimo 8 caracteres. Mezcla mayúsculas, números y un símbolo.</div>
+        </div>
+        <div class="field">
+          <label class="field-label" for="f-pwd-confirma">Confirma la nueva contraseña</label>
+          <input class="field-input" id="f-pwd-confirma" type="password" autocomplete="new-password" minlength="8" required>
+        </div>
+        <button type="submit" class="btn btn-accent btn-lg" id="btn-cambiar">Cambiar contraseña</button>
+      </form>
+    </div>
+
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/shared/scripts/config.js?v=20260797"></script>
+<script src="/shared/scripts/supabase-client.js?v=20260797"></script>
+  <script src="/shared/scripts/cache.js?v=20260797"></script>
+<script src="/shared/scripts/utils.js?v=20260797"></script>
+<script src="/shared/scripts/auth.js?v=20260797"></script>
+  <script src="/shared/scripts/event-tracker.js?v=20260797"></script>
+<script src="/shared/scripts/admin-gate.js?v=20260797"></script>
+<script src="/shared/nav.js?v=20260797"></script>
+<script>
+(async function () {
+  const auth = await window.requireAdmin();
+  if (!auth) return;
+  const { session, admin } = auth;
+
+  // Pintar datos
+  document.getElementById('info-nombre').textContent = admin.nombre || '-';
+  document.getElementById('info-email').textContent = session.user.email;
+  document.getElementById('info-rol').textContent = admin.rol || '-';
+  document.getElementById('info-ultimo-login').textContent = session.user.last_sign_in_at
+    ? new Date(session.user.last_sign_in_at).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' })
+    : 'Ahora (primer login)';
+
+  // Form: cambiar contraseña
+  document.getElementById('form-pwd').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const actual    = document.getElementById('f-pwd-actual').value;
+    const nueva     = document.getElementById('f-pwd-nueva').value;
+    const confirma  = document.getElementById('f-pwd-confirma').value;
+    const btn = document.getElementById('btn-cambiar');
+
+    if (nueva.length < 8) {
+      window.utils.toast('La contraseña nueva debe tener al menos 8 caracteres', 'error');
+      return;
+    }
+    if (nueva !== confirma) {
+      window.utils.toast('Las contraseñas nuevas no coinciden', 'error');
+      return;
+    }
+    if (nueva === actual) {
+      window.utils.toast('La nueva contraseña debe ser distinta de la actual', 'error');
+      return;
+    }
+
+    btn.disabled = true;
+    const orig = btn.textContent;
+    btn.textContent = 'Guardando…';
+
+    try {
+      // Re-autenticar primero: verifica que la contraseña actual sea correcta.
+      // Supabase no exige la actual para updateUser, pero por seguridad la pedimos
+      // y validamos haciendo un signInWithPassword sin afectar la sesión actual.
+      const { error: signInError } = await window.db.auth.signInWithPassword({
+        email: session.user.email,
+        password: actual,
+      });
+      if (signInError) {
+        throw new Error('La contraseña actual es incorrecta');
+      }
+
+      // Cambiar la contraseña
+      const { error: updateError } = await window.db.auth.updateUser({ password: nueva });
+      if (updateError) throw updateError;
+
+      // Limpiar form
+      document.getElementById('f-pwd-actual').value = '';
+      document.getElementById('f-pwd-nueva').value = '';
+      document.getElementById('f-pwd-confirma').value = '';
+      window.utils.toast('Contraseña actualizada. Úsala la próxima vez que entres.', 'success', 6000);
+    } catch (err) {
+      console.error('[cuenta] cambiar password:', err);
+      window.utils.toast('Error: ' + (err.message || 'no se pudo cambiar'), 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = orig;
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

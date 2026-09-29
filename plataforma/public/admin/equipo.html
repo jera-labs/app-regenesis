@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Equipo · Admin · Neurohackers</title>
+  <script src="/shared/turbo.min.js?v=20260797"></script>
+  <link rel="stylesheet" href="/shared/styles.css?v=20260797">
+  <style>
+    .equipo-grid { display: grid; gap: var(--space-3); }
+    .miembro-card { display: grid; grid-template-columns: 40px 1fr auto; gap: var(--space-4); padding: var(--space-5); background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); align-items: center; }
+    .miembro-card.inactivo { opacity: 0.55; background: var(--surface-2); }
+    .miembro-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-bright), var(--accent-dark)); color: #1D1D1F; display: grid; place-items: center; font-weight: 700; font-size: 14px; }
+    .miembro-info { min-width: 0; }
+    .miembro-nombre { font-size: var(--text-md); font-weight: 600; letter-spacing: -0.01em; }
+    .miembro-email { font-size: var(--text-xs); color: var(--text-muted); }
+    .miembro-meta { display: flex; gap: var(--space-2); margin-top: 6px; flex-wrap: wrap; align-items: center; }
+    .miembro-actions { display: flex; gap: var(--space-2); }
+    .rol-badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: var(--radius-full); font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+    .rol-admin { background: var(--accent-soft-bg); color: var(--accent-deeper); }
+    .rol-moderador { background: rgba(36,138,61,0.1); color: var(--success); }
+    .rol-lector { background: var(--surface-2); color: var(--text-muted); }
+
+    .rolfunc-card { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-4) var(--space-5); background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); margin-bottom: var(--space-2); }
+    .rolfunc-icon { width: 36px; height: 36px; border-radius: var(--radius-md); display: grid; place-items: center; font-size: 16px; color: #FFF; font-weight: 700; flex-shrink: 0; }
+    .rolfunc-info { flex: 1; min-width: 0; }
+    .rolfunc-nombre { font-size: var(--text-sm); font-weight: 600; }
+    .rolfunc-desc { font-size: var(--text-xs); color: var(--text-muted); margin-top: 2px; }
+    .rolfunc-slug { font-family: var(--font-mono); font-size: 10px; color: var(--text-faint); }
+  </style>
+</head>
+<body class="with-sidebar admin-mode">
+
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<script>(function(){try{var c=localStorage.getItem("nav-cache-admin-v4");var w=document.getElementById("sidebar-wrapper");if(c&&w&&!w.firstChild)w.innerHTML=c;}catch(e){}})();</script>
+<div data-nav data-active="admin-equipo" data-base="../"></div>
+
+<div class="admin-strip">
+  <div class="admin-strip-inner">
+    <span class="admin-strip-dot"></span>
+    <span>PANEL DE OPERACIÓN · EQUIPO</span>
+    <span style="opacity: 0.5;">·</span>
+    <a href="index.html">Volver a Clientes</a>
+  </div>
+</div>
+
+<main class="container-wide" id="main">
+
+  <section style="margin-bottom: var(--space-8);">
+    <span class="eyebrow">SOLO ADMIN</span>
+    <h1 class="greeting-lg">Equipo Neurohackers.</h1>
+    <p class="lead">Miembros del equipo, sus permisos técnicos (admin / moderador / lector) y los roles funcionales (closer, mentor, etc.) que pueden tener al ser asignados a un cliente.</p>
+  </section>
+
+  <div id="no-admin-block" class="empty hidden">
+    <div class="empty-icon">○</div>
+    <h3 class="empty-title">Esta sección es solo para administradores</h3>
+    <p class="empty-detail">Tu cuenta no tiene permisos de administrador. Si crees que es un error, escribe a Frank o Alex.</p>
+    <div class="empty-actions">
+      <a href="../index.html" class="btn btn-secondary btn-lg">Volver al inicio</a>
+    </div>
+  </div>
+
+  <div id="contenido-admin" class="hidden">
+
+    <!-- KPIs -->
+    <div class="progress-strip">
+      <div class="progress-strip-item">
+        <span class="progress-strip-num" id="kpi-miembros">-</span>
+        <span class="progress-strip-label">Miembros activos</span>
+      </div>
+      <div class="progress-strip-divider"></div>
+      <div class="progress-strip-item">
+        <span class="progress-strip-num" id="kpi-admins">-</span>
+        <span class="progress-strip-label">Admins</span>
+      </div>
+      <div class="progress-strip-divider"></div>
+      <div class="progress-strip-item">
+        <span class="progress-strip-num" id="kpi-moderadores">-</span>
+        <span class="progress-strip-label">Moderadores</span>
+      </div>
+      <div class="progress-strip-divider"></div>
+      <div class="progress-strip-item">
+        <span class="progress-strip-num" id="kpi-roles">-</span>
+        <span class="progress-strip-label">Roles funcionales</span>
+      </div>
+    </div>
+
+    <!-- Miembros del equipo -->
+    <div class="section-h">
+      <span class="section-h-title">Miembros del equipo</span>
+      <span class="section-h-meta">PERMISOS TÉCNICOS</span>
+    </div>
+
+    <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-5); flex-wrap: wrap;">
+      <button class="btn btn-accent" id="btn-nuevo-miembro">+ Agregar miembro</button>
+      <button class="btn btn-secondary" id="btn-toggle-inactivos">Mostrar inactivos</button>
+    </div>
+
+    <div id="lista-miembros" class="equipo-grid"></div>
+
+    <!-- Roles funcionales -->
+    <div class="section-h" style="margin-top: var(--space-12);">
+      <span class="section-h-title">Roles funcionales</span>
+      <span class="section-h-meta">QUÉ HACEN CON EL CLIENTE</span>
+    </div>
+    <p class="text-muted" style="font-size: var(--text-sm); line-height: 1.6; margin-bottom: var(--space-4);">
+      Define qué función puede cumplir un miembro del equipo cuando se le asigna a un cliente. Cada vez que asignas a alguien a un cliente, eliges uno de estos roles.
+    </p>
+
+    <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-5); flex-wrap: wrap;">
+      <button class="btn btn-accent" id="btn-nuevo-rol">+ Agregar rol funcional</button>
+    </div>
+
+    <div id="lista-roles"></div>
+  </div>
+</main>
+
+<!-- MODAL: nuevo / editar miembro -->
+<div class="modal-backdrop hidden" id="modal-miembro">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="modal-miembro-titulo">Nuevo miembro</span>
+      <button class="modal-close" data-close-miembro>✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="form-miembro">
+        <div class="field">
+          <label class="field-label">Email * (será su login en la plataforma)</label>
+          <input class="field-input" id="m-email" type="email" required maxlength="120" autocomplete="off">
+        </div>
+        <div class="field">
+          <label class="field-label">Nombre completo</label>
+          <input class="field-input" id="m-nombre" maxlength="120">
+        </div>
+        <div class="field">
+          <label class="field-label">Rol de permiso *</label>
+          <select class="field-input" id="m-rol" required>
+            <option value="lector">Lector · solo lectura, solo sus asignados</option>
+            <option value="moderador">Moderador · edita sus asignados (queda historial)</option>
+            <option value="admin">Admin · acceso total, gestiona equipo</option>
+          </select>
+          <div class="field-help" id="m-rol-help">El moderador puede editar pero todo cambio queda registrado. El lector solo puede ver. Los admin pueden todo.</div>
+        </div>
+
+        <div id="m-asignaciones-block" class="field-help-block" style="margin-top: var(--space-4); display: none;">
+          <strong style="font-size: var(--text-sm);">Rol funcional con cada cliente</strong>
+          <p style="font-size: var(--text-xs); color: var(--text-muted); margin: 6px 0 var(--space-3); line-height: 1.55;">
+            El rol funcional (closer, mentor, etc.) se asigna por cliente, no aquí. Abre la ficha del cliente y ve a la pestaña <em>Equipo asignado</em>.
+          </p>
+          <div id="m-asignaciones-lista" style="display: flex; flex-direction: column; gap: 6px;"></div>
+        </div>
+
+        <div class="field-help-block" id="m-bootstrap-help" style="margin-top: var(--space-4);">
+          <strong>Importante:</strong> después de crearlo aquí, debes crear su contraseña inicial vía Supabase Auth (o pedirle que use "olvidé mi contraseña"). Este formulario solo registra al miembro como autorizado.
+        </div>
+      </form>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close-miembro>Cancelar</button>
+      <button class="btn btn-accent" id="btn-guardar-miembro">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: nuevo / editar rol funcional -->
+<div class="modal-backdrop hidden" id="modal-rol">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="modal-rol-titulo">Nuevo rol funcional</span>
+      <button class="modal-close" data-close-rol>✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="form-rol">
+        <div class="field">
+          <label class="field-label">Nombre visible *</label>
+          <input class="field-input" id="r-nombre" required maxlength="60" placeholder="Ej. Mentor de Hipnosis">
+        </div>
+        <div class="field">
+          <label class="field-label">Slug interno (sin espacios)</label>
+          <input class="field-input" id="r-slug" maxlength="40" placeholder="mentor_hipnosis (autogenerado si lo dejas vacío)">
+        </div>
+        <div class="field">
+          <label class="field-label">Descripción</label>
+          <textarea class="field-input field-textarea" id="r-descripcion" placeholder="¿Qué hace esta persona con el cliente?"></textarea>
+        </div>
+        <div class="field">
+          <label class="field-label">URL (playbook / docs / brief)</label>
+          <input class="field-input" id="r-url" type="url" maxlength="500" placeholder="https://docs.neurohackers.cloud/closer-playbook">
+          <div class="field-help">Link opcional que el equipo puede abrir desde la tarjeta de asignación.</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 100px; gap: var(--space-3);">
+          <div class="field">
+            <label class="field-label">Color (hex)</label>
+            <input class="field-input" id="r-color" type="text" maxlength="7" value="#86868B" pattern="#[0-9A-Fa-f]{6}">
+          </div>
+          <div class="field">
+            <label class="field-label">Ícono</label>
+            <input class="field-input" id="r-icono" maxlength="2" value="◇" placeholder="◇">
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close-rol>Cancelar</button>
+      <button class="btn btn-accent" id="btn-guardar-rol">Crear rol</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/shared/scripts/config.js?v=20260797"></script>
+<script src="/shared/scripts/supabase-client.js?v=20260797"></script>
+  <script src="/shared/scripts/cache.js?v=20260797"></script>
+<script src="/shared/scripts/utils.js?v=20260797"></script>
+<script src="/shared/scripts/auth.js?v=20260797"></script>
+  <script src="/shared/scripts/event-tracker.js?v=20260797"></script>
+<script src="/shared/scripts/admin-gate.js?v=20260797"></script>
+<script src="/shared/scripts/equipo.js?v=20260797"></script>
+<script src="/shared/nav.js?v=20260797"></script>
+<script>
+(async function () {
+  const auth = await window.requireAdmin();
+  if (!auth) return;
+
+  // Solo admin (no moderador ni lector) puede entrar a esta página
+  const yo = await window.equipoApi.miRol();
+  if (!yo || yo.rol !== 'admin') {
+    document.getElementById('no-admin-block').classList.remove('hidden');
+    document.getElementById('main').style.opacity = '1';
+    return;
+  }
+  document.getElementById('contenido-admin').classList.remove('hidden');
+
+  let mostrandoInactivos = false;
+  let miembrosState = [];
+  let rolesState = [];
+
+  async function refrescar() {
+    [miembrosState, rolesState] = await Promise.all([
+      window.equipoApi.listarMiembros(),
+      window.equipoApi.listarRolesFuncionales(),
+    ]);
+
+    const activos = miembrosState.filter(m => m.activo);
+    document.getElementById('kpi-miembros').textContent = activos.length;
+    document.getElementById('kpi-admins').textContent = activos.filter(m => m.rol === 'admin').length;
+    document.getElementById('kpi-moderadores').textContent = activos.filter(m => m.rol === 'moderador').length;
+    document.getElementById('kpi-roles').textContent = rolesState.length;
+
+    pintarMiembros();
+    pintarRoles();
+  }
+
+  function iniciales(nombre, email) {
+    const n = (nombre || email || '?').trim();
+    const parts = n.split(/[\s@]/).filter(Boolean);
+    if (parts.length >= 2 && parts[0][0]) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return n.slice(0, 2).toUpperCase();
+  }
+
+  function pintarMiembros() {
+    const cont = document.getElementById('lista-miembros');
+    const visibles = mostrandoInactivos ? miembrosState : miembrosState.filter(m => m.activo);
+    if (visibles.length === 0) {
+      cont.innerHTML = '<p class="text-muted">No hay miembros para mostrar.</p>';
+      return;
+    }
+    cont.innerHTML = visibles.map(m => `
+      <div class="miembro-card ${m.activo ? '' : 'inactivo'}">
+        <div class="miembro-avatar">${iniciales(m.nombre, m.email)}</div>
+        <div class="miembro-info">
+          <div class="miembro-nombre">${window.utils.escapeHtml(m.nombre || '(sin nombre)')}</div>
+          <div class="miembro-email">${window.utils.escapeHtml(m.email)}</div>
+          <div class="miembro-meta">
+            <span class="rol-badge rol-${m.rol}">${m.rol.toUpperCase()}</span>
+            ${m.activo ? '' : '<span class="badge">Inactivo</span>'}
+            ${m.ultimo_login ? `<span class="text-muted" style="font-size:11px;">Último login: ${new Date(m.ultimo_login).toLocaleDateString('es-ES')}</span>` : '<span class="text-muted" style="font-size:11px;">Nunca ha entrado</span>'}
+          </div>
+        </div>
+        <div class="miembro-actions">
+          <button class="btn btn-secondary btn-sm" data-edit="${m.id}">Editar</button>
+          ${m.activo ? `<button class="btn btn-ghost btn-sm" data-deactivate="${m.id}" style="color: var(--error);">Desactivar</button>` : ''}
+        </div>
+      </div>
+    `).join('');
+    cont.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => abrirModalMiembro(miembrosState.find(m => m.id === b.dataset.edit))));
+    cont.querySelectorAll('[data-deactivate]').forEach(b => b.addEventListener('click', async () => {
+      const m = miembrosState.find(x => x.id === b.dataset.deactivate);
+      if (!confirm(`¿Desactivar a ${m.nombre || m.email}? No podrá entrar a la plataforma.`)) return;
+      try {
+        await window.equipoApi.desactivarMiembro(m.id);
+        window.utils.toast('Miembro desactivado', 'success');
+        await refrescar();
+      } catch (e) { window.utils.toast('Error: ' + e.message, 'error'); }
+    }));
+  }
+
+  function pintarRoles() {
+    const cont = document.getElementById('lista-roles');
+    if (rolesState.length === 0) {
+      cont.innerHTML = '<p class="text-muted">No hay roles funcionales todavía.</p>';
+      return;
+    }
+    const esc = window.utils.escapeHtml;
+    cont.innerHTML = rolesState.map(r => `
+      <div class="rolfunc-card">
+        <div class="rolfunc-icon" style="background: ${esc(r.color || '#86868B')};">${esc(r.icono || '◇')}</div>
+        <div class="rolfunc-info">
+          <div class="rolfunc-nombre">${esc(r.nombre)} <span class="rolfunc-slug">· ${esc(r.slug)}</span></div>
+          <div class="rolfunc-desc">${esc(r.descripcion || '(sin descripción)')}</div>
+          ${r.url ? `<div class="rolfunc-desc" style="font-size: 11px; margin-top: 4px;"><a href="${esc(r.url)}" target="_blank" rel="noopener" style="color: var(--accent-deeper); text-decoration: none;">↗ ${esc(r.url)}</a></div>` : ''}
+        </div>
+        <div style="display: flex; gap: var(--space-2);">
+          <button class="btn btn-ghost btn-sm" data-edit-rol="${r.id}">Editar</button>
+          <button class="btn btn-ghost btn-sm" data-del-rol="${r.id}" style="color: var(--error);">Desactivar</button>
+        </div>
+      </div>
+    `).join('');
+    cont.querySelectorAll('[data-edit-rol]').forEach(b => b.addEventListener('click', () => {
+      const r = rolesState.find(x => x.id === b.dataset.editRol);
+      if (r) abrirModalRol(r);
+    }));
+    cont.querySelectorAll('[data-del-rol]').forEach(b => b.addEventListener('click', async () => {
+      const r = rolesState.find(x => x.id === b.dataset.delRol);
+      if (!confirm(`¿Desactivar rol "${r.nombre}"? Los miembros ya asignados con este rol mantienen su asignación, pero no se podrá usar en futuras asignaciones.`)) return;
+      try {
+        await window.equipoApi.desactivarRolFuncional(r.id);
+        window.utils.toast('Rol desactivado', 'success');
+        await refrescar();
+      } catch (e) { window.utils.toast('Error: ' + e.message, 'error'); }
+    }));
+  }
+
+  // ====== MODAL MIEMBRO ======
+  let miembroEditandoId = null;
+  async function abrirModalMiembro(miembro = null) {
+    miembroEditandoId = miembro?.id || null;
+    document.getElementById('modal-miembro-titulo').textContent = miembro ? 'Editar miembro' : 'Nuevo miembro';
+    document.getElementById('m-email').value = miembro?.email || '';
+    document.getElementById('m-email').disabled = !!miembro;  // no permitir cambiar email después
+    document.getElementById('m-nombre').value = miembro?.nombre || '';
+    document.getElementById('m-rol').value = miembro?.rol || 'lector';
+    document.getElementById('m-bootstrap-help').style.display = miembro ? 'none' : 'block';
+
+    // Cargar asignaciones del miembro (solo si estamos editando)
+    const block = document.getElementById('m-asignaciones-block');
+    const lista = document.getElementById('m-asignaciones-lista');
+    if (miembro) {
+      block.style.display = 'block';
+      lista.innerHTML = '<span class="text-muted" style="font-size: var(--text-xs);">Cargando...</span>';
+      try {
+        const asigs = await window.equipoApi.asignacionesDelMiembro(miembro.id);
+        if (asigs.length === 0) {
+          lista.innerHTML = '<span class="text-muted" style="font-size: var(--text-xs);">Todavía no está asignado a ningún cliente.</span>';
+        } else {
+          lista.innerHTML = asigs.map(a => {
+            const leadNombre = a.lead?.nombre || a.lead?.email || '(cliente desconocido)';
+            const rolNombre = a.rol_funcional?.nombre || '(sin rol)';
+            const rolColor = a.rol_funcional?.color || '#86868B';
+            const rolIcono = a.rol_funcional?.icono || '◇';
+            const leadHref = a.lead?.id ? `cliente.html?id=${a.lead.id}#asignaciones` : '#';
+            return `
+              <div style="display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-sm);">
+                <span style="width: 22px; height: 22px; border-radius: 50%; background: ${rolColor}; color: #FFF; display: grid; place-items: center; font-size: 11px; flex-shrink: 0;">${rolIcono}</span>
+                <span style="flex: 1; min-width: 0; font-size: var(--text-xs);"><strong>${window.utils.escapeHtml(leadNombre)}</strong> · <span class="text-muted">${window.utils.escapeHtml(rolNombre)}</span></span>
+                <a href="${leadHref}" style="font-size: var(--text-xs); color: var(--accent-deeper); text-decoration: none;">Ver cliente →</a>
+              </div>`;
+          }).join('');
+        }
+      } catch (e) {
+        console.warn('No pude cargar asignaciones:', e);
+        lista.innerHTML = '<span class="text-muted" style="font-size: var(--text-xs);">No pude cargar las asignaciones.</span>';
+      }
+    } else {
+      block.style.display = 'none';
+    }
+
+    const m = document.getElementById('modal-miembro');
+    m.classList.remove('hidden');
+    requestAnimationFrame(() => m.classList.add('show'));
+  }
+  function cerrarModalMiembro() {
+    const m = document.getElementById('modal-miembro');
+    m.classList.remove('show');
+    setTimeout(() => m.classList.add('hidden'), 200);
+  }
+  document.querySelectorAll('[data-close-miembro]').forEach(b => b.addEventListener('click', cerrarModalMiembro));
+  document.getElementById('btn-nuevo-miembro').addEventListener('click', () => abrirModalMiembro());
+  document.getElementById('btn-toggle-inactivos').addEventListener('click', (e) => {
+    mostrandoInactivos = !mostrandoInactivos;
+    e.target.textContent = mostrandoInactivos ? 'Ocultar inactivos' : 'Mostrar inactivos';
+    pintarMiembros();
+  });
+
+  document.getElementById('btn-guardar-miembro').addEventListener('click', async (ev) => {
+    ev.preventDefault();
+    const email = document.getElementById('m-email').value.trim().toLowerCase();
+    const nombre = document.getElementById('m-nombre').value.trim();
+    const rol = document.getElementById('m-rol').value;
+    if (!email) { window.utils.toast('Email requerido', 'error'); return; }
+    try {
+      if (miembroEditandoId) {
+        await window.equipoApi.actualizarMiembro(miembroEditandoId, { nombre, rol });
+        window.utils.toast('Miembro actualizado', 'success');
+      } else {
+        await window.equipoApi.crearMiembro({ email, nombre, rol });
+        window.utils.toast('Miembro creado. Crea su contraseña vía admin de Supabase.', 'success', 6000);
+      }
+      cerrarModalMiembro();
+      await refrescar();
+    } catch (e) {
+      console.error(e);
+      window.utils.toast('Error: ' + (e.message || e), 'error');
+    }
+  });
+
+  // ====== MODAL ROL FUNCIONAL (nuevo + editar) ======
+  let rolEditandoId = null;
+  function abrirModalRol(rol = null) {
+    rolEditandoId = rol?.id || null;
+    document.getElementById('modal-rol-titulo').textContent = rol ? `Editar rol · ${rol.nombre}` : 'Nuevo rol funcional';
+    document.getElementById('btn-guardar-rol').textContent = rol ? 'Guardar cambios' : 'Crear rol';
+    document.getElementById('r-nombre').value      = rol?.nombre || '';
+    document.getElementById('r-slug').value        = rol?.slug || '';
+    document.getElementById('r-descripcion').value = rol?.descripcion || '';
+    document.getElementById('r-url').value         = rol?.url || '';
+    document.getElementById('r-color').value       = rol?.color || '#86868B';
+    document.getElementById('r-icono').value       = rol?.icono || '◇';
+    const m = document.getElementById('modal-rol');
+    m.classList.remove('hidden');
+    requestAnimationFrame(() => m.classList.add('show'));
+  }
+  function cerrarModalRol() {
+    const m = document.getElementById('modal-rol');
+    m.classList.remove('show');
+    setTimeout(() => m.classList.add('hidden'), 200);
+    rolEditandoId = null;
+  }
+  document.querySelectorAll('[data-close-rol]').forEach(b => b.addEventListener('click', cerrarModalRol));
+  document.getElementById('btn-nuevo-rol').addEventListener('click', () => abrirModalRol());
+
+  document.getElementById('btn-guardar-rol').addEventListener('click', async (ev) => {
+    ev.preventDefault();
+    const nombre = document.getElementById('r-nombre').value.trim();
+    if (!nombre) { window.utils.toast('Nombre requerido', 'error'); return; }
+    let slug = document.getElementById('r-slug').value.trim();
+    if (!slug) {
+      slug = nombre.toLowerCase()
+        .normalize('NFD').replace(/[̀-ͯ]/g, '')
+        .replace(/[^a-z0-9_]+/g, '_').replace(/^_|_$/g, '');
+    }
+    const payload = {
+      slug,
+      nombre,
+      descripcion: document.getElementById('r-descripcion').value.trim(),
+      url:         document.getElementById('r-url').value.trim(),
+      color:       document.getElementById('r-color').value,
+      icono:       document.getElementById('r-icono').value,
+    };
+    try {
+      if (rolEditandoId) {
+        await window.equipoApi.actualizarRolFuncional(rolEditandoId, payload);
+        window.utils.toast('Rol actualizado', 'success');
+      } else {
+        await window.equipoApi.crearRolFuncional(payload);
+        window.utils.toast('Rol funcional creado', 'success');
+      }
+      cerrarModalRol();
+      await refrescar();
+    } catch (e) {
+      console.error(e);
+      window.utils.toast('Error: ' + (e.message || e), 'error');
+    }
+  });
+
+  await refrescar();
+  document.getElementById('main').style.opacity = '1';
+})();
+</script>
+
+
+</body>
+</html>

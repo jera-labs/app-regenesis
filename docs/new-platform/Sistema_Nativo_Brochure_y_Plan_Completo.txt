@@ -1,0 +1,1683 @@
+================================================================================
+SISTEMA NATIVO
+Brochure comercial + Plan operativo completo + Metodologia adaptable
+================================================================================
+
+Version: 1.0
+Fecha: 2026-05-23
+Autor: Andres / Sistema Nativo
+Documento autosuficiente: pensado para ser leido por (a) clientes potenciales,
+                          (b) operadores del servicio y (c) otra IA que necesite
+                          adaptar la metodologia a otro proyecto.
+
+
+
+================================================================================
+INDICE
+================================================================================
+
+PARTE I  - BROCHURE PARA EL CLIENTE
+  1. Que es Sistema Nativo (en una pagina)
+  2. El problema que resuelve
+  3. Para quien es y para quien NO es
+  4. Como funciona el servicio Construccion Integral
+  5. Que entregables recibe el cliente
+  6. Como se trabaja semana a semana
+  7. Inversion y forma de pago
+  8. Garantias y politica de salida
+  9. El primer paso: Diagnostico Nativo
+
+PARTE II - PLAN OPERATIVO INTERNO (para el consultor / equipo)
+  10. Vocabulario y glosario
+  11. Codigos canonicos de fases y modulos
+  12. Las 9 fases del Sistema (vision completa)
+  13. Los 8 modulos transversales TRV-*
+  14. Estructura del repositorio
+  15. Reglas de gobierno: RACI, gates, exclusion
+  16. Convenciones de trabajo
+
+PARTE III - METODOLOGIA ADAPTABLE A OTROS PROYECTOS
+  17. Principios universales del Sistema Nativo
+  18. Como adaptar la metodologia a otro tipo de negocio
+  19. Decisiones criticas tomadas y por que
+  20. Errores documentados a evitar
+  21. Roadmap futuro (que no esta en V1.0 pero se considera)
+
+
+
+================================================================================
+PARTE I - BROCHURE PARA EL CLIENTE
+================================================================================
+
+--------------------------------------------------------------------------------
+1. QUE ES SISTEMA NATIVO (en una pagina)
+--------------------------------------------------------------------------------
+
+Sistema Nativo es una metodologia integral para construir la arquitectura
+completa de un negocio digital hispano: del posicionamiento al sistema vivo
+que vende solo.
+
+No es una agencia que ejecuta piezas sueltas (web, ads, emails). Tampoco es
+un curso donde tu aplicas el metodo solo. Es un servicio donde un consultor
+aplica el metodo a tu negocio durante 6 a 10 semanas y te entrega:
+
+   - Un sistema funcionando end-to-end
+   - Una documentacion completa (El Libro Sagrado de tu Negocio)
+   - Un equipo capaz de mantenerlo sin depender del consultor
+
+La diferencia clave con cualquier otro proveedor con el que hayas trabajado:
+
+   - Empezamos con un VEREDICTO FORMAL de viabilidad. Si tu negocio no es
+     viable como esta, te lo decimos antes de cobrar el grueso del proyecto.
+   - Cada fase del proceso cierra con un GATE DE CALIDAD firmado por ambas
+     partes. Sin gate aprobado, no se avanza.
+   - Tenemos una POLITICA DE EXCLUSION publica. No aceptamos cualquier
+     cliente. La pre-cualificacion existe para proteger el resultado de
+     ambas partes.
+   - NO garantizamos resultados de facturacion. Garantizamos proceso,
+     sistema vivo y transferencia documentada. Cualquier proveedor que
+     garantice facturacion esta mintiendo.
+
+Si quieres ahorrar tiempo, hay un solo siguiente paso recomendado:
+reservar el Diagnostico Nativo gratuito (90 minutos, veredicto formal,
+sin compromiso). Ver seccion 9 al final de esta Parte I.
+
+
+--------------------------------------------------------------------------------
+2. EL PROBLEMA QUE RESUELVE
+--------------------------------------------------------------------------------
+
+Si reconoces alguna de estas senales, sigue leyendo:
+
+   - Tu embudo convierte... a veces. Otras semanas, sin que cambies nada,
+     no convierte. Y no sabes por que.
+
+   - Tienes una web, GHL, secuencias de email, ads. Pero son piezas
+     sueltas, no un sistema. Nadie del equipo (ni tu) puede explicar de
+     memoria como funciona todo.
+
+   - Cada lanzamiento es reinventar la rueda. No hay un blueprint que
+     reuses.
+
+   - Tus ventas dependen de que TU estes disponible. Cuando te ausentas
+     una semana, el sistema se enfria.
+
+   - Probaste con varias agencias o freelancers. Cada uno toco una pieza.
+     Ninguno arreglo el conjunto.
+
+   - Sientes que necesitas "alguien que ejecute", pero los ejecutores
+     baratos terminan costandote mas por las decisiones que no toman.
+
+Si esto suena familiar, no tienes un problema de ejecucion.
+Tienes un problema de arquitectura.
+
+POR QUE PASA ESTO:
+
+La mayoria de proveedores son ejecutores. Te configuran ads, una web,
+una secuencia. Pero asumen que la estrategia, el posicionamiento y la
+estructura comercial ya estan claras. Casi nunca lo estan.
+
+Resultado: inviertes en ejecucion sobre cimientos que no aguantan.
+El sistema funciona 3 meses, se cae, empiezas de nuevo con otro
+proveedor. Y cada vez que cambias de proveedor, pierdes contexto,
+pierdes tiempo y sigues sin resolver lo de fondo.
+
+Sistema Nativo no construye otra pieza encima del problema. Va a los
+cimientos y reconstruye desde ahi.
+
+
+--------------------------------------------------------------------------------
+3. PARA QUIEN ES Y PARA QUIEN NO ES
+--------------------------------------------------------------------------------
+
+ES PARA TI SI:
+
+   - Eres founder de un negocio digital hispano (infoproducto, SaaS,
+     e-commerce, servicios profesionales)
+   - Llevas al menos 6 meses operando con trafico y ventas reales
+     (no estas en fase de validacion de idea)
+   - Tu rango de facturacion mensual esta entre $1K y $50K (orientativo)
+   - Estas listo para invertir en arquitectura, no solo en ejecucion
+   - Quieres salir del rol de cuello de botella operativo de tu negocio
+   - Valoras un proveedor que dice "no" cuando algo no encaja
+   - Eres tu quien toma la decision final de invertir
+   - Estas dispuesto a dedicar 4-6 horas a la semana durante 6-10 semanas
+
+NO ES PARA TI SI:
+
+   - Aun no tienes producto o servicio definido (estas en fase exploratoria)
+   - Esperas que un consultor garantice resultados de facturacion
+   - Trabajas en sectores de zona gris regulatoria:
+       apuestas, MLM piramidal, criptomonedas especulativas sin licencia,
+       productos de salud sin respaldo, esquemas de inversion no regulados
+   - Tu primera pregunta es "cuanto cuesta" antes de entender el alcance
+   - Has trabajado con 2 o mas proveedores en los ultimos 18 meses y
+     todos "no entendieron tu negocio"
+   - Necesitas firmar NDA antes de la primera conversacion
+   - La decision de contratar no depende de ti, sino de otra persona que
+     tendrias que convencer
+
+Si te reconoces en alguno de los puntos de "NO es para ti", te ahorramos
+tiempo a ambos: este no es nuestro servicio. La politica de exclusion
+existe para proteger el resultado real de ambas partes, no por capricho.
+
+
+--------------------------------------------------------------------------------
+4. COMO FUNCIONA EL SERVICIO CONSTRUCCION INTEGRAL
+--------------------------------------------------------------------------------
+
+Sistema Nativo Construccion Integral aplica 6 de las 9 fases del Sistema
+N.A.T.I.V.O. (Nucleo de Arquitectura, Tono, Identidad, Valor y Objetivo)
+a tu negocio durante 6 a 10 semanas.
+
+Las 6 fases que se aplican son:
+
+   F1 - FUNDAMENTO    (1 semana)
+        Definir con precision que vendes y a quien.
+        Inventario de servicios y modelo de monetizacion validado.
+        Construccion del SSOT (Single Source of Truth) de tu negocio.
+
+   F2 - VIABILIDAD    (1 semana)
+        Evaluacion estrategica en 9 ejes.
+        VEREDICTO FORMAL: Apto / Apto con condiciones / Aplazable.
+        Documento de Gobernanza personalizado (como trabajaremos).
+
+        SI EL VEREDICTO ES NO APTO: terminamos aqui. Recibes el documento
+        de exclusion con razones especificas y recomendaciones, y se
+        reembolsa el 30% no facturado. Te quedas con valor real (un
+        diagnostico documentado) sin obligacion.
+
+   F3 - MODELO        (semanas 3-4)
+        Validacion de mercado, competencia directa e indirecta, pricing.
+        Analisis de encaje Buyer - Oferta.
+        Estructura comercial documentada.
+
+   F4 - EXPRESION     (semanas 4-6, en paralelo con F3)
+        Identidad estrategica de marca.
+        Buyer Persona estrategico (1 principal + variantes).
+        Tono de voz con 20+ ejemplos aplicados.
+        Promesa central y mensajes clave probados.
+        Documento Maestro de Comunicacion Estrategica.
+
+   F5 - ARQUITECTURA  (semanas 6-8)
+        Arquitectura de oferta completa (paquetes, bonos, garantias).
+        Blueprint del embudo end-to-end.
+        Estructuras de landing pages aplicadas.
+        Plan de trafico organico + pagado.
+
+   F7 - OPERACION     (semanas 8-10)
+        CRM configurado (GHL u otro) y workflows criticos.
+        Secuencias evergreen (emails, recordatorios, recuperacion).
+        Tracking y reportes operativos.
+
+LAS FASES F6 (ADQUISICION/ADS), F8 (EVOLUCION) y F9 (ESCALA) NO ESTAN
+INCLUIDAS en V1.0. Se ofrecen como add-ons posteriores cuando tenga
+sentido para tu caso:
+
+   F6 - Gestion de Ads (3 meses):    $2,000 - $4,000 / mes
+   F8 - Retainer mensual:            $1,500 - $3,000 / mes
+   F9 - Escala/SaaS:                 caso por caso (futuro)
+
+
+--------------------------------------------------------------------------------
+5. QUE ENTREGABLES RECIBE EL CLIENTE
+--------------------------------------------------------------------------------
+
+Por fase, los entregables tangibles son:
+
+   F1 FUNDAMENTO
+      - Documento de Definicion Minima del Producto
+      - Inventario de Servicios con modelo de monetizacion validado
+      - SSOT (ADN del Cliente) v1 completo
+      Formato: PDF + Notion compartido
+
+   F2 VIABILIDAD
+      - Documento de Veredicto formal de Viabilidad
+        (Apto / Apto con condiciones / Aplazable / No Apto)
+      - Documento de Gobernanza personalizado
+      - Matriz de Responsabilidad por Fase (RACI) firmada
+      Formato: PDF firmado por ambas partes (es el gate critico)
+
+   F3 MODELO
+      - Documento de Validacion de Mercado
+      - Analisis de Competencia (minimo 3 directos)
+      - Documento de Validacion de Pricing con justificacion
+      - Documento de Encaje Buyer-Oferta
+      - Documento de Riesgos y Debilidades del Producto
+      - Documento de Oportunidades y Recomendaciones
+      Formato: PDF + Spreadsheet con calculos vivos
+
+   F4 EXPRESION
+      - Documento de Identidad Estrategica de Marca
+      - Historia, Proposito, Mision, Vision, Valores
+      - Buyer Persona Estrategico (principal + variantes)
+      - Tono de Voz y Estilo de Comunicacion (con 20+ ejemplos)
+      - Promesa Central de Marca
+      - Mensajes Clave y Copy Base (Message Map)
+      - Storytelling y Documento Maestro de Comunicacion
+      Formato: PDF + Brand book navegable
+
+   F5 ARQUITECTURA
+      - Briefing del Producto/Servicio
+      - Propuesta de Valor consolidada
+      - Arquitectura de Oferta (paquetes, bonos, garantias)
+      - Blueprint del Embudo end-to-end
+      - Estructuras de Landing Pages aplicadas a tus paginas
+      - Plan de Trafico organico + pagado
+      - Documento de Arquitectura Final consolidado
+      Formato: PDF + Figma/Miro + plantillas reutilizables
+
+   F7 OPERACION
+      - CRM configurado y probado end-to-end (GHL u otro)
+      - Workflows criticos documentados y operativos
+      - Secuencias evergreen activas y monitoreables
+      - Tracking y dashboards basicos
+      Formato: Sistema vivo + documentacion operativa
+
+   ENTREGABLE FINAL (al cierre, en Gate-F8):
+
+      EL LIBRO SAGRADO DE TU NEGOCIO
+
+      Es el manual operativo completo de tu negocio post-Sistema Nativo.
+      Esta pensado para que vos y tu equipo puedan operarlo SIN
+      depender del consultor.
+
+      Contiene 7 partes:
+
+      Parte 0: Lectura inicial. Que tienes en las manos.
+      Parte 1: Identidad y posicionamiento.
+      Parte 2: Oferta y pricing.
+      Parte 3: Embudo y mensajes.
+      Parte 4: Operacion (stack tecnologico, workflows, SOPs).
+      Parte 5: Mantenimiento (checklists diario/semanal/mensual).
+      Parte 6: Evolucion (roadmap recomendado a 6/12 meses).
+      Parte 7: Transferencia de conocimiento.
+      Apendices: SSOT completo, historico de cambios, metricas.
+
+      Formato: PDF maestro + sistema vivo en Notion/Drive (editable
+      por el cliente)
+
+      Incluye sesion presencial/videocall de transferencia de 2-4 horas,
+      grabada para que puedas volver a verla cuando quieras.
+
+
+--------------------------------------------------------------------------------
+6. COMO SE TRABAJA SEMANA A SEMANA
+--------------------------------------------------------------------------------
+
+CADENCIA OPERATIVA:
+
+   - Reuniones semanales de 60-90 minutos via videollamada
+     (Zoom / Meet, todas grabadas y disponibles en tu Notion)
+
+   - Comunicacion asincrona via canal Slack o WhatsApp dedicado al
+     proyecto (NO a horas de oficina, NO soporte 24/7)
+
+   - Documentos vivos en Notion + Drive del cliente, editables y
+     navegables
+
+   - Cada fase cierra con un gate de calidad: un checklist firmado por
+     ambas partes que verifica criterios objetivos antes de avanzar a
+     la siguiente fase
+
+   - Si el cliente no entrega inputs en plazo, la fase se pausa
+     automaticamente. No se compensa con extension gratuita.
+
+ONBOARDING (5 dias habiles desde firma + pago):
+
+   Dia 0: Confirmacion - el consultor recibe pago inicial + envia
+          contrato firmado por su parte
+   Dia 1: Email de bienvenida + accesos (Notion, Drive, Libro Sagrado
+          del Sistema, SSOT en blanco)
+   Dia 2: Cuestionario de profundizacion (cliente completa el SSOT
+          inicial, ~45-60 min)
+   Dia 3: Setup operativo (canales, calendario, espacios)
+   Dia 4: Reunion de kickoff 60-90 min (firmamos RACI, agendamos
+          cadencia semanal)
+   Dia 5: Inicio formal de F1 FUNDAMENTO
+
+EL DECISOR DEBE PARTICIPAR:
+
+No trabajamos con intermediarios. Quien firma el cheque y toma decisiones
+estrategicas finales debe estar presente en las reuniones semanales y en
+los gates. Esto NO es opcional.
+
+CAPACIDAD:
+
+Se atienden maximo 2 proyectos en paralelo simultaneamente. No es
+marketing artificial; es la capacidad real para entregar calidad.
+Hay lista de espera si los 2 cupos estan tomados.
+
+
+--------------------------------------------------------------------------------
+7. INVERSION Y FORMA DE PAGO
+--------------------------------------------------------------------------------
+
+SISTEMA NATIVO CONSTRUCCION INTEGRAL:
+
+   Rango: USD 8,000 - 15,000 por proyecto completo.
+
+   Pricing diferencial segun escala del negocio actual:
+
+      - MRR < $10K/mes:        rango bajo  (~$8,000 - $10,000)
+      - MRR $10K-$50K/mes:     rango medio (~$10,000 - $12,000)
+      - MRR > $50K/mes:        rango alto  (~$12,000 - $15,000)
+
+   Cronograma de pago:
+
+      50%   al firmar contrato y antes de iniciar F1
+      30%   al cierre de F2 con Veredicto firmado
+      20%   a la entrega del Libro Sagrado (Gate-F8)
+
+   Moneda: USD (transferencia internacional / Wise / Stripe / USDC)
+   Mas impuestos aplicables segun jurisdiccion.
+
+DIAGNOSTICO NATIVO STANDALONE (opcional):
+   $497 - $997 USD si se vende como producto aparte sin compromiso de
+   avanzar al Core. Tambien existe la version GRATUITA como gancho
+   del embudo (ver seccion 9).
+
+DESCUENTOS:
+
+   No se hacen descuentos por negociacion. Excepciones cerradas:
+
+      - Early adopters de V1.0 (primeros 3 clientes con caso
+        publicable anonimo): -25%
+      - Pago 100% adelantado: -5%
+      - Cliente referido por otro cliente del Core que ya cerro
+        proyecto: -10% para el nuevo cliente
+
+ADD-ONS POSTERIORES:
+
+   F6 Gestion de Ads (3 meses):       $2,000 - $4,000 / mes
+   F8 Retainer Optimizacion mensual:  $1,500 - $3,000 / mes
+
+
+--------------------------------------------------------------------------------
+8. GARANTIAS Y POLITICA DE SALIDA
+--------------------------------------------------------------------------------
+
+LO QUE SI SE GARANTIZA:
+
+   - Entrega completa de los entregables descritos
+   - Calidad metodologica conforme al Documento Canonico de Orden
+   - Atencion profesional durante todo el plazo del Servicio
+   - Confidencialidad de tu informacion durante 5 anos post-cierre
+   - Transferencia documentada (Libro Sagrado + sesion de transferencia)
+
+LO QUE NO SE GARANTIZA:
+
+   - Resultados especificos de facturacion, leads, conversiones, trafico
+   - Compatibilidad con cambios futuros de plataformas de terceros
+     (Meta, Google, GHL pueden cambiar APIs y romper integraciones)
+   - Resultados si tu no implementas las recomendaciones entregadas
+
+POR QUE NO GARANTIZAMOS FACTURACION:
+
+   Porque ningun consultor honesto puede. La facturacion depende de tu
+   producto, tu mercado, tu ejecucion comercial y variables fuera del
+   control del consultor. Cualquiera que la garantice esta mintiendo
+   o inflando 10x el precio para cubrir el riesgo.
+
+GARANTIA DE PROCESO (UNICA REEMBOLSABLE):
+
+   Hay 1 ventana de salida documentada: al cierre de F2 con el Veredicto.
+   Si el Veredicto es No Apto, se reembolsa el 30% no facturado.
+   Si el Veredicto es Apto pero tu prefieres no continuar, se entrega
+   lo producido hasta ahi sin reembolso adicional.
+
+   Despues de F2 firmada, el avance es comprometido por ambas partes.
+
+CLAUSULA DE PAUSA:
+
+   Si por causas no imputables al consultor (inputs no entregados,
+   indisponibilidad del cliente, etc.) el proyecto excede 10 semanas,
+   se activa pausa automatica. Reanudacion requiere acuerdo escrito.
+
+
+--------------------------------------------------------------------------------
+9. EL PRIMER PASO: DIAGNOSTICO NATIVO
+--------------------------------------------------------------------------------
+
+Antes de cualquier inversion, el siguiente paso es reservar el
+DIAGNOSTICO NATIVO GRATUITO.
+
+Es una sesion de 90 minutos donde aplicamos las primeras 2 fases del
+sistema (FUNDAMENTO + VIABILIDAD) a tu negocio real.
+
+QUE OBTIENES AL FINAL DE LOS 90 MINUTOS:
+
+   1. Un VEREDICTO FORMAL DOCUMENTADO: Apto / Apto con condiciones /
+      Aplazable / No Apto
+
+   2. Las razones especificas detras del veredicto
+
+   3. Recomendaciones concretas sobre que hacer ahora,
+      avances con Sistema Nativo o no
+
+EL DOCUMENTO ES TUYO. Te quedas con el aunque decidas no avanzar al
+Construccion Integral.
+
+CONDICIONES PARA RESERVAR:
+
+   - Eres tu (founder/decisor) quien participa
+   - Has completado el cuestionario previo (5-7 minutos)
+   - Vienes con la intencion real de escuchar el veredicto,
+     sea cual sea
+
+COMO RESERVAR:
+
+   1. Completar cuestionario en: [URL DEL FORMULARIO]
+   2. Si pasas la pre-cualificacion, recibis link al calendario
+   3. Reservas slot (90 min) en horario disponible
+   4. Recibis email con preparacion previa (no es obligatoria)
+   5. Tenemos la sesion. Al finalizar, recibis el Veredicto formal
+      en las siguientes 48 horas.
+
+SIN COMPROMISO DE COMPRA. Sin scripts de cierre. Una conversacion
+honesta de 90 minutos.
+
+
+
+================================================================================
+PARTE II - PLAN OPERATIVO INTERNO (para el consultor / equipo)
+================================================================================
+
+--------------------------------------------------------------------------------
+10. VOCABULARIO Y GLOSARIO
+--------------------------------------------------------------------------------
+
+N.A.T.I.V.O.
+    Nucleo de Arquitectura, Tono, Identidad, Valor y Objetivo.
+    Es el acronimo que da nombre a la metodologia.
+
+FASE
+    Una de las 9 etapas lineales del Sistema (FND, VIA, MDL, EXP, ARC,
+    ADQ, OPS, EVO, ESC).
+
+MODULO
+    Division dentro de una fase. Ejemplo: NARRATIVA es un modulo dentro
+    de EXPRESION.
+
+SUBMODULO
+    Paso dentro de un modulo. Ejemplo: EXP-NAR-N3 Buyer Persona.
+
+SUBCHAT
+    Instancia de ejecucion de un submodulo con IA (tipicamente ChatGPT
+    o Claude). Cada subchat se ejecuta con prompts maestros del sistema.
+
+SSOT
+    Single Source of Truth. El documento "ADN del Cliente" que contiene
+    toda la informacion verdadera del cliente. Toda fase del sistema lee
+    sus inputs desde aqui.
+
+EVERGREEN
+    Embudo o secuencia que opera 24/7 sin requerir intervencion por venta.
+
+TRIADA NARRATIVA / TRI-VOZ
+    Estructura de email de 3 angulos: logica, emocion, historia. Tres
+    correos sobre el mismo punto desde voces distintas.
+
+CORE OFFER
+    El servicio principal vendible. En V1.0 = Sistema Nativo Construccion
+    Integral.
+
+GATE DE CALIDAD
+    Punto de control entre fases donde el sistema se detiene si el output
+    no cumple criterios objetivos. No se avanza "por buena fe".
+
+VEREDICTO
+    Salida binaria/cuaternaria de F2: Apto / Apto con condiciones /
+    Aplazable / No Apto.
+
+LIBRO SAGRADO DEL NEGOCIO
+    Documento final de entrega al cliente. Manual operativo completo +
+    sistema vivo para autonomia del cliente post-proyecto.
+
+MATRIZ RACI
+    Tabla que define quien hace que: Responsible / Accountable /
+    Consulted / Informed. Se firma al inicio de cada proyecto.
+
+POLITICA DE EXCLUSION
+    Documento publico que define a quien NO se le vende y por que.
+    Mecanismo de proteccion mutua.
+
+MODULO TRV-*
+    Modulo transversal. Aplica a todas las fases, no es secuencial.
+    Hay 8: TRV-SSOT, TRV-RES, TRV-GAT, TRV-EXC, TRV-EXIT, TRV-AUD,
+    TRV-MET, TRV-COH.
+
+
+--------------------------------------------------------------------------------
+11. CODIGOS CANONICOS DE FASES Y MODULOS
+--------------------------------------------------------------------------------
+
+F1  FND  FUNDAMENTO
+    FND-GEN  Genesis              submodulos M0.1 a M0.7
+    FND-SRV  Servicios            submodulos S1 a S10
+
+F2  VIA  VIABILIDAD
+    VIA-EVL  Evaluacion           submodulos E1 a E9
+    VIA-GOV  Gobernanza H+IA      submodulos G0 a G8     [TRANSVERSAL]
+
+F3  MDL  MODELO
+    MDL-COM  Estructuracion Com.  submodulos C1 a C10
+    MDL-VAL  Validacion de Oferta submodulos V1 a V7
+
+F4  EXP  EXPRESION
+    EXP-NAR  Narrativa            submodulos N1 a N7
+
+F5  ARC  ARQUITECTURA
+    ARC-OFR  Oferta               submodulos O1 a O8
+    ARC-TRF  Trafico              submodulos T1 a T7
+    ARC-FNL  Funnels              submodulos F1 a F12
+
+F6  ADQ  ADQUISICION
+    ADQ-ADS  Publicidad           submodulos ADS1 a ADS7
+    [Add-on, no incluido en V1.0]
+
+F7  OPS  OPERACION
+    OPS-INT  Integracion          submodulos I1 a I12
+    OPS-VEN  Ventas               submodulos V1 a V8
+
+F8  EVO  EVOLUCION
+    EVO-DIA  Diagnostico          submodulos D1 a D10
+    EVO-OPT  Optimizacion         submodulos O1 a O9
+    EVO-REC  Recuperacion         submodulos R1 a R9
+    [Add-on, no incluido en V1.0]
+
+F9  ESC  ESCALA
+    ESC-SAAS                       submodulos SaaS1 a SaaS14
+    [Referencia futura, no se vende]
+
+TRV  TRANSVERSALES
+    TRV-SSOT  ADN del Cliente
+    TRV-RES   Responsabilidad por Fase (Matriz RACI)
+    TRV-GAT   Gates de Calidad entre fases
+    TRV-EXC   Exclusion Documentada (producto de "no")
+    TRV-EXIT  Salida y Autonomia del Cliente (Libro Sagrado)
+    TRV-AUD   Checklists de Auditoria Rapida
+    TRV-MET   Meta-auditoria de Entropia de la metodologia
+    TRV-COH   Coherencia Transversal
+
+
+--------------------------------------------------------------------------------
+12. LAS 9 FASES DEL SISTEMA (VISION COMPLETA)
+--------------------------------------------------------------------------------
+
+F1 FUNDAMENTO
+   Proposito: definir con precision QUE existe (producto/servicio) y
+              cual es el alcance basico antes de evaluar nada.
+   Modulos:
+      FND-GEN Genesis: existencia y definicion del producto/servicio
+      FND-SRV Servicios: inventario y empaquetamiento de servicios
+   Salida: SSOT v1 + definicion del producto en 1 frase.
+
+F2 VIABILIDAD
+   Proposito: evaluar si lo definido en F1 tiene futuro o no.
+   Modulos:
+      VIA-EVL Evaluacion Estrategica (9 ejes E1-E9)
+      VIA-GOV Gobernanza humano + IA (TRANSVERSAL)
+   Salida: VEREDICTO formal Apto / Apto con condiciones / Aplazable /
+           No Apto + documento de gobernanza personalizado.
+
+F3 MODELO
+   Proposito: validar mercado y construir la estructura comercial.
+   Modulos:
+      MDL-COM Estructuracion Comercial (C1-C10)
+      MDL-VAL Validacion de Oferta (V1-V7):
+              V1.1 Validacion de Mercado
+              V1.2 Competencia Directa e Indirecta
+              V1.3 Validacion de Pricing
+              V1.4 Encaje Buyer-Oferta
+              V1.5 Riesgos y Debilidades del Producto
+              V1.6 Oportunidades y Recomendaciones
+              V1.7 Veredicto Final de la oferta
+   Salida: documento de estructura comercial + validacion completa.
+
+F4 EXPRESION
+   Proposito: construir la narrativa coherente que envuelve todo.
+              Se ejecuta en paralelo con F3.
+   Modulos:
+      EXP-NAR Narrativa (N1-N7):
+              N1 Identidad Estrategica de Marca
+              N2 Historia, Proposito, Mision, Vision, Valores
+              N3 Buyer Persona Estrategico
+              N4 Tono de Voz y Estilo de Comunicacion
+              N5 Promesa Central de Marca
+              N6 Mensajes Clave y Copy Base (Message Map)
+              N7 Storytelling y Documento Maestro
+   Salida: Documento Maestro de Comunicacion Estrategica.
+
+F5 ARQUITECTURA
+   Proposito: disenar la oferta vendible y el embudo end-to-end.
+   Modulos:
+      ARC-OFR Oferta (O1-O8):
+              O1 Briefing del Producto/Servicio
+              O2 Propuesta de Valor
+              O3 Arquitectura de Oferta (paquetes, bonos, garantias)
+              O4 Blueprint del Embudo
+              O7 Ingenieria Inversa de Embudos
+              O8 Arquitectura Final consolidada
+      ARC-TRF Trafico (T1-T7): plan organico + pagado
+      ARC-FNL Funnels (F1-F12): construccion de funnels
+   Salida: blueprint completo + estructuras de landing aplicadas.
+
+F6 ADQUISICION  [Add-on, no V1.0]
+   Proposito: ejecutar adquisicion de trafico pagado.
+   Modulos:
+      ADQ-ADS Publicidad (ADS1-ADS7): incluye manual oficial Media Buyer
+   Salida: campanas vivas + reporting.
+
+F7 OPERACION
+   Proposito: integrar el sistema y dejarlo vivo y operable.
+   Modulos:
+      OPS-INT Integracion (I1-I12): CRM, workflows, automatizaciones
+      OPS-VEN Ventas (V1-V8): proceso de ventas, scripts, manejo de
+              objeciones
+   Salida: sistema vivo + documentacion operativa.
+
+F8 EVOLUCION  [Add-on, no V1.0]
+   Proposito: optimizacion continua post-lanzamiento.
+   Modulos:
+      EVO-DIA Diagnostico (D1-D10)
+      EVO-OPT Optimizacion (O1-O9)
+      EVO-REC Recuperacion (R1-R9)
+   Salida: retainer mensual de mejora continua.
+
+F9 ESCALA  [Referencia futura, no se vende]
+   Proposito: escalar via producto SaaS.
+   Modulos:
+      ESC-SAAS (SaaS1-SaaS14)
+   Estado: documentado como vision a 18-24 meses, no como producto vivo.
+
+
+--------------------------------------------------------------------------------
+13. LOS 8 MODULOS TRANSVERSALES TRV-*
+--------------------------------------------------------------------------------
+
+Los modulos TRV-* son las piezas de gobierno y control de calidad que
+atraviesan todas las fases. Nacieron de los aprendizajes acumulados al
+intentar monetizar la metodologia y descubrir que SIN ellos el sistema
+funcionaba tecnicamente pero la relacion comercial se degradaba.
+
+CADA MODULO TRV-* TIENE EN EL REPOSITORIO:
+   - Una carpeta propia
+   - Un DOC_Rector_TRV-XXX.md con definicion, cuando se aplica,
+     estructura, reglas
+   - (Pendiente) templates y checklists asociados
+
+TRV-SSOT  ADN del Cliente
+   Que es: documento unico de verdad sobre el cliente. Toda fase lee
+           desde aqui.
+   Problema que resuelve: sin SSOT, la informacion del cliente vive
+           fragmentada en correos, hojas y notas. Cada fase termina
+           re-preguntando lo mismo, generando inconsistencias entre
+           modulos.
+   Cuando se construye: durante F1 FUNDAMENTO. Se actualiza en cada
+           fase posterior.
+   Estructura: 9 secciones:
+      01 Identificacion
+      02 Contexto del negocio
+      03 Equipo y capacidad operativa
+      04 ICP del cliente del cliente
+      05 Situacion actual
+      06 Objetivos a 90 dias / 12 meses / 3 anos
+      07 Restricciones y no-negociables
+      08 Log de decisiones (con fecha y autor)
+      09 Campos pendientes
+   Regla dura: una sola version activa. Versionada. El cliente tiene
+           lectura, no escritura.
+
+TRV-RES  Responsabilidad por Fase (Matriz RACI)
+   Que es: matriz RACI por fase que define quien hace que entre
+           consultor y cliente.
+   Problema que resuelve: el consultor terminaba asumiendo trabajo del
+           cliente (grabar videos, escribir copies, conseguir activos).
+           El cliente pagaba "estructura" pero esperaba "ejecucion
+           total".
+   Cuando se firma: en la reunion de kickoff (Dia 4 del onboarding).
+   Reglas duras:
+      - El consultor NO graba videos, NO escribe copy emocional del
+        cliente, NO conduce las llamadas de venta. Estructura si,
+        voz no.
+      - El cliente entrega inputs en plazo o la fase se pausa.
+      - Toda aprobacion (A) requiere firma o registro explicito.
+      - Si el cliente quiere transferir R suyas al consultor:
+        cambio de alcance documentado + ajuste de presupuesto.
+
+TRV-GAT  Gates de Calidad
+   Que es: puntos de control de calidad entre fases. Si el output no
+           cumple criterios, no se avanza.
+   Problema que resuelve: sin gates, cada fase arranca con inputs
+           incompletos o de baja calidad. La deuda se acumula y se
+           manifiesta al final como "el sistema no funciona".
+   Estructura de cada gate:
+      - Pre-condiciones
+      - Criterios objetivos (lista verificable si/no)
+      - Decisor: consultor evalua, cliente firma
+      - Salidas: Pasa / Pasa con observaciones / No pasa
+      - Tiempo maximo de correccion: 7 dias habiles
+   Regla dura: un gate NO pasa por "buena fe" o "ya casi". Si falta
+           un item objetivo, no pasa.
+
+TRV-EXC  Exclusion Documentada
+   Que es: producto-entregable cuando se rechaza un cliente. Convierte
+           el "no" en valor.
+   Problema que resuelve: el consultor sentia culpa al rechazar
+           clientes y tendia a aceptar proyectos inviables.
+   Cuando se activa:
+      - Veredicto No Apto en F2
+      - Cliente no entrega inputs en plazo
+      - Gate fallido sin correccion
+      - Cliente viola no-negociables del SSOT
+      - Comportamiento abusivo o mala fe
+   Estructura del documento de exclusion:
+      01 Situacion (hechos verificables)
+      02 Criterios no cumplidos (citando modulo y item)
+      03 Intentos de resolucion
+      04 Decision (Total / Aplazada / Reorientada)
+      05 Condiciones de re-enganche si aplica
+      06 Recomendaciones profesionales
+      07 Cierre financiero
+      08 Firma y cierre
+   Regla dura: tono profesional, no emocional. Solo hechos verificables.
+
+TRV-EXIT  Salida y Autonomia del Cliente (Libro Sagrado)
+   Que es: documento consolidado final que se entrega al cierre.
+           Manual de operacion del sistema construido.
+   Problema que resuelve: sin TRV-EXIT el cliente queda dependiente
+           del consultor para cualquier operacion futura.
+   Estructura del Libro Sagrado: ver detalle en seccion 5 de Parte I.
+   Formato de entrega: PDF maestro + sistema vivo + sesion de
+           transferencia de 2-4 horas grabada.
+   Regla dura: el cliente debe poder seguirlo solo. Si requiere que el
+           consultor explique algo, el documento esta incompleto.
+
+TRV-AUD  Checklists de Auditoria Rapida
+   Que es: conjunto de checklists ejecutables en menos de 30 minutos
+           para revisar la salud del sistema en produccion.
+   Problema que resuelve: sin auditorias programadas, el primer
+           sintoma de que algo se rompio es la perdida de ventas.
+   Tipos:
+      AUD-DIA  Diaria (5 min) - cliente verifica lo critico
+      AUD-SEM  Semanal (15 min) - indicadores y workflows
+      AUD-MES  Mensual (30 min) - diagnostico estructural
+      AUD-EST  Estructural Profunda (2h, trimestral) - consultor
+   Regla dura: las auditorias no se saltan. Hallazgos rojos requieren
+           accion en plazo segun severidad.
+
+TRV-MET  Meta-auditoria de Entropia
+   Que es: auditoria que el Sistema Nativo se hace a si mismo
+           (no a clientes). Detecta entropia de la metodologia.
+   Problema que resuelve: toda metodologia tiende al desorden con el
+           tiempo. Sin meta-auditoria, en 12 meses Sistema Nativo deja
+           de ser un sistema y vuelve a ser una coleccion de
+           documentos.
+   Periodicidad:
+      - Trimestral: revision rapida 1-2h
+      - Anual: revision profunda 1 semana
+   Dimensiones auditadas:
+      1 Coherencia interna del corpus
+      2 Aplicacion real (que modulos se usan, cuales no)
+      3 Vocabulario y consistencia lexica
+      4 Calidad del entregable
+      5 Cumplimiento de principios fundacionales
+      6 Salud economica del modelo
+   Regla dura: cambios sugeridos por TRV-MET requieren revision
+           humana antes de aplicarse. Modulos eliminados se mueven a
+           99_LEGACY, no se borran.
+
+TRV-COH  Coherencia Transversal
+   Que es: validacion cruzada de coherencia entre documentos de
+           distintas fases para un cliente concreto.
+   Problema que resuelve: cada fase produce documentos validos en si
+           mismos. Sin TRV-COH no hay nadie verificando que el
+           conjunto sea coherente.
+   Cuando se ejecuta:
+      - Al cierre de cada fase mayor (F2, F3, F4, F5, F7)
+      - Antes de Gate-F8 (cierre de proyecto)
+      - Cuando se cambia algo importante en el SSOT
+   Ejes de coherencia validados:
+      - SSOT <-> Todos los docs
+      - Narrativa (F4) <-> Oferta (F5)
+      - Oferta (F5) <-> Pricing (F3)
+      - Embudo (F5) <-> Mensajes (F4)
+      - Operacion (F7) <-> Arquitectura (F5)
+      - Workflows <-> Politica de Exclusion
+      - Metricas declaradas <-> Tracking real
+   Regla dura: hallazgos rojos bloquean el avance hasta resolverse.
+
+
+--------------------------------------------------------------------------------
+14. ESTRUCTURA DEL REPOSITORIO
+--------------------------------------------------------------------------------
+
+Carpeta raiz: actualmente "Marketing Nativo", pendiente renombrar a
+"Sistema Nativo".
+
+Sistema Nativo/
+|
++-- CLAUDE.md                          Guia operativa de Claude Code
++-- README.md                          Indice humano del repositorio
++-- Sistema_Nativo_Brochure_y_Plan_Completo.txt   (este archivo)
+|
++-- 01_METODOLOGIA/                    Plantillas maestras (no cambian)
+|   +-- 00_Filosofia_y_Gobernanza/
+|   |   +-- 01_Filosofia_y_Principios/
+|   |   +-- 02_Metodologia_y_Orden/
+|   |   +-- 03_SOPs_Operacion/
+|   |   +-- _Base_del_Proyecto/
+|   +-- 01_Fases/
+|   |   +-- F1_FUNDAMENTO_FND/
+|   |   +-- F2_VIABILIDAD_VIA/
+|   |   +-- F3_MODELO_MDL/
+|   |   +-- F4_EXPRESION_EXP/
+|   |   +-- F5_ARQUITECTURA_ARC/
+|   |   +-- F6_ADQUISICION_ADQ/        [add-on, no V1.0]
+|   |   +-- F7_OPERACION_OPS/
+|   |   +-- F8_EVOLUCION_EVO/          [add-on, no V1.0]
+|   |   +-- F9_ESCALA_ESC/             [referencia futura]
+|   +-- 02_Modulos_Transversales/
+|   |   +-- TRV-SSOT_ADN_del_Cliente/
+|   |   +-- TRV-RES_Responsabilidad_por_Fase/
+|   |   +-- TRV-GAT_Gates_de_Calidad/
+|   |   +-- TRV-EXC_Exclusion_Documentada/
+|   |   +-- TRV-EXIT_Salida_Autonomia_Cliente/
+|   |   +-- TRV-AUD_Checklists_Auditoria_Rapida/
+|   |   +-- TRV-MET_Meta_Auditoria_Entropia/
+|   |   +-- TRV-COH_Coherencia_Transversal/
+|   |   +-- _BACKLOG.md
+|   +-- 03_Prompts_Maestros/          Prompts y GPTs internos
+|   +-- 04_Modulo_Diagnostico_Standalone/
+|   +-- 05_Guias_y_Protocolos/
+|
++-- 02_PRODUCTO_COMERCIAL/             Oferta visible al cliente
+|   +-- 00_Posicionamiento/            Identidad, ICP, propuesta valor
+|   +-- 01_Oferta/
+|   |   +-- Paquete_Construccion_Integral.md
+|   |   +-- Pricing_y_Justificacion.md
+|   +-- 02_Embudo_y_Mensajes/
+|   |   +-- SalesPage_v1.md
+|   |   +-- Estructura_VSL.md
+|   |   +-- Estructura_Llamada_Descubrimiento.md
+|   |   +-- CaseStudy_Formacion_Hispana.md
+|   |   +-- Mapa Narrativo del Embudo.docx
+|   |   +-- Mensajes Clave y Copy Base.docx
+|   +-- 03_Operacion_Comercial/
+|   |   +-- Contrato_Marco_de_Servicios.md
+|   |   +-- Politica_de_Exclusion.md
+|   |   +-- Cuestionario_Pre_Diagnostico.md
+|   |   +-- Onboarding_del_Cliente.md
+|   +-- 04_Partners/
+|   +-- 05_Recursos_Externos/
+|
++-- 03_CASOS_APLICADOS/                Instancias reales
+|   +-- FLAGSHIP_Caso_Anonimo_Formacion/      (Vendemas anonimizado)
+|   +-- META_Sistema_Nativo_aplicado_a_si_mismo/
+|   +-- MENOR_Westchester_Ride_SEO/
+|
++-- 04_MATERIAL_EN_BRUTO/              Insumos no expuestos al cliente
+|   +-- Audios_Originales/
+|   +-- Transcripciones/
+|   +-- Resumenes_Procesados/
+|
++-- 99_LEGACY/                         Cuarentena del paradigma viejo
+    +-- AGENCIA_VIEJA_*.docx
+    +-- SISTEMA_NATIVO_PRODUCTO_v0_obsoleta/
+    +-- DOCUMENTOS_FINALES_pre_canonicos/
+
+
+--------------------------------------------------------------------------------
+15. REGLAS DE GOBIERNO: RACI, GATES, EXCLUSION
+--------------------------------------------------------------------------------
+
+REGLAS RACI (resumen extraido de TRV-RES):
+
+   Convenciones:
+      R = Responsible (hace el trabajo)
+      A = Accountable (aprueba y rinde cuentas)
+      C = Consulted   (es consultado)
+      I = Informed    (es informado)
+
+   Por fase, distribucion clave Consultor / Cliente:
+
+   F1 FUNDAMENTO
+      - Definir producto/servicio:           C,R  /  A
+      - Completar SSOT inicial:              R    /  A,C
+
+   F2 VIABILIDAD
+      - Emitir Veredicto:                    R,A  /  C,I
+      - Aceptar o rechazar Veredicto:        I    /  A
+
+   F3 MODELO
+      - Disenar estructura comercial:        R    /  A,C
+      - Validacion mercado/competencia:      R    /  C
+      - Decidir pricing final:               C    /  A,R
+
+   F4 EXPRESION
+      - Producir documentos narrativa:       R    /  A,C
+      - Proveer historia/origen/valores:     C    /  R
+
+   F5 ARQUITECTURA
+      - Disenar arquitectura oferta:         R    /  A
+      - Crear assets visuales:               I    /  R,A
+      - Disenar blueprint embudo:            R    /  A
+      - Conseguir herramientas (GHL etc):    I    /  R,A
+
+   F6 ADQUISICION
+      - Plan de ads y metricas:              R    /  A
+      - Cuenta de ads y presupuesto:         I    /  R,A
+
+   F7 OPERACION
+      - Configurar CRM y workflows:          R,A  /  C
+      - Proveer accesos:                     I    /  R
+      - Disenar script de ventas:            R    /  A,C
+      - Ejecutar las ventas (llamadas):      C    /  R,A
+
+   F8 EVOLUCION
+      - Diagnostico mensual:                 R    /  A,C
+      - Implementar optimizaciones:          R    /  A
+
+REGLAS DURAS NO NEGOCIABLES:
+
+   1. El consultor NO graba videos, NO escribe copy emocional del
+      cliente, NO conduce las llamadas de venta del cliente.
+   2. El cliente entrega inputs en plazo o la fase se pausa.
+      No se compensa con extension gratuita.
+   3. Toda aprobacion (A) requiere firma o registro explicito en SSOT.
+   4. Si el cliente quiere transferir una R suya al consultor:
+      cambio de alcance documentado + ajuste de presupuesto.
+
+GATES DE CALIDAD POR FASE (resumen extraido de TRV-GAT):
+
+   Gate-F1: SSOT 01-05 completo, producto en 1 frase aprobada,
+            RACI firmada, acceso a historico entregado.
+
+   Gate-F2: Veredicto emitido. Si Apto: documento de gobernanza
+            firmado. Si No Apto: TRV-EXC ejecutado + reembolso 30%.
+            Si Aplazable: condiciones de re-evaluacion documentadas.
+
+   Gate-F3: Pricing final aprobado, validacion de mercado con 5+
+            fuentes, analisis competencia con 3+ directos, encaje
+            Buyer-Oferta validado.
+
+   Gate-F4: Buyer Persona aprobado, tono con 10+ ejemplos, mensajes
+            probados con 3+ personas del ICP, Documento Maestro
+            consolidado.
+
+   Gate-F5: Blueprint aprobado, assets visuales entregados por
+            cliente, herramientas provisionadas, estructura landing
+            completa.
+
+   Gate-F7: CRM configurado y probado end-to-end, workflows criticos
+            probados con datos reales, secuencias evergreen activas,
+            documento de operacion entregado.
+
+   Gate-F8: Libro Sagrado entregado, cliente capacitado en operacion
+            autonoma, ultima auditoria rapida aprobada, encuesta de
+            cierre completada.
+
+POLITICA DE EXCLUSION (resumen extraido de Politica_de_Exclusion.md):
+
+   No se acepta cliente que activa cualquiera de estos puntos:
+
+   1. Negocios sin producto/servicio definido
+   2. Esperan resultados garantizados de facturacion
+   3. Han abandonado 2+ proveedores sin razones tecnicas
+   4. Negocios en zona gris regulatoria
+   5. Negocian precio antes de entender alcance
+   6. Negocios fisicos sin componente digital relevante
+   7. Requieren NDA antes de la primera conversacion
+   8. Decisor no es founder/CEO
+
+   El "no" se entrega como TRV-EXC: documento profesional con razones,
+   condiciones de re-enganche si aplica, recomendaciones, cierre
+   financiero, firmas.
+
+
+--------------------------------------------------------------------------------
+16. CONVENCIONES DE TRABAJO
+--------------------------------------------------------------------------------
+
+NOMBRES:
+
+   Carpetas: XX_NombreDescriptivo_SinTildes
+             (prefijo numerico ordena, sin espacios, sin tildes)
+
+   Archivos: CATEGORIA_NombreDescriptivo.ext
+             Categorias: PROMPT_, DOC_, TEMPLATE_, README_, CHECKLIST_
+
+   Codigos canonicos: PREFIJO-MOD-INDICE (ej: EXP-NAR-N3)
+                      Mantienen guion medio porque son IDs estables.
+
+   Filesystem: evitar tildes, &, em-dash, parentesis en nombres NUEVOS.
+
+UN ARCHIVO, UNA UBICACION:
+
+   - Plantillas viven solo en 01_METODOLOGIA/
+   - Casos aplicados (03_CASOS_APLICADOS/) tienen INSTANCIAS
+     personalizadas al cliente, no copias del template.
+   - Activos comerciales viven solo en 02_PRODUCTO_COMERCIAL/
+
+TRABAJO CON .DOCX:
+
+   - Para documentos NUEVOS: crear como .md y exportar a .docx al
+     entregar al cliente.
+   - Para .docx existentes con edicion frecuente: crear espejo
+     Documento.source.md, editar siempre el .md, regenerar .docx
+     solo al final.
+   - Para leer .docx desde shell sin tool especifico:
+       unzip -p archivo.docx word/document.xml |
+         python -c "import sys,re; t=sys.stdin.read();
+                    t=re.sub(r'</w:p>','\n',t);
+                    t=re.sub(r'<[^>]+>',' ',t); print(t)"
+
+ANALISIS DE DOCUMENTOS CON IA:
+
+   1. Lectura completa obligatoria (100%) antes de cualquier
+      conclusion.
+   2. Prohibido rellenar huecos con conocimiento externo o patrones.
+   3. Separar output en: A literal, B interpretacion, C propuesta
+      propia.
+   4. Si un dato no esta: declararlo, no inferir.
+   5. Verificacion de coherencia antes de cerrar.
+   6. Cada documento es autonomo: no mezclar sin instruccion
+      explicita.
+
+ORDEN DE EJECUCION CANONICO:
+
+   - F1 + F2 son gates obligatorios. Si no pasan, NO se ejecuta el
+     resto.
+   - F3 + F4 son paralelas (modelo + narrativa juntos).
+   - F5 + F6 + F7 son secuenciales.
+   - F8 es continua post-lanzamiento.
+   - F9 es opcional y futura.
+   - VIA-GOV es TRANSVERSAL: aplica a todas las fases simultaneamente.
+   - Modulos TRV-* son todos transversales.
+
+
+
+================================================================================
+PARTE III - METODOLOGIA ADAPTABLE A OTROS PROYECTOS
+================================================================================
+
+Esta parte esta pensada para que otra IA (o consultor humano) pueda tomar
+la metodologia y adaptarla a un proyecto distinto. Contiene los
+principios universales, las decisiones criticas y los errores
+documentados.
+
+
+--------------------------------------------------------------------------------
+17. PRINCIPIOS UNIVERSALES DEL SISTEMA NATIVO
+--------------------------------------------------------------------------------
+
+Estos principios trascienden el contexto especifico de marketing y son
+adaptables a cualquier metodologia de consultoria estructurada:
+
+PRINCIPIO 1 - EVALUACION ANTES DE EJECUCION
+
+   No se ejecuta tactica sobre cimientos que no se han evaluado.
+   Toda intervencion empieza con FUNDAMENTO + VIABILIDAD y solo avanza
+   si pasa el Veredicto formal.
+
+   Adaptacion: en cualquier dominio (no solo marketing), la fase 1-2
+   debe ser de evaluacion. Si la evaluacion da No Apto, se entrega el
+   diagnostico y se cierra. Nunca se ejecuta "a ver que pasa".
+
+PRINCIPIO 2 - GATES DE CALIDAD ENTRE FASES
+
+   El sistema se detiene si el output de una fase no cumple criterios
+   objetivos. No "por buena fe". No "ya casi".
+
+   Adaptacion: cualquier metodologia secuencial requiere puntos de
+   control verificables (listas si/no) que firmen ambas partes antes
+   de avanzar.
+
+PRINCIPIO 3 - SSOT (SINGLE SOURCE OF TRUTH)
+
+   Toda la informacion verdadera del cliente vive en UN documento
+   versionado. Las fases leen desde ahi. Si algo no esta en SSOT,
+   se declara, no se infiere.
+
+   Adaptacion: cualquier proyecto de consultoria larga necesita SSOT.
+   Sin el, la fragmentacion mata la coherencia.
+
+PRINCIPIO 4 - RACI EXPLICITO ANTES DE EMPEZAR
+
+   Antes de cualquier trabajo, firmar quien hace que. El consultor NO
+   asume responsabilidades del cliente "por inercia". Si el cliente
+   quiere transferirlas: cambio de alcance + ajuste de precio.
+
+   Adaptacion: aplicable a cualquier servicio profesional largo.
+
+PRINCIPIO 5 - POLITICA DE EXCLUSION PUBLICA
+
+   Definir y publicar a quien NO se le vende. Es proteccion mutua:
+   el consultor no entra en proyectos malos, el cliente no contrata
+   un servicio que no le sirve.
+
+   Adaptacion: hace falta saber quienes NO son nuestros clientes
+   antes de saber quienes si. La politica publica filtra leads y
+   protege la reputacion.
+
+PRINCIPIO 6 - CONVERTIR EL "NO" EN PRODUCTO
+
+   Cuando se rechaza un cliente, no es un "no" simple por correo.
+   Es un documento profesional (TRV-EXC) que explica razones,
+   condiciones de re-enganche, recomendaciones. Convierte el rechazo
+   en valor entregado.
+
+   Adaptacion: cualquier filtro de clientes debe tener un "no
+   productizado" que mantenga la puerta abierta y proteja la
+   reputacion.
+
+PRINCIPIO 7 - TRANSFERENCIA DE AUTONOMIA AL CLIENTE
+
+   El proyecto termina con un documento entregable (Libro Sagrado) que
+   permite al cliente operar el sistema sin depender del consultor.
+   Si requiere que el consultor explique algo, esta incompleto.
+
+   Adaptacion: cualquier consultoria que pretenda escalar (y no
+   convertirse en dependencia cronica) necesita un equivalente.
+
+PRINCIPIO 8 - AUDITORIA CONTINUA EN MULTIPLES NIVELES
+
+   Tres niveles de auditoria:
+      - Operativa (TRV-AUD): salud del sistema del cliente vivo
+      - Coherencia (TRV-COH): consistencia entre docs del cliente
+      - Meta (TRV-MET): entropia de la propia metodologia
+
+   Adaptacion: una metodologia sin auditoria periodica decae.
+
+PRINCIPIO 9 - HONESTIDAD COMERCIAL ESTRUCTURAL
+
+   No garantizar lo que no se puede garantizar (resultados de venta).
+   Garantizar lo que si se puede garantizar (proceso, entregables,
+   transferencia). Cualquier alternativa erosiona la confianza.
+
+   Adaptacion: aplicable a TODO servicio profesional. Los proveedores
+   que prometen resultados que no controlan son los que mas demandas
+   reciben.
+
+PRINCIPIO 10 - VOCABULARIO PROPIO COMO HERRAMIENTA, NO COMO MARKETING
+
+   El acuriamiento de terminos (N.A.T.I.V.O., SSOT, Veredicto, Libro
+   Sagrado) sirve para precision interna, no para impresionar
+   prospectos. Cada termino tiene definicion exacta en el glosario.
+
+   Adaptacion: si una metodologia adopta vocabulario propio, debe
+   documentarlo en glosario riguroso. Si no, se diluye.
+
+
+--------------------------------------------------------------------------------
+18. COMO ADAPTAR LA METODOLOGIA A OTRO TIPO DE NEGOCIO
+--------------------------------------------------------------------------------
+
+ESTE METODO ESTA DISENADO PARA MARKETING DE NEGOCIOS DIGITALES HISPANOS.
+PARA ADAPTARLO A OTRO DOMINIO, SEGUIR ESTE PROCESO:
+
+PASO 1 - IDENTIFICAR EL EQUIVALENTE FUNCIONAL DE CADA FASE
+
+   En tu dominio, cual es:
+      - El equivalente de FUNDAMENTO (definicion clara del objeto)?
+      - El equivalente de VIABILIDAD (evaluacion antes de ejecutar)?
+      - El equivalente de MODELO (validacion de mercado/contexto)?
+      - El equivalente de EXPRESION (narrativa/identidad)?
+      - El equivalente de ARQUITECTURA (estructura operativa)?
+      - El equivalente de OPERACION (sistema vivo)?
+      - El equivalente de EVOLUCION (mejora continua)?
+
+   Ejemplo en consultoria de desarrollo de software:
+      F1 = Discovery y definicion de producto
+      F2 = Tech feasibility + viabilidad de negocio
+      F3 = Validacion tecnica + arquitectura logica
+      F4 = UX y experiencia
+      F5 = Arquitectura tecnica detallada
+      F7 = Implementacion y deploy
+      F8 = Optimizacion post-launch
+
+   Ejemplo en consultoria organizacional:
+      F1 = Mapeo del estado actual
+      F2 = Diagnostico de viabilidad del cambio
+      F3 = Modelo de gobierno objetivo
+      F4 = Comunicacion y narrativa del cambio
+      F5 = Arquitectura organizacional propuesta
+      F7 = Implementacion del cambio
+      F8 = Acompanamiento de adopcion
+
+PASO 2 - MANTENER LOS 8 MODULOS TRANSVERSALES TAL CUAL
+
+   Los TRV-* son DOMINIO-INDEPENDIENTES. Aplican a cualquier
+   consultoria estructurada:
+
+      TRV-SSOT  - cualquier proyecto necesita un SSOT
+      TRV-RES   - cualquier proyecto necesita RACI explicita
+      TRV-GAT   - cualquier proyecto necesita gates entre fases
+      TRV-EXC   - cualquier proyecto necesita politica de exclusion
+      TRV-EXIT  - cualquier proyecto necesita transferencia
+      TRV-AUD   - cualquier sistema vivo necesita auditoria
+      TRV-MET   - cualquier metodologia necesita meta-auditoria
+      TRV-COH   - cualquier corpus necesita validacion de coherencia
+
+PASO 3 - ADAPTAR EL ICP Y LA POLITICA DE EXCLUSION
+
+   Reescribir:
+      - Quien es el cliente ideal en este nuevo dominio
+      - A quien NO se le vende y por que
+
+   Mantener la estructura de 8 puntos de exclusion (adaptando
+   contenido). Hacerla publica.
+
+PASO 4 - ADAPTAR EL PRICING
+
+   Aplicar la misma logica:
+      - Pricing por valor, no por horas
+      - Rango con justificacion publica
+      - Cronograma de pago atado a gates (no a tiempo)
+      - Sin descuentos por negociacion
+      - Excepciones cerradas y documentadas
+
+PASO 5 - MANTENER LOS PRINCIPIOS DE PARTE III SECCION 17
+
+   Los 10 principios son universales. Adaptar solo el VOCABULARIO al
+   nuevo dominio (sustituyendo terminos como "embudo", "buyer
+   persona", "evergreen" por equivalentes del nuevo campo).
+
+PASO 6 - DEFINIR EL EQUIVALENTE DEL LIBRO SAGRADO
+
+   Cual es el documento operativo final que el cliente recibe en este
+   dominio? Mantener la estructura de 7 partes adaptando contenido.
+
+PASO 7 - ITERAR CON META-AUDITORIA TRIMESTRAL
+
+   Los primeros 3-4 proyectos adaptados van a revelar fricciones
+   especificas del nuevo dominio. Aplicar TRV-MET despues de cada
+   uno para refinar.
+
+
+--------------------------------------------------------------------------------
+19. DECISIONES CRITICAS TOMADAS Y POR QUE
+--------------------------------------------------------------------------------
+
+Estas decisiones explican el "por que" de muchas elecciones del Sistema
+Nativo. Servir de referencia para alguien que adapte el metodo:
+
+DECISION 1: SERVICIO PRODUCTIZADO, NO PRODUCTO
+
+   Que: Sistema Nativo se vende como SERVICIO que el consultor ejecuta,
+        no como producto que el cliente aplica solo (curso/SaaS).
+   Por que: la primera monetizacion como "metodologia/curso" fracaso.
+        Lo valioso del Sistema esta en la aplicacion experta, no en
+        las plantillas. Vender plantillas sin aplicacion = decepcion
+        garantizada.
+   Implicacion para adaptar: si tienes un metodo, vendelo como
+        servicio. Empaquetar como producto vendible al usuario final
+        es mucho mas dificil y casi nunca funciona.
+
+DECISION 2: ALCANCE V1.0 ACOTADO (6 FASES NO 9)
+
+   Que: vender F1+F2+F3+F4+F5+F7. No vender F6, F8, F9.
+   Por que: las 9 fases completas representan 16+ semanas por cliente
+        y ticket muy alto. Pocos founders compran proyectos de ese
+        tamaño sin track record consolidado. Tambien: el consultor
+        solo puede entregar bien un alcance acotado en paralelo.
+   Implicacion para adaptar: aunque tu metodologia tenga 12 piezas,
+        empieza vendiendo solo 6-7. El resto como add-ons posteriores.
+
+DECISION 3: SERVICIO COMPLETO DE INICIO (NO MVP ENTRADA)
+
+   Que: aun acotando a 6 fases, se vende como paquete integral
+        (no como F1 entrada paga + upsells).
+   Por que: el cliente que compra "solo F1" pocas veces avanza a F2 y
+        casi nunca termina el ciclo. El upsell post-F1 es alto en
+        friccion. El paquete integral con ventana de salida en F2
+        es mas claro y honesto.
+   Trade-off: ticket inicial mas alto = ciclo de venta mas largo.
+   Implicacion para adaptar: este es un calculo de tu industria.
+        Servicios de alto valor venden mejor integral. Servicios de
+        productividad ligera venden mejor entrada paga + upsells.
+
+DECISION 4: MARCA UNICA (NO PARAGUAS + SUB-MARCAS)
+
+   Que: "Sistema Nativo" como marca unica. Retirar "Marketing
+        Nativo" (paradigma viejo de agencia).
+   Por que: tener "Marketing Nativo como empresa + Sistema Nativo
+        como producto" confundia al mercado. La separacion solo
+        funciona si tienes mucha marca y portfolio amplio (Apple-
+        iPhone). Para un solo consultor, una sola marca.
+   Implicacion para adaptar: simplifica. Una marca, un producto
+        principal en V1.0. La complejidad de portfolio mata.
+
+DECISION 5: CASE STUDY ANONIMO POR DEFECTO
+
+   Que: el cliente flagship (Vendemas) se cuenta como "empresa
+        hispana de formacion" sin nombre.
+   Por que: la relacion fue compleja. Contarlo con nombre puede
+        generar fricciones futuras. El valor del caso esta en el
+        SISTEMA construido, no en el cliente especifico.
+   Implicacion para adaptar: la confianza del prospecto no necesita
+        ver el nombre del cliente. Necesita ver el problema/sistema/
+        resultado. Anonimizar es seguro y respetuoso.
+
+DECISION 6: ELIMINAR DUPLICACION FISICA (NO ARCHIVAR)
+
+   Que: los duplicados confirmados se BORRAN, no se archivan.
+   Por que: el archivo "por si acaso" es lo que generaba el caos
+        original. Confiar en el plan + el versionado del filesystem
+        (OneDrive/Git) es suficiente.
+   Implicacion para adaptar: para limpiezas grandes, si confias en
+        el plan, borra. Si dudas, archiva en LEGACY temporal con
+        fecha de borrado definitiva.
+
+DECISION 7: CONSERVAR LOS 3 CASOS (NO SOLO EL FLAGSHIP)
+
+   Que: mantener Vendemas (flagship), Meta (auto-aplicacion) y
+        Westchester (extensibilidad a sectores fisicos).
+   Por que: cada caso prueba una dimension distinta. Solo flagship
+        empobrece la narrativa. Los 3 muestran rango de aplicacion.
+   Implicacion para adaptar: 2-3 casos con angulos distintos > 1
+        case study estrella.
+
+DECISION 8: PRECIO RANGO $8K-$15K SIN VALIDAR AUN
+
+   Que: pricing propuesto sin validacion de mercado todavia.
+   Por que: era importante avanzar la reorganizacion en paralelo a
+        la validacion. El precio se cierra DESPUES de 3-5
+        conversaciones reales.
+   Implicacion para adaptar: el pricing teorico se valida con 3-5
+        conversaciones reales antes de publicarse. Cualquier pricing
+        sin validacion es ficcion.
+
+DECISION 9: PRIMERO REORGANIZAR, LUEGO VALIDAR (PARALELO)
+
+   Que: empezar la reorganizacion fisica sin esperar validacion
+        de mercado.
+   Por que: la reorganizacion es util con o sin validacion. La
+        validacion lleva semanas. Avanzar en dos frentes.
+   Trade-off: riesgo de empaquetar algo que el mercado modificara.
+   Implicacion para adaptar: el orden depende del costo de los dos
+        frentes. Si reorganizar es barato (como aqui), avanza. Si
+        reorganizar requiere meses, primero valida.
+
+DECISION 10: TODO EN ESPANOL, MERCADO HISPANO
+
+   Que: el sistema se vende solo en mercado hispano LATAM + US
+        hispano.
+   Por que: la metodologia, vocabulario, narrativa, cultura comercial
+        estan ancladas en hispano. Traducir a ingles requiere
+        re-trabajar todo.
+   Implicacion para adaptar: una metodologia se adapta MUY MAL
+        traduciendo. Mejor pensarla de cero en el otro idioma.
+
+
+--------------------------------------------------------------------------------
+20. ERRORES DOCUMENTADOS A EVITAR
+--------------------------------------------------------------------------------
+
+Aprendizajes de la primera iteracion fallida. Para cualquiera que adapte
+la metodologia, evitar estos patrones:
+
+ERROR 1 - SOBRE-PORTFOLIO INICIAL
+
+   Que paso: en la version anterior se ofrecia simultaneamente
+             desarrollo web, GHL, automatizaciones, SEO,
+             ciberseguridad, e infoproductos.
+   Por que es error: confundia al comprador. "Que vendes
+             exactamente?" no tenia respuesta clara.
+   Como evitar: V1.0 = UNA oferta principal + UN gancho. Todo lo
+             demas, backlog.
+
+ERROR 2 - CLIENTE EQUIVOCADO
+
+   Que paso: vendia a PYMEs y agencias que buscan "ejecucion
+             barata". Esos clientes nunca aprecian la arquitectura.
+   Por que es error: el cliente equivocado siempre va a pelear el
+             precio y el alcance, sin importar lo bueno que sea el
+             producto.
+   Como evitar: ICP claro + politica de exclusion publica + filtros
+             en el embudo.
+
+ERROR 3 - FALTA DE GOBIERNO OPERATIVO
+
+   Que paso: no habia contrato fuerte. No habia politica para
+             rechazar clientes mal calificados. No habia gates de
+             calidad. Cuando el cliente fallaba en sus inputs (videos
+             malos, copies malos), el consultor aceptaba la culpa.
+   Por que es error: sin gobierno, el consultor termina cargando todo
+             el riesgo operacional del cliente.
+   Como evitar: TRV-RES (RACI), TRV-GAT (gates), TRV-EXC (politica de
+             exclusion + producto del "no").
+
+ERROR 4 - METER EJECUCION TECNICA SIN ARQUITECTURA PREVIA
+
+   Que paso: los clientes contrataban "configura mi GHL" o
+             "configura mis ads" sin haber definido oferta, narrativa
+             o ICP. El consultor ejecutaba sobre cimientos vacios.
+   Por que es error: la ejecucion sin arquitectura siempre falla en
+             3-6 meses. El cliente culpa al ejecutor.
+   Como evitar: gate F1+F2 obligatorios antes de cualquier
+             ejecucion. Si el cliente quiere saltarse: NO se acepta.
+
+ERROR 5 - PROMESAS DE FACTURACION
+
+   Que paso: en propuestas iniciales se sugerian metas de
+             facturacion para "vender mejor".
+   Por que es error: nadie controla la facturacion del cliente
+             (depende de su producto, mercado, ejecucion, ciclo).
+             Prometerla = mentir o cobrar 10x.
+   Como evitar: garantizar solo lo controlable: proceso,
+             entregables, transferencia. Comunicarlo explicitamente
+             en sales page.
+
+ERROR 6 - DELEGAR LA EJECUCION DE VENTAS DEL CLIENTE
+
+   Que paso: clientes pedian "que el consultor cierre las llamadas
+             tambien". El consultor a veces aceptaba.
+   Por que es error: las ventas dependen de credibilidad del founder.
+             Externalizar las llamadas erosiona la confianza del
+             prospecto y diluye el aprendizaje del cliente.
+   Como evitar: en TRV-RES explicitar: "consultor disena script y
+             proceso, cliente ejecuta llamadas". No negociable.
+
+ERROR 7 - ENTREGAR SIN TRANSFERENCIA DOCUMENTADA
+
+   Que paso: al cerrar proyectos, el consultor entregaba "el sistema
+             funcionando" pero sin manual operativo. El cliente
+             quedaba dependiente del consultor para cualquier cambio.
+   Por que es error: genera relaciones cronicas de dependencia que
+             cansan a ambas partes y matan la escalabilidad del
+             consultor.
+   Como evitar: TRV-EXIT (Libro Sagrado) es entregable obligatorio.
+             Sin el, el proyecto no se cierra.
+
+ERROR 8 - NO MEDIR ENTROPIA DE LA PROPIA METODOLOGIA
+
+   Que paso: en 12-18 meses, el corpus metodologico acumulo
+             contradicciones entre versiones, modulos abandonados,
+             vocabulario inconsistente.
+   Por que es error: una metodologia sin meta-auditoria se vuelve
+             coleccion de documentos.
+   Como evitar: TRV-MET trimestral/anual. Borrar lo no usado.
+             Actualizar vocabulario.
+
+ERROR 9 - CONFUNDIR LA MARCA DE LA EMPRESA CON LA DEL PRODUCTO
+
+   Que paso: "Marketing Nativo" como empresa + "Sistema Nativo" como
+             producto = confusion del mercado.
+   Por que es error: solo Apple/iPhone-style funciona si tienes mucho
+             gasto en branding. Para un consultor solo, dilucion.
+   Como evitar: una marca, un producto principal. Si necesitas
+             segundo, justificar muy bien por que.
+
+ERROR 10 - EMPEZAR A VENDER ANTES DE TENER GOBIERNO
+
+   Que paso: en la primera iteracion se intento monetizar el metodo
+             antes de tener TRV-* (RACI, gates, exclusion, etc.).
+   Por que es error: sin gobierno, cada cliente nuevo es un riesgo
+             nuevo. La calidad colapsa con el segundo o tercer cliente
+             simultaneo.
+   Como evitar: tener los modulos de gobierno listos ANTES de
+             aceptar el primer cliente nuevo de V1.0.
+
+
+--------------------------------------------------------------------------------
+21. ROADMAP FUTURO (NO ESTA EN V1.0 PERO SE CONSIDERA)
+--------------------------------------------------------------------------------
+
+V1.0 (vigente): Servicio productizado de inicio integral acotado a
+                F1-F5+F7. Capacidad maxima 2 clientes en paralelo.
+                Mercado: founders hispanos.
+
+V1.5 (6-9 meses): introducir add-ons al servicio
+                F6 Ads management como retainer mensual.
+                F8 Optimizacion continua como retainer mensual.
+                Captura sistematica de datos de cada cliente.
+
+V2.0 (12-18 meses): expansion controlada
+                Posibilidad de incorporar 1 consultor adicional bajo
+                metodologia documentada.
+                Capacidad maxima 4 clientes en paralelo.
+                Programa de partners activado (revendedores).
+
+V3.0 (18-30 meses, opcional): primer producto digital
+                "Diagnostico Nativo" como herramienta web semi-
+                automatizada. Formulario inteligente que da
+                veredicto F1+F2 con asistencia de IA. Ticket bajo
+                ($297-$497). Validar antes de invertir desarrollo.
+
+V4.0 (24-36 meses, opcional): plataforma de gestion
+                Sistema Nativo SaaS interno para consultor + equipo.
+                Gestion de proyectos, SSOT en plataforma, gates
+                digitales, dashboards.
+
+V5.0 (36+ meses, opcional): SaaS publico (F9)
+                Producto vendible al cliente final (no a consultores
+                de Sistema Nativo). Requiere validacion masiva
+                previa de 50+ casos reales.
+
+DECISIONES PENDIENTES QUE BLOQUEAN ROADMAP:
+
+   - Rango de precio definitivo (requiere 3-5 conversaciones reales)
+   - Capacidad operativa real (cuantos clientes paralelos)
+   - Diagnostico Nativo standalone: gancho gratis o producto pago?
+   - Roadmap de add-ons (F6 cuando se activa? F8 cuando?)
+
+CONDICIONES DE TRANSICION ENTRE VERSIONES:
+
+   V1.0 -> V1.5: tras cerrar 3 clientes en V1.0 con caso documentado
+   V1.5 -> V2.0: tras 10 clientes cerrados + meta-auditoria positiva
+   V2.0 -> V3.0: tras 20 clientes + validacion de demanda para tool
+   V3.0 -> V4.0: tras 5 ventas de Diagnostico Nativo standalone
+   V4.0 -> V5.0: tras 50 casos reales + investor o capital propio
+
+
+================================================================================
+ANEXOS - REFERENCIAS RAPIDAS
+================================================================================
+
+ANEXO A - ARCHIVOS CLAVE DEL REPOSITORIO
+
+   Brochure cliente (este documento):
+      Sistema_Nativo_Brochure_y_Plan_Completo.txt
+
+   Sales page:
+      02_PRODUCTO_COMERCIAL/02_Embudo_y_Mensajes/SalesPage_v1.md
+
+   Paquete y pricing:
+      02_PRODUCTO_COMERCIAL/01_Oferta/Paquete_Construccion_Integral.md
+      02_PRODUCTO_COMERCIAL/01_Oferta/Pricing_y_Justificacion.md
+
+   Documentos operacion comercial:
+      02_PRODUCTO_COMERCIAL/03_Operacion_Comercial/Contrato_Marco_de_Servicios.md
+      02_PRODUCTO_COMERCIAL/03_Operacion_Comercial/Politica_de_Exclusion.md
+      02_PRODUCTO_COMERCIAL/03_Operacion_Comercial/Cuestionario_Pre_Diagnostico.md
+      02_PRODUCTO_COMERCIAL/03_Operacion_Comercial/Onboarding_del_Cliente.md
+
+   Embudo y mensajes:
+      02_PRODUCTO_COMERCIAL/02_Embudo_y_Mensajes/Estructura_Llamada_Descubrimiento.md
+      02_PRODUCTO_COMERCIAL/02_Embudo_y_Mensajes/Estructura_VSL.md
+      02_PRODUCTO_COMERCIAL/02_Embudo_y_Mensajes/CaseStudy_Formacion_Hispana.md
+
+   Modulos transversales (8 DOC_Rector):
+      01_METODOLOGIA/02_Modulos_Transversales/TRV-SSOT_*/DOC_Rector_TRV-SSOT.md
+      01_METODOLOGIA/02_Modulos_Transversales/TRV-RES_*/DOC_Rector_TRV-RES.md
+      01_METODOLOGIA/02_Modulos_Transversales/TRV-GAT_*/DOC_Rector_TRV-GAT.md
+      01_METODOLOGIA/02_Modulos_Transversales/TRV-EXC_*/DOC_Rector_TRV-EXC.md
+      01_METODOLOGIA/02_Modulos_Transversales/TRV-EXIT_*/DOC_Rector_TRV-EXIT.md
+      01_METODOLOGIA/02_Modulos_Transversales/TRV-AUD_*/DOC_Rector_TRV-AUD.md
+      01_METODOLOGIA/02_Modulos_Transversales/TRV-MET_*/DOC_Rector_TRV-MET.md
+      01_METODOLOGIA/02_Modulos_Transversales/TRV-COH_*/DOC_Rector_TRV-COH.md
+
+   Guia operativa Claude Code:
+      CLAUDE.md
+
+   Indice humano:
+      README.md
+
+ANEXO B - METRICAS RECOMENDADAS A TRACKEAR
+
+   En el embudo:
+      - Visitas a sales page
+      - % que completa cuestionario pre-diagnostico
+      - % de cuestionarios que pasan filtros y llegan a llamada
+      - % de llamadas que avanzan a Diagnostico
+      - % de Diagnosticos que compran Core
+      - Tiempo promedio del ciclo (primera visita -> compra)
+      - Origen de los leads (de donde vienen)
+
+   En la operacion:
+      - Tiempo real desde firma a inicio de F1 (objetivo: 5 dias)
+      - Tiempo real total por proyecto (objetivo: 6-10 semanas)
+      - % de gates que pasan a la primera
+      - % de proyectos que se cierran sin activacion de pausa
+      - NPS post-cierre
+
+   En la metodologia (TRV-MET):
+      - % de fases que se aplican en cada proyecto
+      - Modulos sin uso real
+      - Contradicciones detectadas
+      - Cambios de vocabulario o codigos
+
+ANEXO C - DECISIONES PENDIENTES (USUARIO)
+
+   Bloqueantes:
+      [ ] Rango de precio definitivo (validar con 3-5 conversaciones)
+      [ ] Capacidad operativa maxima en paralelo
+      [ ] Diagnostico Nativo: gratis o standalone pago?
+      [ ] Renombrar carpeta raiz: "Marketing Nativo" -> "Sistema Nativo"
+
+   Importantes:
+      [ ] Autorizar uso del case study (aunque sea anonimo) con
+          Vendemas (comunicarselo aunque no requiera permiso formal)
+      [ ] Revision legal del contrato marco antes de primer cliente
+      [ ] Cuando borrar definitivamente 99_LEGACY
+
+   Estrategicas:
+      [ ] Cuando activar F6 (Ads) y F8 (Evolucion) como add-ons
+      [ ] Plan de marketing para conseguir las primeras 3 ventas V1.0
+      [ ] Decision sobre canal principal de adquisicion organico
+
+
+================================================================================
+FIN DEL DOCUMENTO
+================================================================================
+
+Si lees esto y eres OTRA IA tratando de adaptar este metodo a otro
+proyecto:
+
+1. Lee primero la Parte III completa (principios, adaptacion, errores).
+2. Despues lee la Parte II (estructura operativa).
+3. Solo entonces lee la Parte I (brochure) para entender como se
+   comunica.
+
+El orden inverso (de brochure a principios) hace que la metodologia
+parezca solo marketing. El orden correcto (de principios a aplicacion)
+revela el sistema real.
+
+Si lees esto y eres EL CLIENTE potencial: la Parte I es lo que
+necesitas. Las Partes II y III estan abiertas si quieres ver "el motor",
+pero no son necesarias para decidir.
+
+Si lees esto y eres EL CONSULTOR: este documento es tu fuente de verdad
+operativa. Mantenlo actualizado en cada iteracion (TRV-MET trimestral).

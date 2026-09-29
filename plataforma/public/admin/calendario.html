@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <script src="/shared/turbo.min.js?v=20260797"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Calendario · Admin · Neurohackers</title>
+  <link rel="stylesheet" href="/shared/styles.css?v=20260797">
+  <style>
+    .cal-week {
+      display: grid; grid-template-columns: 120px repeat(7, 1fr);
+      gap: 0; margin-bottom: var(--space-4);
+      border: 1px solid var(--border-soft); border-radius: var(--radius-md); overflow: hidden;
+    }
+    .cal-week-head {
+      background: var(--surface-2); padding: var(--space-2);
+      font-family: var(--font-mono); font-size: 10px; letter-spacing: 1.5px;
+      text-transform: uppercase; color: var(--text-muted); font-weight: 600;
+      text-align: center; border-right: 1px solid var(--border-soft);
+    }
+    .cal-day {
+      min-height: 100px; padding: var(--space-2);
+      background: var(--surface); border-right: 1px solid var(--border-soft);
+      border-top: 1px solid var(--border-soft);
+      cursor: pointer; transition: background 150ms;
+    }
+    .cal-day:last-child { border-right: none; }
+    .cal-day:hover { background: var(--surface-2); }
+    .cal-day.hoy { background: var(--accent-soft); }
+    .cal-day.pasado { opacity: 0.5; }
+    .cal-day-num { font-weight: 600; font-size: var(--text-md); margin-bottom: 4px; }
+    .cal-evento {
+      background: var(--accent); color: white; padding: 2px 6px;
+      border-radius: 3px; font-size: 10px; margin-bottom: 2px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .cal-evento.presencial { background: #1E40AF; }
+    .cal-evento.virtual    { background: #0891B2; }
+    .cal-evento.tatiana_grupal { background: #7C3AED; }
+    .cal-evento.cancelada  { background: var(--text-muted); text-decoration: line-through; }
+
+    .cal-controls {
+      display: flex; gap: var(--space-2); align-items: center;
+      justify-content: space-between; margin-bottom: var(--space-4); flex-wrap: wrap;
+    }
+    @media (max-width: 700px) {
+      .cal-week { grid-template-columns: 60px repeat(7, 1fr); font-size: 11px; }
+      .cal-day { min-height: 70px; padding: 4px; }
+    }
+  </style>
+</head>
+<body class="with-sidebar admin-mode">
+
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<script>(function(){try{var c=localStorage.getItem("nav-cache-admin-v4");var w=document.getElementById("sidebar-wrapper");if(c&&w&&!w.firstChild)w.innerHTML=c;}catch(e){}})();</script>
+<div data-nav data-active="admin-calendario" data-base="../"></div>
+
+<div class="admin-strip">
+  <div class="admin-strip-inner">
+    <span class="admin-strip-dot"></span>
+    <span>CALENDARIO · SESIONES</span>
+    <span style="opacity: 0.5;">·</span>
+    <a href="index.html">Volver</a>
+  </div>
+</div>
+
+<main class="container-wide" id="main">
+
+  <section style="margin-bottom: var(--space-5);">
+    <span class="eyebrow">SESIONES PROGRAMADAS</span>
+    <h1 class="greeting-lg">Calendario.</h1>
+    <p class="lead">Sesiones presenciales (martes), virtuales (miércoles) y grupales con Tatiana (jueves). Click en un día vacío para agregar, click en sesión existente para editar/reprogramar.</p>
+  </section>
+
+  <div class="cal-controls">
+    <div style="display: flex; gap: var(--space-2); align-items: center;">
+      <button class="btn btn-secondary btn-sm" id="btn-prev">‹ Anterior</button>
+      <span id="rango-mes" style="font-weight: 600; font-size: var(--text-md); min-width: 200px; text-align: center;"></span>
+      <button class="btn btn-secondary btn-sm" id="btn-next">Siguiente ›</button>
+      <button class="btn btn-ghost btn-sm" id="btn-hoy">Hoy</button>
+    </div>
+    <button class="btn btn-accent btn-sm" id="btn-nueva">+ Nueva sesión</button>
+  </div>
+
+  <div id="calendario-grid"></div>
+
+</main>
+
+<!-- Modal sesión -->
+<div class="modal-backdrop hidden" id="modal-ses">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="ms-titulo">Nueva sesión</span>
+      <button class="modal-close" data-close-ms>✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-3);">
+        <div class="field">
+          <label class="field-label">Fecha *</label>
+          <input class="field-input" type="date" id="ms-fecha">
+        </div>
+        <div class="field">
+          <label class="field-label">Inicio *</label>
+          <input class="field-input" type="time" id="ms-hi">
+        </div>
+        <div class="field">
+          <label class="field-label">Fin</label>
+          <input class="field-input" type="time" id="ms-hf">
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+        <div class="field">
+          <label class="field-label">Tipo *</label>
+          <select class="field-input" id="ms-tipo">
+            <option value="presencial">Presencial</option>
+            <option value="virtual">Virtual</option>
+            <option value="tatiana_grupal">Grupal Tatiana</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label">Facilitador</label>
+          <input class="field-input" id="ms-facilitador">
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">Ubicación o link</label>
+        <input class="field-input" id="ms-link" placeholder="Dirección física o link de Zoom">
+      </div>
+      <div class="field">
+        <label class="field-label">Estado</label>
+        <select class="field-input" id="ms-estado">
+          <option value="programada">Programada</option>
+          <option value="reprogramada">Reprogramada</option>
+          <option value="realizada">Realizada</option>
+          <option value="cancelada">Cancelada</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label">Notas</label>
+        <textarea class="field-input" id="ms-notas" rows="2"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="btn-eliminar-ses" style="margin-right: auto; color: var(--error);">Eliminar</button>
+      <button class="btn btn-ghost" data-close-ms>Cancelar</button>
+      <button class="btn btn-accent" id="btn-guardar-ses">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/shared/scripts/config.js?v=20260797"></script>
+<script src="/shared/scripts/supabase-client.js?v=20260797"></script>
+  <script src="/shared/scripts/cache.js?v=20260797"></script>
+<script src="/shared/scripts/utils.js?v=20260797"></script>
+<script src="/shared/scripts/auth.js?v=20260797"></script>
+  <script src="/shared/scripts/event-tracker.js?v=20260797"></script>
+<script src="/shared/scripts/admin-gate.js?v=20260797"></script>
+<script src="/shared/nav.js?v=20260797"></script>
+<script>
+(async function () {
+  const auth = await window.requireAdmin();
+  if (!auth) return;
+
+  const $ = (id) => document.getElementById(id);
+  const DIAS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+  const TIPO_FACILITADOR = {
+    presencial: 'Frank Ruiz',
+    virtual: 'Frank Ruiz',
+    tatiana_grupal: 'Tatiana Rojas',
+  };
+
+  let cursorMes = new Date();
+  cursorMes.setDate(1);
+  let editandoId = null;
+  let sesiones = [];
+
+  function lunesDe(fecha) {
+    const d = new Date(fecha);
+    const dow = d.getDay() || 7; // 1..7, lun=1
+    d.setDate(d.getDate() - (dow - 1));
+    d.setHours(0,0,0,0);
+    return d;
+  }
+
+  function semanasDelMes(mes) {
+    const first = new Date(mes.getFullYear(), mes.getMonth(), 1);
+    const last  = new Date(mes.getFullYear(), mes.getMonth() + 1, 0);
+    const semanas = [];
+    let cur = lunesDe(first);
+    while (cur <= last) {
+      const dias = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(cur);
+        d.setDate(d.getDate() + i);
+        dias.push(d);
+      }
+      semanas.push(dias);
+      cur.setDate(cur.getDate() + 7);
+    }
+    return semanas;
+  }
+
+  async function cargarSesiones() {
+    const semanas = semanasDelMes(cursorMes);
+    const desde = semanas[0][0].toISOString().slice(0, 10);
+    const hasta = semanas[semanas.length-1][6].toISOString().slice(0, 10);
+    const { data, error } = await window.db.from('sesiones_calendario')
+      .select('*')
+      .gte('fecha', desde).lte('fecha', hasta)
+      .order('fecha').order('hora_inicio');
+    if (error) { console.error(error); return; }
+    sesiones = data || [];
+  }
+
+  function pintarCalendario() {
+    const semanas = semanasDelMes(cursorMes);
+    const mesNombre = cursorMes.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+    $('rango-mes').textContent = mesNombre.charAt(0).toUpperCase() + mesNombre.slice(1);
+
+    const hoy = new Date(); hoy.setHours(0,0,0,0);
+
+    const sesionesPorFecha = {};
+    sesiones.forEach((s) => {
+      sesionesPorFecha[s.fecha] = sesionesPorFecha[s.fecha] || [];
+      sesionesPorFecha[s.fecha].push(s);
+    });
+
+    const html = semanas.map((dias) => {
+      let row = `<div class="cal-week"><div class="cal-week-head" style="display: flex; align-items: center; justify-content: center;">Sem ${getWeek(dias[0])}</div>`;
+      dias.forEach((d, i) => {
+        const fechaStr = d.toISOString().slice(0, 10);
+        const esHoy = d.getTime() === hoy.getTime();
+        const esPasado = d < hoy;
+        const fueraMes = d.getMonth() !== cursorMes.getMonth();
+        const ses = sesionesPorFecha[fechaStr] || [];
+        const eventos = ses.map((s) => `
+          <div class="cal-evento ${s.tipo_sesion} ${s.estado === 'cancelada' ? 'cancelada' : ''}" data-edit="${s.id}" title="${s.tipo_sesion} · ${s.hora_inicio || ''}">
+            ${(s.hora_inicio || '').slice(0,5)} ${s.tipo_sesion === 'tatiana_grupal' ? 'Tati' : (s.tipo_sesion === 'presencial' ? 'Pres' : 'Virt')}
+          </div>`).join('');
+        row += `
+          <div class="cal-day ${esHoy ? 'hoy' : ''} ${esPasado && !esHoy ? 'pasado' : ''}" data-fecha="${fechaStr}" style="${fueraMes ? 'opacity: 0.4;' : ''}">
+            <div class="cal-day-num">${d.getDate()} <span style="font-size: 10px; color: var(--text-muted); font-weight: 400;">${DIAS[i]}</span></div>
+            ${eventos}
+          </div>`;
+      });
+      row += '</div>';
+      return row;
+    }).join('');
+
+    $('calendario-grid').innerHTML = html;
+
+    // Handlers
+    document.querySelectorAll('.cal-day').forEach((d) => {
+      d.addEventListener('click', (e) => {
+        if (e.target.closest('[data-edit]')) return;
+        abrirModalNueva(d.dataset.fecha);
+      });
+    });
+    document.querySelectorAll('[data-edit]').forEach((b) => {
+      b.addEventListener('click', (e) => {
+        e.stopPropagation();
+        abrirModalEditar(b.dataset.edit);
+      });
+    });
+  }
+
+  function getWeek(d) {
+    const target = new Date(d);
+    target.setHours(0,0,0,0);
+    target.setDate(target.getDate() + 4 - (target.getDay() || 7));
+    const yearStart = new Date(target.getFullYear(), 0, 1);
+    return Math.ceil(((target - yearStart) / 86400000 + 1) / 7);
+  }
+
+  function abrirModal() {
+    const m = $('modal-ses');
+    m.classList.remove('hidden');
+    requestAnimationFrame(() => m.classList.add('show'));
+  }
+  function cerrarModal() {
+    const m = $('modal-ses');
+    m.classList.remove('show');
+    setTimeout(() => m.classList.add('hidden'), 200);
+  }
+
+  function abrirModalNueva(fecha) {
+    editandoId = null;
+    $('ms-titulo').textContent = 'Nueva sesión · ' + fecha;
+    $('ms-fecha').value = fecha;
+    $('ms-hi').value = '19:00';
+    $('ms-hf').value = '20:30';
+    $('ms-tipo').value = 'virtual';
+    $('ms-facilitador').value = TIPO_FACILITADOR.virtual;
+    $('ms-link').value = '';
+    $('ms-estado').value = 'programada';
+    $('ms-notas').value = '';
+    $('btn-eliminar-ses').style.display = 'none';
+    abrirModal();
+  }
+
+  function abrirModalEditar(id) {
+    const s = sesiones.find((x) => x.id === id);
+    if (!s) return;
+    editandoId = id;
+    $('ms-titulo').textContent = 'Editar sesión';
+    $('ms-fecha').value = s.fecha || '';
+    $('ms-hi').value = (s.hora_inicio || '').slice(0,5);
+    $('ms-hf').value = (s.hora_fin || '').slice(0,5);
+    $('ms-tipo').value = s.tipo_sesion || 'virtual';
+    $('ms-facilitador').value = s.facilitador || '';
+    $('ms-link').value = s.ubicacion_o_link || '';
+    $('ms-estado').value = s.estado || 'programada';
+    $('ms-notas').value = s.notas || '';
+    $('btn-eliminar-ses').style.display = '';
+    abrirModal();
+  }
+
+  $('ms-tipo').addEventListener('change', () => {
+    if (!$('ms-facilitador').value) {
+      $('ms-facilitador').value = TIPO_FACILITADOR[$('ms-tipo').value] || '';
+    }
+  });
+
+  document.querySelectorAll('[data-close-ms]').forEach((b) => {
+    b.addEventListener('click', cerrarModal);
+  });
+
+  $('btn-guardar-ses').addEventListener('click', async () => {
+    // Validar antes del insert: fecha y hora_inicio son NOT NULL en BD.
+    // Sin esto, el admin recibe error 23502 críptico al guardar el modal sin hora.
+    const fecha = $('ms-fecha').value;
+    const horaInicio = $('ms-hi').value;
+    if (!fecha) { window.showToast?.('Falta la fecha de la sesión', 'error'); return; }
+    if (!horaInicio) { window.showToast?.('Falta la hora de inicio', 'error'); return; }
+
+    const payload = {
+      fecha,
+      hora_inicio: horaInicio,
+      hora_fin: $('ms-hf').value || null,
+      tipo_sesion: $('ms-tipo').value,
+      facilitador: $('ms-facilitador').value || null,
+      ubicacion_o_link: $('ms-link').value || null,
+      estado: $('ms-estado').value,
+      notas: $('ms-notas').value || null,
+    };
+    try {
+      if (editandoId) {
+        // Si cambio de fecha → reprogramación
+        const original = sesiones.find((x) => x.id === editandoId);
+        if (original && (original.fecha !== payload.fecha || original.hora_inicio?.slice(0,5) !== payload.hora_inicio)) {
+          payload.fecha_original = original.fecha_original || original.fecha;
+          payload.hora_original = original.hora_original || original.hora_inicio;
+          payload.estado = 'reprogramada';
+        }
+        const { error } = await window.db.from('sesiones_calendario').update(payload).eq('id', editandoId);
+        if (error) throw error;
+      } else {
+        const { error } = await window.db.from('sesiones_calendario').insert(payload);
+        if (error) throw error;
+      }
+      cerrarModal();
+      window.showToast?.('Sesión guardada', 'success');
+      await cargarSesiones();
+      pintarCalendario();
+    } catch (err) {
+      window.showToast?.('Error: ' + err.message, 'error');
+    }
+  });
+
+  $('btn-eliminar-ses').addEventListener('click', async () => {
+    if (!editandoId) return;
+    if (!confirm('¿Eliminar esta sesión del calendario?')) return;
+    try {
+      const { error } = await window.db.from('sesiones_calendario').delete().eq('id', editandoId);
+      if (error) throw error;
+      cerrarModal();
+      window.showToast?.('Sesión eliminada', 'success');
+      await cargarSesiones();
+      pintarCalendario();
+    } catch (err) {
+      window.showToast?.('Error: ' + err.message, 'error');
+    }
+  });
+
+  $('btn-prev').addEventListener('click', async () => {
+    cursorMes.setMonth(cursorMes.getMonth() - 1);
+    await cargarSesiones(); pintarCalendario();
+  });
+  $('btn-next').addEventListener('click', async () => {
+    cursorMes.setMonth(cursorMes.getMonth() + 1);
+    await cargarSesiones(); pintarCalendario();
+  });
+  $('btn-hoy').addEventListener('click', async () => {
+    cursorMes = new Date(); cursorMes.setDate(1);
+    await cargarSesiones(); pintarCalendario();
+  });
+  $('btn-nueva').addEventListener('click', () => {
+    abrirModalNueva(new Date().toISOString().slice(0, 10));
+  });
+
+  await cargarSesiones();
+  pintarCalendario();
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Validación con IA · Neurohackers</title>
+  <link rel="stylesheet" href="shared/styles.css">
+</head>
+<body>
+
+<header class="app-header">
+  <div class="app-header-inner">
+    <div class="brand">
+      <div class="brand-logo">N</div>
+      <span>Neurohackers</span>
+    </div>
+    <div style="margin-left: auto; font-size: var(--text-sm); color: var(--text-muted);">Paso 3 de 3 · Validación de tu oferta</div>
+  </div>
+</header>
+
+<main class="container">
+
+  <section style="margin-bottom: var(--space-10);">
+    <span class="eyebrow eyebrow-accent">VALIDACIÓN CON IA · 90 SEGUNDOS</span>
+    <h1 class="greeting" style="font-size: var(--text-4xl); margin-bottom: var(--space-3);">Antes de empezar, vamos a mirar qué estás vendiendo.</h1>
+    <p style="font-size: var(--text-md); color: var(--text-muted); line-height: 1.6;">
+      La IA analiza tu oferta actual y te devuelve un reporte: qué está claro, qué está confuso, qué precio coherente, dónde están las oportunidades inmediatas. <strong>Si tu oferta es débil, lo arreglamos primero. Si es sólida, saltamos directo a tráfico.</strong>
+    </p>
+  </section>
+
+  <!-- INPUTS -->
+  <section style="margin-bottom: var(--space-10);">
+
+    <div class="field">
+      <label class="field-label">URL de tu sales page (opcional)</label>
+      <input class="field-input" type="url" placeholder="https://tunegocio.com/oferta" value="https://alexconsulting.com/consultoria-b2b">
+    </div>
+
+    <div class="field">
+      <label class="field-label">O pega tu pitch / propuesta actual</label>
+      <textarea class="field-input field-textarea" placeholder="Cuéntale a la IA exactamente cómo presentas tu oferta a un prospecto. Como si fuera la primera llamada.">Ayudo a founders B2B de servicios profesionales a sistematizar su captación de leads y duplicar sus cierres en 90 días. Mi servicio incluye setup de embudo, automatizaciones de seguimiento, scripts de venta, y acompañamiento semanal. El precio arranca en $3,500 por proyecto de 3 meses, con opción de retainer mensual después.</textarea>
+    </div>
+
+    <div class="field">
+      <label class="field-label">¿Qué precio cobras actualmente?</label>
+      <input class="field-input" type="text" placeholder="Ej. $3,500 proyecto · $800/mes retainer" value="$3,500 proyecto + $800/mes retainer">
+    </div>
+
+    <button class="btn btn-accent btn-xl" style="width: 100%;">
+      Analizar mi oferta con IA →
+    </button>
+  </section>
+
+  <!-- RESULTADO (mockup del reporte que la IA devuelve) -->
+  <section style="background: var(--surface); padding: var(--space-8); border-radius: var(--radius-lg); border: 1px solid var(--border-soft);">
+
+    <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--space-5); padding-bottom: var(--space-4); border-bottom: 1px solid var(--border-soft);">
+      <div>
+        <span class="eyebrow eyebrow-accent" style="margin-bottom: 4px;">REPORTE DE LA IA · CLAUDE</span>
+        <h2 style="font-size: var(--text-xl); font-weight: 600;">Tu oferta tiene base sólida, con 3 ajustes la subimos de nivel</h2>
+      </div>
+      <span class="badge badge-success">VEREDICTO: SÓLIDA</span>
+    </div>
+
+    <!-- SCORES -->
+    <div class="grid grid-3" style="margin-bottom: var(--space-6);">
+      <div>
+        <span class="progress-strip-label">CLARIDAD DE PROMESA</span>
+        <div style="display: flex; align-items: baseline; gap: var(--space-2); margin-top: 4px;">
+          <span class="progress-strip-num" style="color: var(--success);">8/10</span>
+        </div>
+      </div>
+      <div>
+        <span class="progress-strip-label">PRECIO COHERENTE</span>
+        <div style="display: flex; align-items: baseline; gap: var(--space-2); margin-top: 4px;">
+          <span class="progress-strip-num" style="color: var(--warning);">6/10</span>
+        </div>
+      </div>
+      <div>
+        <span class="progress-strip-label">ICP DEFINIDO</span>
+        <div style="display: flex; align-items: baseline; gap: var(--space-2); margin-top: 4px;">
+          <span class="progress-strip-num" style="color: var(--success);">9/10</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- LO QUE ESTÁ BIEN -->
+    <div style="margin-bottom: var(--space-6);">
+      <h3 style="font-weight: 600; font-size: var(--text-md); margin-bottom: var(--space-3);">Lo que ya tienes bien</h3>
+      <ul style="display: flex; flex-direction: column; gap: var(--space-3);">
+        <li style="display: flex; gap: var(--space-3); font-size: var(--text-sm); line-height: 1.6;">
+          <span style="color: var(--success); font-weight: 700;">✓</span>
+          <span><strong>Tu ICP es muy claro:</strong> "founders B2B de servicios profesionales" es lo suficientemente específico para que un prospecto se reconozca en 5 segundos.</span>
+        </li>
+        <li style="display: flex; gap: var(--space-3); font-size: var(--text-sm); line-height: 1.6;">
+          <span style="color: var(--success); font-weight: 700;">✓</span>
+          <span><strong>Tu transformación es medible:</strong> "duplicar cierres en 90 días" es una promesa concreta y temporal. No es "ayudarte a crecer".</span>
+        </li>
+        <li style="display: flex; gap: var(--space-3); font-size: var(--text-sm); line-height: 1.6;">
+          <span style="color: var(--success); font-weight: 700;">✓</span>
+          <span><strong>Tu stack está bien empaquetado:</strong> embudo + automatizaciones + scripts + acompañamiento se entiende sin explicación adicional.</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- LO QUE HAY QUE AJUSTAR -->
+    <div style="margin-bottom: var(--space-6);">
+      <h3 style="font-weight: 600; font-size: var(--text-md); margin-bottom: var(--space-3);">3 ajustes que suben tu cierre</h3>
+      <ul style="display: flex; flex-direction: column; gap: var(--space-3);">
+        <li style="padding: var(--space-4); background: var(--surface-2); border-radius: var(--radius-md); border-left: 3px solid var(--accent);">
+          <div style="font-weight: 600; font-size: var(--text-sm); margin-bottom: 4px;">1. Tu precio inicia muy bajo para el valor que ofreces</div>
+          <p style="font-size: var(--text-sm); color: var(--text-muted); line-height: 1.55;">$3,500 por 3 meses de setup + script + acompañamiento está en el percentil 25 del mercado. Tu ICP (founders ya operando) paga $6K-$12K por proyectos similares. Sugerencia: anchor en $7,500 con opción de $5,000 pago único.</p>
+        </li>
+        <li style="padding: var(--space-4); background: var(--surface-2); border-radius: var(--radius-md); border-left: 3px solid var(--accent);">
+          <div style="font-weight: 600; font-size: var(--text-sm); margin-bottom: 4px;">2. Falta una garantía o prueba de resultado</div>
+          <p style="font-size: var(--text-sm); color: var(--text-muted); line-height: 1.55;">"Duplicar cierres" sin un caso de estudio anclado genera escepticismo. Sugerencia: agregar un mini case con cliente anonimizado (antes/después en cifras) o ofrecer un "diagnóstico de 90 min gratis" como entrada de bajo riesgo.</p>
+        </li>
+        <li style="padding: var(--space-4); background: var(--surface-2); border-radius: var(--radius-md); border-left: 3px solid var(--accent);">
+          <div style="font-weight: 600; font-size: var(--text-sm); margin-bottom: 4px;">3. Tu retainer de $800/mes pelea con tu propio ticket alto</div>
+          <p style="font-size: var(--text-sm); color: var(--text-muted); line-height: 1.55;">Después de un proyecto de $3,500 (o $7,500), un retainer de $800 se ve débil. Sube a $1,500-$2,500/mes o reposiciona como "membresía estratégica trimestral" con precio único.</p>
+        </li>
+      </ul>
+    </div>
+
+    <!-- IMPACTO EN TU RUTA -->
+    <div style="padding: var(--space-5); background: var(--accent-soft-bg); border-radius: var(--radius-md); margin-bottom: var(--space-6);">
+      <span class="eyebrow eyebrow-accent">CÓMO ESTO AFECTA TU RUTA DE 6 MESES</span>
+      <p style="font-size: var(--text-sm); line-height: 1.6; margin-top: var(--space-2);">
+        Tu oferta está suficientemente sólida para <strong>saltar directo a fase 02 (Activa tu tráfico)</strong>. Los 3 ajustes los trabajaremos en paralelo durante las primeras 2 semanas (sesión con Paola Segura para pricing, plantilla nueva con Paola Canchón para el guion, todo sin parar tu prospección).
+      </p>
+    </div>
+
+    <div style="display: flex; gap: var(--space-3);">
+      <button class="btn btn-accent btn-lg">Aceptar ruta y entrar a la plataforma →</button>
+      <button class="btn btn-secondary btn-lg">Quiero hablar con alguien primero</button>
+    </div>
+
+  </section>
+
+</main>
+
+<div data-preview-nav data-active="validacion"></div>
+<script src="shared/nav.js"></script>
+
+</body>
+</html>

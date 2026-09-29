@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Re-Génesis · Mi diario</title>
+  <link rel="icon" type="image/svg+xml" href="/regenesis/favicon.svg">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600&family=Geist:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <script src="/shared/turbo.min.js?v=20260797"></script>
+  <link rel="stylesheet" href="/regenesis/assets/styles/tokens.css?v=20260797">
+  <link rel="stylesheet" href="/regenesis/assets/styles/base.css?v=20260797">
+  <link rel="stylesheet" href="/regenesis/assets/styles/components.css?v=20260797">
+  <link rel="stylesheet" href="/regenesis/assets/styles/client.css?v=20260797">
+  <link rel="stylesheet" href="/regenesis/assets/styles/platform-sidebar.css?v=20260797">
+  <style>
+    .app-header { display: none !important; }
+    body.with-sidebar .screen { padding-left: 0; }
+    body.with-sidebar .app-container { max-width: 1280px; padding: var(--space-6); margin: 0 auto; }
+    @media (max-width: 920px) {
+      body.with-sidebar .app-container { padding: var(--space-4); }
+    }
+
+    /* Mismo patrón que /regenesis/index.html: opacity 0 al inicio,
+       init() agrega .is-ready cuando termina. */
+    #screen-diario {
+      transition: opacity 0.2s ease;
+    }
+    #screen-diario.is-ready { opacity: 1 !important; }
+
+    #regenesis-loader {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 32px; height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: regenesis-spin 0.8s linear infinite;
+      z-index: 10;
+    }
+    @keyframes regenesis-spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+    body.regenesis-ready #regenesis-loader { display: none; }
+  </style>
+</head>
+<body class="with-sidebar">
+
+<div id="regenesis-loader" aria-label="Cargando"></div>
+
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<div data-nav data-active="rg-diario" data-base="../"></div>
+
+<section id="screen-diario" class="screen active" style="opacity: 0;">
+
+  <div class="app-container">
+
+    <div class="diario-hero">
+      <div class="diario-eyebrow">ARCHIVO PERSONAL</div>
+      <h1 class="diario-title">Mi diario.</h1>
+      <p class="diario-subtitle">
+        El libro vivo de tu transformación, escrito en tus propias palabras
+        y reflejado por la metodología Re-Génesis.
+      </p>
+    </div>
+
+    <div class="diario-stats">
+      <div class="diario-stat">
+        <span class="diario-stat-label">REFLEXIONES</span>
+        <span class="diario-stat-num" id="diario-total-reflexiones">0</span>
+      </div>
+      <div class="diario-stat">
+        <span class="diario-stat-label">PALABRAS ESCRITAS</span>
+        <span class="diario-stat-num" id="diario-total-palabras">0</span>
+      </div>
+      <div class="diario-stat">
+        <span class="diario-stat-label">DÍAS DE PROCESO</span>
+        <span class="diario-stat-num" id="diario-total-dias">0</span>
+      </div>
+      <div class="diario-stat">
+        <span class="diario-stat-label">COMPROMISO</span>
+        <span class="diario-stat-num" id="diario-compromiso">0%</span>
+      </div>
+    </div>
+
+    <div class="filter-section">
+      <div class="filter-bar" id="filter-bar">
+        <button type="button" class="filter-chip active" data-filtro="all">Todas</button>
+      </div>
+      <div class="filter-count" id="diario-count">0 ENTRADAS</div>
+    </div>
+
+    <div class="entries-list" id="entries-list"></div>
+
+  </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/shared/scripts/config.js?v=20260797"></script>
+<script src="/shared/scripts/supabase-client.js?v=20260797"></script>
+  <script src="/shared/scripts/cache.js?v=20260797"></script>
+<script src="/shared/scripts/utils.js?v=20260797"></script>
+<script src="/shared/scripts/auth.js?v=20260797"></script>
+  <script src="/shared/scripts/event-tracker.js?v=20260797"></script>
+  <script src="/shared/scripts/nps.js?v=20260797"></script>
+<script src="/regenesis/assets/scripts/utils.js?v=20260797"></script>
+<script src="/regenesis/assets/scripts/ia-service.js?v=20260797"></script>
+<script src="/regenesis/assets/scripts/client-app.js?v=20260800"></script>
+<script src="/shared/nav.js?v=20260797"></script>
+
+<!-- Bootstrap inline (Turbo lo re-evalúa cada navegación) -->
+<script>
+  (async function bootDiario() {
+    let tries = 0;
+    while (typeof window.regenesisDiarioInit !== 'function' && tries < 60) {
+      await new Promise(r => setTimeout(r, 50));
+      tries++;
+    }
+    if (typeof window.regenesisDiarioInit !== 'function') {
+      console.error('[Re-Génesis/Diario] regenesisDiarioInit no expuesto.');
+      return;
+    }
+    try {
+      await window.regenesisDiarioInit();
+      document.getElementById('screen-diario')?.classList.add('is-ready');
+    } catch (e) {
+      console.error('[Re-Génesis/Diario] init error:', e);
+    }
+  })();
+</script>
+
+</body>
+</html>

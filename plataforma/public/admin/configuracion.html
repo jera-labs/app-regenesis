@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Configuración · Admin · Neurohackers</title>
+  <script src="/shared/turbo.min.js?v=20260797"></script>
+  <link rel="stylesheet" href="/shared/styles.css?v=20260797">
+  <style>
+    .config-section { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); padding: var(--space-6); margin-bottom: var(--space-5); }
+    .config-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+    @media (max-width: 760px) { .config-row { grid-template-columns: 1fr; } }
+    .config-help { font-size: var(--text-xs); color: var(--text-muted); margin-top: 4px; line-height: 1.55; }
+    .toggle-switch { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3); background: var(--surface-2); border-radius: var(--radius-sm); }
+  </style>
+</head>
+<body class="with-sidebar admin-mode">
+
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<script>(function(){try{var c=localStorage.getItem("nav-cache-admin-v4");var w=document.getElementById("sidebar-wrapper");if(c&&w&&!w.firstChild)w.innerHTML=c;}catch(e){}})();</script>
+<div data-nav data-active="admin-config" data-base="../"></div>
+
+<div class="admin-strip">
+  <div class="admin-strip-inner">
+    <span class="admin-strip-dot"></span>
+    <span>CONFIGURACIÓN DEL SISTEMA · SOLO ADMIN PLENO</span>
+    <span style="opacity: 0.5;">·</span>
+    <a href="index.html">Volver a clientes</a>
+  </div>
+</div>
+
+<main class="container-wide" id="main" style="max-width: 980px;">
+
+  <section style="margin-bottom: var(--space-8);">
+    <span class="eyebrow">PARÁMETROS GLOBALES</span>
+    <h1 class="greeting-lg">Configuración.</h1>
+    <p class="lead">Todo lo que el sistema usa para automatizar (duraciones, umbrales, comisiones, razones de churn). Cambia cualquier valor sin tocar código. Los defaults son sugerencias, Frank decide.</p>
+  </section>
+
+  <div id="no-admin" class="empty hidden">
+    <div class="empty-icon">○</div>
+    <h3 class="empty-title">Solo admin pleno</h3>
+    <p class="empty-detail">No tienes permisos para editar configuración global.</p>
+    <a href="index.html" class="btn btn-secondary btn-lg mt-3">Volver</a>
+  </div>
+
+  <form id="form-config" class="hidden">
+
+    <!-- PROGRAMA -->
+    <div class="config-section">
+      <span class="eyebrow eyebrow-accent">PROGRAMA</span>
+      <h2 style="font-size: var(--text-lg); font-weight: 600; margin: 4px 0 var(--space-4);">Duración y ciclo</h2>
+      <div class="config-row">
+        <div class="field">
+          <label class="field-label">Días totales del programa (default)</label>
+          <input class="field-input" id="f-dias_programa_default" type="number" min="1" max="365">
+          <div class="config-help">Default 70 (10 semanas Re-Génesis). Editable por cohorte.</div>
+        </div>
+        <div class="field">
+          <label class="field-label">Semanas (display)</label>
+          <input class="field-input" id="f-semanas_programa_default" type="number" min="1" max="52">
+          <div class="config-help">Solo display. Mantén coherente con días totales (70/7 = 10).</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CASO DE ÉXITO -->
+    <div class="config-section">
+      <span class="eyebrow eyebrow-accent">CASO DE ÉXITO</span>
+      <h2 style="font-size: var(--text-lg); font-weight: 600; margin: 4px 0 var(--space-4);">Umbral para marcar caso de éxito</h2>
+      <div class="field">
+        <label class="field-label">Facturación mensual del cliente (USD)</label>
+        <input class="field-input" id="f-umbral_caso_exito_usd" type="number" min="0" step="500">
+        <div class="config-help">Default $20,000/mes. Cuando un cliente reporta este monto, dispara la propuesta de caso de éxito.</div>
+      </div>
+    </div>
+
+    <!-- SESIONES -->
+    <div class="config-section">
+      <span class="eyebrow eyebrow-accent">SESIONES 1:1</span>
+      <h2 style="font-size: var(--text-lg); font-weight: 600; margin: 4px 0 var(--space-4);">Reglas operativas</h2>
+      <div class="config-row">
+        <div class="field">
+          <label class="field-label">Sesiones para desvincular</label>
+          <input class="field-input" id="f-sesiones_para_desvincular" type="number" min="1">
+          <div class="config-help">Default 16. Al alcanzar este número, etiqueta "desvincular" se aplica automático.</div>
+        </div>
+        <div class="field">
+          <label class="field-label">SLA de revisión QC (horas)</label>
+          <input class="field-input" id="f-qc_sla_horas" type="number" min="1">
+          <div class="config-help">Default 48h. Sesiones sin revisar después de este tiempo generan alerta.</div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">Auto-aprobar QC tras (horas)</label>
+        <input class="field-input" id="f-qc_auto_aprobar_horas" type="number" min="1" placeholder="(vacío = nunca auto-aprueba)">
+        <div class="config-help">Si lo dejas vacío, el supervisor SIEMPRE debe revisar manualmente. Recomendado dejar vacío.</div>
+      </div>
+    </div>
+
+    <!-- CUOTAS -->
+    <div class="config-section">
+      <span class="eyebrow eyebrow-accent">CUOTAS</span>
+      <h2 style="font-size: var(--text-lg); font-weight: 600; margin: 4px 0 var(--space-4);">Cobranza</h2>
+      <div class="field">
+        <label class="field-label">Días de gracia antes de marcar cuota impaga</label>
+        <input class="field-input" id="f-dias_gracia_cuota_impaga" type="number" min="0">
+        <div class="config-help">Default 7 días. Al pasar este número, el lead pasa a estado "activo_cuota_impaga".</div>
+      </div>
+    </div>
+
+    <!-- NPS -->
+    <div class="config-section">
+      <span class="eyebrow eyebrow-accent">NPS</span>
+      <h2 style="font-size: var(--text-lg); font-weight: 600; margin: 4px 0 var(--space-4);">Encuesta mensual</h2>
+      <div class="config-row">
+        <div class="field">
+          <label class="field-label">Intervalo entre encuestas (días)</label>
+          <input class="field-input" id="f-nps_intervalo_dias" type="number" min="1">
+          <div class="config-help">Default 30 días.</div>
+        </div>
+        <div class="field">
+          <label class="field-label">Umbral promotor (≥)</label>
+          <input class="field-input" id="f-nps_umbral_promotor" type="number" min="0" max="10">
+          <div class="config-help">Default 9. Quien puntúa ≥9 dispara tarea "pedir referido".</div>
+        </div>
+        <div class="field">
+          <label class="field-label">Umbral riesgo (<)</label>
+          <input class="field-input" id="f-nps_umbral_riesgo" type="number" min="0" max="10">
+          <div class="config-help">Default 7. Quien puntúa <7 dispara alerta "llamada de contención".</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEMÁFOROS -->
+    <div class="config-section">
+      <span class="eyebrow eyebrow-accent">SEMÁFOROS DE ENGAGEMENT</span>
+      <h2 style="font-size: var(--text-lg); font-weight: 600; margin: 4px 0 var(--space-4);">Cuándo un cliente está en riesgo</h2>
+      <div class="config-row">
+        <div class="field">
+          <label class="field-label">Días sin login → amarillo</label>
+          <input class="field-input" id="f-semaforo_dias_sin_login_amarillo" type="number" min="1">
+        </div>
+        <div class="field">
+          <label class="field-label">Días sin login → rojo</label>
+          <input class="field-input" id="f-semaforo_dias_sin_login_rojo" type="number" min="1">
+        </div>
+      </div>
+    </div>
+
+    <!-- COMISIONES -->
+    <div class="config-section">
+      <span class="eyebrow eyebrow-accent">COMISIONES AL EQUIPO</span>
+      <h2 style="font-size: var(--text-lg); font-weight: 600; margin: 4px 0 var(--space-4);">Pago a mentores</h2>
+      <div class="toggle-switch" style="margin-bottom: var(--space-4);">
+        <input type="checkbox" id="f-comisiones_activas">
+        <label for="f-comisiones_activas">
+          <strong style="font-size: var(--text-sm);">Módulo de comisiones activo</strong>
+          <div class="config-help" style="margin: 2px 0 0;">Si está desactivado, los valores se guardan pero no se calculan comisiones. Activa cuando quieras empezar a usar el módulo.</div>
+        </label>
+      </div>
+      <div class="config-row">
+        <div class="field">
+          <label class="field-label">Por sesión 1:1 entregada (USD)</label>
+          <input class="field-input" id="f-comision_por_sesion_usd" type="number" min="0" step="0.5">
+          <div class="config-help">Default $22 por sesión registrada y aprobada en QC.</div>
+        </div>
+        <div class="field">
+          <label class="field-label">Caso de éxito (% del precio pagado)</label>
+          <input class="field-input" id="f-comision_caso_exito_pct" type="number" min="0" max="100" step="0.5">
+          <div class="config-help">Default 5%. Se paga al mentor principal del cliente.</div>
+        </div>
+        <div class="field">
+          <label class="field-label">Referido (% del primer pago)</label>
+          <input class="field-input" id="f-comision_referido_pct" type="number" min="0" max="100" step="0.5">
+          <div class="config-help">Default 10%. Al mentor del cliente que refirió.</div>
+        </div>
+        <div class="field">
+          <label class="field-label">Upsell (% del upsell vendido)</label>
+          <input class="field-input" id="f-comision_upsell_pct" type="number" min="0" max="100" step="0.5">
+          <div class="config-help">Default 10%.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHURN -->
+    <div class="config-section">
+      <span class="eyebrow eyebrow-accent">CHURN</span>
+      <h2 style="font-size: var(--text-lg); font-weight: 600; margin: 4px 0 var(--space-4);">Razones permitidas</h2>
+      <div class="field">
+        <label class="field-label">Razones (una por línea)</label>
+        <textarea class="field-input field-textarea" id="f-razones_churn" rows="6" placeholder="financiero&#10;salud&#10;socio&#10;insatisfaccion&#10;cambio_prioridades&#10;otro"></textarea>
+        <div class="config-help">Cuando un cliente se va, debe elegir una de estas razones. Usa snake_case sin tildes.</div>
+      </div>
+    </div>
+
+    <!-- MISC -->
+    <div class="config-section">
+      <span class="eyebrow eyebrow-accent">OTROS</span>
+      <h2 style="font-size: var(--text-lg); font-weight: 600; margin: 4px 0 var(--space-4);">Misceláneos</h2>
+      <div class="config-row">
+        <div class="field">
+          <label class="field-label">Moneda funcional</label>
+          <input class="field-input" id="f-moneda_funcional" maxlength="3">
+          <div class="config-help">Default USD. La nómina y métricas usan esta moneda.</div>
+        </div>
+        <div class="field">
+          <label class="field-label">Semanas sin engagement → alerta</label>
+          <input class="field-input" id="f-tracker_semanas_alerta_engagement" type="number" min="1">
+        </div>
+      </div>
+    </div>
+
+    <div style="position: sticky; bottom: 0; background: var(--bg); padding: var(--space-4) 0; border-top: 1px solid var(--border-soft); display: flex; gap: var(--space-3); justify-content: flex-end; z-index: 10;">
+      <span id="ultima-actualizacion" class="text-muted" style="font-size: var(--text-xs); align-self: center;"></span>
+      <button type="submit" class="btn btn-accent btn-lg">Guardar cambios</button>
+    </div>
+  </form>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/shared/scripts/config.js?v=20260797"></script>
+<script src="/shared/scripts/supabase-client.js?v=20260797"></script>
+  <script src="/shared/scripts/cache.js?v=20260797"></script>
+<script src="/shared/scripts/utils.js?v=20260797"></script>
+<script src="/shared/scripts/auth.js?v=20260797"></script>
+  <script src="/shared/scripts/event-tracker.js?v=20260797"></script>
+<script src="/shared/scripts/admin-gate.js?v=20260797"></script>
+<script src="/shared/scripts/equipo.js?v=20260797"></script>
+<script src="/shared/scripts/crm.js?v=20260797"></script>
+<script src="/shared/nav.js?v=20260797"></script>
+<script>
+(async function () {
+  const auth = await window.requireAdmin();
+  if (!auth) return;
+
+  const yo = await window.equipoApi.miRol();
+  if (!yo || yo.rol !== 'admin') {
+    document.getElementById('no-admin').classList.remove('hidden');
+    document.getElementById('main').style.opacity = '1';
+    return;
+  }
+
+  const config = await window.crmApi.cargarConfig();
+  const form = document.getElementById('form-config');
+  form.classList.remove('hidden');
+
+  // Llenar campos
+  const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val ?? ''; };
+  setVal('f-dias_programa_default', config.dias_programa_default);
+  setVal('f-semanas_programa_default', config.semanas_programa_default);
+  setVal('f-umbral_caso_exito_usd', config.umbral_caso_exito_usd);
+  setVal('f-sesiones_para_desvincular', config.sesiones_para_desvincular);
+  setVal('f-qc_sla_horas', config.qc_sla_horas);
+  setVal('f-qc_auto_aprobar_horas', config.qc_auto_aprobar_horas);
+  setVal('f-dias_gracia_cuota_impaga', config.dias_gracia_cuota_impaga);
+  setVal('f-nps_intervalo_dias', config.nps_intervalo_dias);
+  setVal('f-nps_umbral_promotor', config.nps_umbral_promotor);
+  setVal('f-nps_umbral_riesgo', config.nps_umbral_riesgo);
+  setVal('f-semaforo_dias_sin_login_amarillo', config.semaforo_dias_sin_login_amarillo);
+  setVal('f-semaforo_dias_sin_login_rojo', config.semaforo_dias_sin_login_rojo);
+  setVal('f-comision_por_sesion_usd', config.comision_por_sesion_usd);
+  setVal('f-comision_caso_exito_pct', config.comision_caso_exito_pct);
+  setVal('f-comision_referido_pct', config.comision_referido_pct);
+  setVal('f-comision_upsell_pct', config.comision_upsell_pct);
+  document.getElementById('f-comisiones_activas').checked = !!config.comisiones_activas;
+  setVal('f-razones_churn', (config.razones_churn || []).join('\n'));
+  setVal('f-moneda_funcional', config.moneda_funcional || 'USD');
+  setVal('f-tracker_semanas_alerta_engagement', config.tracker_semanas_alerta_engagement);
+
+  if (config.updated_at) {
+    document.getElementById('ultima-actualizacion').textContent =
+      'Última actualización: ' + new Date(config.updated_at).toLocaleString('es-ES');
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const getNum = (id) => { const v = document.getElementById(id).value; return v === '' ? null : Number(v); };
+    const getStr = (id) => document.getElementById(id).value.trim() || null;
+    const razones = document.getElementById('f-razones_churn').value
+      .split('\n').map(s => s.trim().toLowerCase().replace(/\s+/g, '_')).filter(Boolean);
+
+    try {
+      const upd = await window.crmApi.guardarConfig({
+        dias_programa_default: getNum('f-dias_programa_default'),
+        semanas_programa_default: getNum('f-semanas_programa_default'),
+        umbral_caso_exito_usd: getNum('f-umbral_caso_exito_usd'),
+        sesiones_para_desvincular: getNum('f-sesiones_para_desvincular'),
+        qc_sla_horas: getNum('f-qc_sla_horas'),
+        qc_auto_aprobar_horas: getNum('f-qc_auto_aprobar_horas'),
+        dias_gracia_cuota_impaga: getNum('f-dias_gracia_cuota_impaga'),
+        nps_intervalo_dias: getNum('f-nps_intervalo_dias'),
+        nps_umbral_promotor: getNum('f-nps_umbral_promotor'),
+        nps_umbral_riesgo: getNum('f-nps_umbral_riesgo'),
+        semaforo_dias_sin_login_amarillo: getNum('f-semaforo_dias_sin_login_amarillo'),
+        semaforo_dias_sin_login_rojo: getNum('f-semaforo_dias_sin_login_rojo'),
+        comision_por_sesion_usd: getNum('f-comision_por_sesion_usd'),
+        comision_caso_exito_pct: getNum('f-comision_caso_exito_pct'),
+        comision_referido_pct: getNum('f-comision_referido_pct'),
+        comision_upsell_pct: getNum('f-comision_upsell_pct'),
+        comisiones_activas: document.getElementById('f-comisiones_activas').checked,
+        razones_churn: razones,
+        moneda_funcional: getStr('f-moneda_funcional') || 'USD',
+        tracker_semanas_alerta_engagement: getNum('f-tracker_semanas_alerta_engagement'),
+      });
+      document.getElementById('ultima-actualizacion').textContent =
+        'Última actualización: ' + new Date(upd.updated_at).toLocaleString('es-ES');
+      window.utils.toast('Configuración guardada', 'success');
+    } catch (err) {
+      console.error(err);
+      window.utils.toast('Error: ' + err.message, 'error');
+    }
+  });
+
+  document.getElementById('main').style.opacity = '1';
+})();
+</script>
+
+
+</body>
+</html>

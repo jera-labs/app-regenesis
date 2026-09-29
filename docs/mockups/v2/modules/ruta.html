@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tu ruta · Neurohackers Platform</title>
+  <link rel="stylesheet" href="../shared/styles.css">
+  <style>
+    /* Timeline de fases */
+    .ruta-timeline {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: var(--space-3);
+      margin: var(--space-8) 0;
+    }
+    .ruta-timeline::before {
+      content: '';
+      position: absolute;
+      top: 18px; left: 4%; right: 4%;
+      height: 2px;
+      background: var(--border-soft);
+      z-index: 0;
+    }
+    .ruta-timeline-fill {
+      position: absolute;
+      top: 18px; left: 4%;
+      height: 2px;
+      background: var(--accent-gradient);
+      z-index: 1;
+      width: 24%;
+    }
+    .ruta-fase {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: var(--space-2);
+    }
+    .ruta-fase-dot {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      display: grid; place-items: center;
+      font-weight: 700;
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+    }
+    .ruta-fase.completada .ruta-fase-dot {
+      background: var(--accent-gradient);
+      border-color: transparent;
+      color: var(--text-on-accent);
+    }
+    .ruta-fase.actual .ruta-fase-dot {
+      background: var(--surface);
+      border: 2px solid var(--accent);
+      color: var(--accent-deeper);
+      box-shadow: 0 0 0 4px var(--accent-glow);
+    }
+    .ruta-fase-label {
+      font-family: var(--font-mono);
+      font-size: var(--text-3xs);
+      letter-spacing: 1.2px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+    .ruta-fase.actual .ruta-fase-label { color: var(--accent-deeper); }
+    .ruta-fase-titulo {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      max-width: 140px;
+      line-height: 1.3;
+    }
+    .ruta-fase-meta {
+      font-size: var(--text-2xs);
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+<div data-nav data-active="hub" data-base="../"></div>
+
+<main class="container">
+
+  <section style="margin-bottom: var(--space-6);">
+    <div class="eyebrow">TU RUTA · 6 MESES · 5 FASES</div>
+    <h1 class="display">Del punto A al punto B,<br>en orden.</h1>
+    <p class="section-sub mt-3">
+      No tienes que pensar qué hacer cada semana. La ruta está clara: cada fase tiene su meta,
+      sus tácticas y el experto que te acompaña. Avanzas cuando completas el hito.
+    </p>
+  </section>
+
+  <!-- TIMELINE 5 FASES -->
+  <div class="card card-padded-lg">
+    <div class="ruta-timeline">
+      <div class="ruta-timeline-fill"></div>
+
+      <div class="ruta-fase completada">
+        <div class="ruta-fase-dot">✓</div>
+        <div class="ruta-fase-label">FASE 01</div>
+        <div class="ruta-fase-titulo">Valida tu oferta</div>
+        <div class="ruta-fase-meta">Sem. 1–3</div>
+      </div>
+      <div class="ruta-fase actual">
+        <div class="ruta-fase-dot">2</div>
+        <div class="ruta-fase-label">EN CURSO</div>
+        <div class="ruta-fase-titulo">Activa tu tráfico</div>
+        <div class="ruta-fase-meta">Sem. 4–7 · estás aquí</div>
+      </div>
+      <div class="ruta-fase">
+        <div class="ruta-fase-dot">3</div>
+        <div class="ruta-fase-label">FASE 03</div>
+        <div class="ruta-fase-titulo">Domina el cierre</div>
+        <div class="ruta-fase-meta">Sem. 8–13</div>
+      </div>
+      <div class="ruta-fase">
+        <div class="ruta-fase-dot">4</div>
+        <div class="ruta-fase-label">FASE 04</div>
+        <div class="ruta-fase-titulo">Sistematiza</div>
+        <div class="ruta-fase-meta">Sem. 14–19</div>
+      </div>
+      <div class="ruta-fase">
+        <div class="ruta-fase-dot">5</div>
+        <div class="ruta-fase-label">FASE 05</div>
+        <div class="ruta-fase-titulo">Escala</div>
+        <div class="ruta-fase-meta">Sem. 20–26</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FASE ACTUAL EXPANDIDA -->
+  <section style="margin: var(--space-12) 0;">
+    <div style="display: flex; align-items: baseline; gap: var(--space-3); margin-bottom: var(--space-5);">
+      <span class="eyebrow-pill">EN CURSO · FASE 02</span>
+      <h2 class="section-title" style="margin: 0;">Activa tu tráfico</h2>
+    </div>
+
+    <div class="layout-with-sidebar">
+
+      <!-- DETALLES DE LA FASE -->
+      <div>
+
+        <div class="card card-padded-lg mb-6">
+          <h3 style="font-size: var(--text-lg); font-weight: 600; margin-bottom: var(--space-3);">¿Qué significa esta fase para ti?</h3>
+          <p style="font-size: var(--text-sm); color: var(--text); line-height: 1.7; margin-bottom: var(--space-5);">
+            Tu oferta ya está validada (fase 01 ✓). Ahora necesitas un flujo CONSISTENTE de prospectos
+            entrando a tu pipeline. Sin tráfico, no hay ventas. Sin ventas, no hay meta de 6 meses.
+          </p>
+
+          <div style="background: var(--surface-2); padding: var(--space-4); border-radius: var(--radius-md);">
+            <div class="card-meta mb-2">META DE LA FASE</div>
+            <div style="font-weight: 600; font-size: var(--text-md);">10 conversaciones nuevas por semana, sostenido durante 4 semanas</div>
+          </div>
+        </div>
+
+        <!-- TÁCTICAS DE LA FASE -->
+        <h3 style="font-size: var(--text-lg); font-weight: 600; margin-bottom: var(--space-4);">Tus 3 tácticas esta fase</h3>
+        <p class="text-muted mb-6" style="font-size: var(--text-sm);">
+          Personalizadas según tu Assessment: vendes consultoría B2B, ICP founders $10K-$50K MRR, canal principal LinkedIn.
+        </p>
+
+        <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+
+          <div class="card card-padded" style="display: flex; align-items: flex-start; gap: var(--space-4);">
+            <div class="module-card-icon module-card-icon-accent">1</div>
+            <div style="flex: 1;">
+              <div style="font-weight: 600; margin-bottom: 4px;">Outbound en LinkedIn con plantilla de Paola C</div>
+              <p class="text-muted" style="font-size: var(--text-sm); line-height: 1.55; margin-bottom: var(--space-3);">
+                10 mensajes nuevos al día siguiendo la plantilla que cierra 1 de cada 8. Tu lista de prospectos viene del filtro: founders B2B en LATAM con team de 2-10.
+              </p>
+              <div style="display: flex; gap: var(--space-2);">
+                <a href="sales-lab.html" class="btn btn-secondary btn-sm">Ver plantilla</a>
+                <button class="btn btn-ghost btn-sm">Marcar como activa</button>
+              </div>
+            </div>
+            <span class="badge badge-success">ACTIVA</span>
+          </div>
+
+          <div class="card card-padded" style="display: flex; align-items: flex-start; gap: var(--space-4);">
+            <div class="module-card-icon module-card-icon-accent">2</div>
+            <div style="flex: 1;">
+              <div style="font-weight: 600; margin-bottom: 4px;">Calendario editorial mensual con Ronald</div>
+              <p class="text-muted" style="font-size: var(--text-sm); line-height: 1.55; margin-bottom: var(--space-3);">
+                Workshop de 90 min con Ronald sale con 30 posts listos para LinkedIn alineados a tu posicionamiento. Próximo workshop: miércoles 7 PM.
+              </p>
+              <div style="display: flex; gap: var(--space-2);">
+                <a href="marketing.html" class="btn btn-secondary btn-sm">Ir a Marketing</a>
+                <button class="btn btn-ghost btn-sm">Inscribirme</button>
+              </div>
+            </div>
+            <span class="badge">PENDIENTE</span>
+          </div>
+
+          <div class="card card-padded" style="display: flex; align-items: flex-start; gap: var(--space-4);">
+            <div class="module-card-icon module-card-icon-accent">3</div>
+            <div style="flex: 1;">
+              <div style="font-weight: 600; margin-bottom: 4px;">Automatización de captura de leads (Alex)</div>
+              <p class="text-muted" style="font-size: var(--text-sm); line-height: 1.55; margin-bottom: var(--space-3);">
+                Conecta tu Instagram DM con el CRM. Cada lead caliente entra automáticamente con etiquetas. Ahorra ~3h/sem.
+              </p>
+              <div style="display: flex; gap: var(--space-2);">
+                <a href="tech.html" class="btn btn-secondary btn-sm">Ir a Tech</a>
+                <button class="btn btn-ghost btn-sm">Activar</button>
+              </div>
+            </div>
+            <span class="badge">PENDIENTE</span>
+          </div>
+
+        </div>
+
+        <!-- CONEXIÓN CON RE-GÉNESIS -->
+        <div class="card card-padded mt-6" style="background: var(--surface-3);">
+          <div class="card-meta mb-2">CONEXIÓN CON RE-GÉNESIS</div>
+          <p style="font-size: var(--text-sm); line-height: 1.6;">
+            Esta fase exige <strong>vender activamente</strong>. Tu trabajo en Re-Génesis esta semana (Niño Interior, día 6)
+            está conectado: la pregunta de hoy explora el "niño que se calla" justo cuando necesitas hablar.
+            <a href="regenesis.html" style="color: var(--accent-dark); font-weight: 600;">Abrir Re-Génesis →</a>
+          </p>
+        </div>
+
+      </div>
+
+      <!-- SIDEBAR -->
+      <aside>
+
+        <!-- PROGRESO DE LA FASE -->
+        <div class="sidebar-card">
+          <div class="card-meta">PROGRESO DE FASE 02</div>
+          <div style="margin: var(--space-3) 0;">
+            <div style="display: flex; align-items: baseline; gap: var(--space-2);">
+              <span style="font-size: var(--text-2xl); font-weight: 600; letter-spacing: -0.02em;">37%</span>
+              <span class="text-muted" style="font-size: var(--text-xs);">avance</span>
+            </div>
+          </div>
+          <div class="progress progress-thick"><div class="progress-fill" style="width: 37%"></div></div>
+          <div style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2);">
+            <div style="display: flex; justify-content: space-between; font-size: var(--text-xs);">
+              <span class="text-muted">Sem. de fase</span><span style="font-weight: 600;">2 de 4</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: var(--text-xs);">
+              <span class="text-muted">Conversaciones esta sem.</span><span style="font-weight: 600;">7 de 10</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: var(--text-xs);">
+              <span class="text-muted">Tácticas activas</span><span style="font-weight: 600;">1 de 3</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- HITO PARA AVANZAR -->
+        <div class="sidebar-card" style="background: var(--accent-gradient-soft); border: 1px solid rgba(212,175,55,0.25);">
+          <div class="card-meta" style="color: var(--accent-deeper);">PARA AVANZAR A FASE 03</div>
+          <h4 style="font-size: var(--text-sm); font-weight: 600; margin: var(--space-2) 0;">Necesitas cerrar 4 semanas con 10 conversaciones cada una</h4>
+          <p class="text-muted" style="font-size: var(--text-xs); line-height: 1.55;">
+            Llevas 2 semanas en racha. Si mantienes este ritmo, pasas a "Domina el cierre" en 14 días.
+          </p>
+        </div>
+
+        <!-- TU EXPERTO ESTA FASE -->
+        <div class="sidebar-card">
+          <div class="card-meta">TU EXPERTO PRINCIPAL ESTA FASE</div>
+          <div style="display: flex; align-items: center; gap: var(--space-3); margin-top: var(--space-3); padding: var(--space-3); background: var(--surface-2); border-radius: var(--radius-md);">
+            <div class="rank-avatar">RR</div>
+            <div>
+              <div style="font-weight: 600; font-size: var(--text-sm);">Ronald Ruiz</div>
+              <div class="text-muted" style="font-size: var(--text-xs);">Marketing y tráfico</div>
+            </div>
+          </div>
+          <a href="marketing.html" style="display: block; margin-top: var(--space-3); font-size: var(--text-xs); color: var(--accent-dark); font-weight: 600;">Ir al módulo de Ronald →</a>
+        </div>
+
+      </aside>
+
+    </div>
+  </section>
+
+  <!-- FASES SIGUIENTES (preview) -->
+  <section style="margin-bottom: var(--space-12);">
+    <h2 class="section-title">Lo que viene después</h2>
+    <div class="grid grid-3" style="margin-top: var(--space-5);">
+
+      <div class="card card-padded">
+        <div style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3);">
+          <div class="ruta-fase-dot" style="width: 26px; height: 26px; font-size: var(--text-xs);">3</div>
+          <div class="card-meta">FASE 03</div>
+        </div>
+        <h3 style="font-size: var(--text-md); font-weight: 600; margin-bottom: var(--space-2);">Domina el cierre</h3>
+        <p class="text-muted" style="font-size: var(--text-sm); line-height: 1.55; margin-bottom: var(--space-4);">
+          Llegas con 40+ conversaciones acumuladas. Aquí trabajas con Paola C el guion, las objeciones y el ratio de cierre. Meta: 1 venta cada 6 conversaciones.
+        </p>
+        <div style="display: flex; align-items: center; gap: var(--space-2);">
+          <div class="rank-avatar" style="width: 22px; height: 22px; font-size: 10px;">PC</div>
+          <span class="text-muted" style="font-size: var(--text-xs);">Paola Canchón · 6 semanas</span>
+        </div>
+      </div>
+
+      <div class="card card-padded">
+        <div style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3);">
+          <div class="ruta-fase-dot" style="width: 26px; height: 26px; font-size: var(--text-xs);">4</div>
+          <div class="card-meta">FASE 04</div>
+        </div>
+        <h3 style="font-size: var(--text-md); font-weight: 600; margin-bottom: var(--space-2);">Sistematiza</h3>
+        <p class="text-muted" style="font-size: var(--text-sm); line-height: 1.55; margin-bottom: var(--space-4);">
+          Lo que funciona se automatiza. Configuras procesos, delegación, GPTs entrenados. Tu negocio empieza a operar sin que tú estés ahí 12 horas.
+        </p>
+        <div style="display: flex; align-items: center; gap: var(--space-2);">
+          <div class="rank-avatar" style="width: 22px; height: 22px; font-size: 10px;">PS</div>
+          <div class="rank-avatar" style="width: 22px; height: 22px; font-size: 10px;">AG</div>
+          <span class="text-muted" style="font-size: var(--text-xs);">Paola S + Alex · 6 semanas</span>
+        </div>
+      </div>
+
+      <div class="card card-padded">
+        <div style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3);">
+          <div class="ruta-fase-dot" style="width: 26px; height: 26px; font-size: var(--text-xs);">5</div>
+          <div class="card-meta">FASE 05</div>
+        </div>
+        <h3 style="font-size: var(--text-md); font-weight: 600; margin-bottom: var(--space-2);">Escala</h3>
+        <p class="text-muted" style="font-size: var(--text-sm); line-height: 1.55; margin-bottom: var(--space-4);">
+          Con base estable, dobles ticket o volumen. Aquí defines tu siguiente nivel: equipo, productización, salir del rol operativo definitivamente.
+        </p>
+        <div style="display: flex; align-items: center; gap: var(--space-2);">
+          <div class="rank-avatar" style="width: 22px; height: 22px; font-size: 10px;">FR</div>
+          <span class="text-muted" style="font-size: var(--text-xs);">Frank + el equipo · 7 semanas</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- DECISIÓN DE FRANK: RÍGIDA VS FLEXIBLE -->
+  <div class="card card-padded-lg" style="background: var(--surface-3); border-left: 3px solid var(--accent);">
+    <div class="card-meta">DECISIÓN PENDIENTE PARA FRANK</div>
+    <h3 style="font-size: var(--text-md); font-weight: 600; margin: var(--space-2) 0 var(--space-4);">¿Cómo de estricta es esta ruta?</h3>
+    <div class="grid grid-2" style="gap: var(--space-4);">
+      <div style="background: var(--surface); padding: var(--space-4); border-radius: var(--radius-md);">
+        <div style="font-weight: 600; font-size: var(--text-sm); margin-bottom: var(--space-2);">Modo rígido</div>
+        <p style="font-size: var(--text-xs); color: var(--text-muted); line-height: 1.55;">
+          Cliente sigue la secuencia sin saltar. Solo avanza cuando completa el hito. Máxima disciplina, menos libertad. Bueno para founders sin experiencia.
+        </p>
+      </div>
+      <div style="background: var(--surface); padding: var(--space-4); border-radius: var(--radius-md);">
+        <div style="font-weight: 600; font-size: var(--text-sm); margin-bottom: var(--space-2);">Modo flexible</div>
+        <p style="font-size: var(--text-xs); color: var(--text-muted); line-height: 1.55;">
+          Cliente puede saltar fases si ya las domina (ej. si ya tiene tráfico, salta directo a fase 03). La IA sugiere reorientaciones si la métrica se estanca.
+        </p>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script src="../shared/nav.js"></script>
+<div data-preview-nav data-active="ruta" data-base="../"></div>
+
+</body>
+</html>

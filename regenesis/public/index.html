@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Re-Génesis · Plataforma</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600&family=Geist:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <script src="assets/scripts/turbo.min.js?v=20260633"></script>
+  <link rel="stylesheet" href="assets/styles/tokens.css?v=20260653">
+  <link rel="stylesheet" href="assets/styles/base.css?v=20260653">
+  <link rel="stylesheet" href="assets/styles/components.css?v=20260653">
+  <link rel="stylesheet" href="assets/styles/client.css?v=20260653">
+  <!-- Sidebar style heredado de la plataforma (copia local sincronizada) -->
+  <link rel="stylesheet" href="assets/styles/platform-sidebar.css?v=20260633">
+  <style>
+    /* Ocultar el header viejo (lo reemplaza el sidebar lateral) */
+    .app-header { display: none !important; }
+    /* Ajustar el contenedor para que respete el sidebar */
+    body.with-sidebar .screen { padding-left: 0; }
+    body.with-sidebar .app-container { max-width: 1280px; padding: var(--space-6); margin: 0 auto; }
+    @media (max-width: 920px) {
+      body.with-sidebar .app-container { padding: var(--space-4); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar lateral (estilo plataforma, comportamiento SPA Re-Génesis) -->
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<div data-rg-nav data-active="dashboard"></div>
+
+<!-- Modal: Mi perfil (logueado) -->
+<div class="modal-overlay" id="modal-perfil">
+  <div class="modal modal-perfil" role="dialog" aria-labelledby="modal-perfil-title">
+    <div class="modal-header">
+      <h3 id="modal-perfil-title" style="font-size: 18px; font-weight: 600;">Mi perfil</h3>
+      <button type="button" class="modal-close" id="modal-perfil-close" aria-label="Cerrar">×</button>
+    </div>
+
+    <!-- Tabs del perfil -->
+    <div class="perfil-tabs">
+      <button type="button" class="perfil-tab active" data-perfil-tab="datos">Datos personales</button>
+      <button type="button" class="perfil-tab" data-perfil-tab="programa">Programa</button>
+      <button type="button" class="perfil-tab" data-perfil-tab="seguridad">Seguridad</button>
+    </div>
+
+    <!-- Tab 1 · Datos personales (editables) -->
+    <div class="perfil-panel active" data-perfil-panel="datos">
+      <form id="form-perfil-datos" novalidate>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: var(--space-5);">
+          Información de contacto que puedes mantener actualizada.
+        </p>
+
+        <div class="form-group">
+          <label for="perfil-nombre"><span>Nombre completo</span></label>
+          <input type="text" id="perfil-nombre" class="input" required maxlength="120"
+                 autocomplete="name" placeholder="Cómo prefieres que te llamemos">
+        </div>
+
+        <div class="form-group">
+          <label for="perfil-telefono"><span>Teléfono</span></label>
+          <input type="tel" id="perfil-telefono" class="input" maxlength="32"
+                 autocomplete="tel" placeholder="+57 300 123 4567">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+          <div class="form-group">
+            <label for="perfil-pais"><span>País</span></label>
+            <input type="text" id="perfil-pais" class="input" maxlength="60"
+                   autocomplete="country" placeholder="Colombia">
+          </div>
+          <div class="form-group">
+            <label for="perfil-ciudad"><span>Ciudad</span></label>
+            <input type="text" id="perfil-ciudad" class="input" maxlength="80"
+                   autocomplete="address-level2" placeholder="Medellín">
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: var(--space-3); margin-top: var(--space-6);">
+          <button type="button" class="btn-secondary" id="modal-perfil-cancel">Cancelar</button>
+          <button type="submit" class="btn-primary" id="btn-guardar-perfil">Guardar cambios</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Tab 2 · Datos del programa (solo lectura) -->
+    <div class="perfil-panel" data-perfil-panel="programa">
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: var(--space-5);">
+        Esta información viene del sistema. Si necesitas cambiar algo aquí, escribe a
+        <a href="mailto:frank@neurohackers.top" style="color: var(--text); font-weight: 500;">frank@neurohackers.top</a>.
+      </p>
+
+      <div class="perfil-info-grid">
+        <div class="perfil-info-row">
+          <span>EMAIL</span>
+          <strong id="perfil-info-email">—</strong>
+        </div>
+        <div class="perfil-info-row">
+          <span>MODALIDAD</span>
+          <strong id="perfil-info-modalidad">—</strong>
+        </div>
+        <div class="perfil-info-row">
+          <span>FECHA INICIO</span>
+          <strong id="perfil-info-inicio">—</strong>
+        </div>
+        <div class="perfil-info-row">
+          <span>TEMA ACTUAL</span>
+          <strong id="perfil-info-tema">—</strong>
+        </div>
+        <div class="perfil-info-row">
+          <span>SEMANA</span>
+          <strong id="perfil-info-semana">—</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 3 · Cambiar contraseña -->
+    <div class="perfil-panel" data-perfil-panel="seguridad">
+      <form id="form-password" novalidate>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: var(--space-5);">
+          Define una contraseña nueva. Al guardarla, tu sesión seguirá activa.
+        </p>
+
+        <div class="form-group">
+          <label for="pwd-nuevo">
+            <span>Nueva contraseña</span>
+            <span>mínimo 8 caracteres</span>
+          </label>
+          <input type="password" id="pwd-nuevo" class="input" minlength="8" required
+                 autocomplete="new-password" placeholder="••••••••">
+        </div>
+
+        <div class="form-group">
+          <label for="pwd-confirma"><span>Confírmala</span></label>
+          <input type="password" id="pwd-confirma" class="input" minlength="8" required
+                 autocomplete="new-password" placeholder="••••••••">
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: var(--space-3); margin-top: var(--space-6);">
+          <button type="button" class="btn-secondary" id="modal-password-cancel">Cancelar</button>
+          <button type="submit" class="btn-primary" id="btn-guardar-password">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- MODAL · CAMBIO OBLIGATORIO DE CONTRASEÑA      -->
+<!-- Se muestra automáticamente al primer login si  -->
+<!-- user_metadata.must_change_password === true    -->
+<!-- (set por admin al crear/setear password manual)-->
+<!-- No tiene X, no se puede cerrar sin cambiar.    -->
+<!-- ============================================ -->
+<div class="modal-overlay" id="modal-cambio-obligatorio" style="z-index: 9999;">
+  <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="cambio-obligatorio-title" style="max-width: 440px;">
+    <div class="modal-header" style="border-bottom: 0; padding-bottom: 0;">
+      <h3 id="cambio-obligatorio-title" style="font-size: 20px; font-weight: 600;">Tu primera entrada</h3>
+    </div>
+    <div style="padding: 0 var(--space-6) var(--space-5);">
+      <p style="font-size: 14px; line-height: 1.55; color: var(--text-muted); margin-bottom: var(--space-5);">
+        Por seguridad necesitamos que crees tu propia contraseña ahora. La que recibiste fue temporal y solo se usa una vez.
+      </p>
+
+      <form id="form-cambio-obligatorio" novalidate>
+        <div class="form-group">
+          <label for="cambio-obligatorio-nuevo">
+            <span>Nueva contraseña</span>
+            <span>mínimo 8 caracteres</span>
+          </label>
+          <input type="password" id="cambio-obligatorio-nuevo" class="input" minlength="8" required
+                 autocomplete="new-password" placeholder="••••••••">
+        </div>
+
+        <div class="form-group">
+          <label for="cambio-obligatorio-confirma"><span>Confírmala</span></label>
+          <input type="password" id="cambio-obligatorio-confirma" class="input" minlength="8" required
+                 autocomplete="new-password" placeholder="••••••••">
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; margin-top: var(--space-6);">
+          <button type="submit" class="btn-primary" id="btn-cambio-obligatorio">Crear mi contraseña</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Banner global: visible en cualquier screen cuando un admin entra con ?view_as= -->
+<div id="admin-viewing-banner" class="admin-viewing-banner hidden">
+  <div class="admin-viewing-inner">
+    <span class="admin-viewing-tag">VISTA ADMIN</span>
+    <span class="admin-viewing-text">
+      <strong id="admin-viewing-admin">—</strong> está viendo la sesión de
+      <strong id="admin-viewing-name">—</strong>. Modo lectura.
+    </span>
+    <a href="#" id="admin-viewing-exit" class="admin-viewing-exit">Salir de la vista ✕</a>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- PANTALLA 1 · LOGIN                            -->
+<!-- ============================================ -->
+<section id="screen-login" class="screen active">
+  <div class="login-container">
+    <div class="login-card">
+
+      <div class="login-logo">
+        Re<span class="login-logo-dot"></span>Génesis
+      </div>
+
+      <h1 class="login-headline">
+        Tu espacio<br>
+        <span class="login-headline-mark">personal</span>
+      </h1>
+      <p class="login-subheadline">
+        Cada día, una pregunta. Cada respuesta, un paso.
+      </p>
+
+      <form id="login-form" novalidate>
+        <div class="form-group">
+          <label for="login-email">
+            <span>Email</span>
+            <span>tu correo registrado</span>
+          </label>
+          <input type="email" id="login-email" class="input"
+                 placeholder="tu@email.com" autocomplete="email" required>
+        </div>
+
+        <div class="form-group">
+          <label for="login-password">
+            <span>Contraseña</span>
+          </label>
+          <input type="password" id="login-password" class="input"
+                 placeholder="••••••••" autocomplete="current-password" required>
+        </div>
+
+        <div class="login-meta">
+          <label class="checkbox-wrapper">
+            <input type="checkbox" id="login-remember" checked>
+            <span>Mantener sesión</span>
+          </label>
+          <a href="#" id="forgot-link">Olvidé mi contraseña</a>
+        </div>
+
+        <button type="submit" id="login-submit" class="btn-login">Entrar</button>
+      </form>
+
+      <div class="login-quote">
+        "No es convertirte en alguien nuevo, sino recordar quién eras antes de olvidar tu poder."
+        <span class="login-quote-author">Frank Ruiz · Neurohackers</span>
+      </div>
+
+      <p class="login-footer">
+        ¿Aún no tienes acceso?
+        <a href="mailto:frank@neurohackers.top">Contacta tu facilitador</a>
+      </p>
+
+      <div id="login-admin-pending" class="hidden">
+        <h2>Hola, <span data-admin-name>admin</span></h2>
+        <p>El panel administrativo aún está en construcción. Vuelve pronto.</p>
+        <button type="button" data-logout class="btn-secondary">Cerrar sesión</button>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- PANTALLA · ESTABLECER CONTRASEÑA              -->
+<!-- ============================================ -->
+<section id="screen-set-password" class="screen">
+  <div class="login-container">
+    <div class="login-card">
+      <div class="login-logo">Re<span class="login-logo-dot"></span>Génesis</div>
+      <h1 class="login-headline">
+        Establece<br>
+        tu <span class="login-headline-mark">contraseña</span>
+      </h1>
+      <p class="login-subheadline" id="set-password-context">
+        Tu cuenta está casi lista.
+      </p>
+
+      <form id="set-password-form" novalidate>
+        <div class="form-group">
+          <label for="set-password-input">
+            <span>Nueva contraseña</span>
+            <span>mínimo 8 caracteres</span>
+          </label>
+          <input type="password" id="set-password-input" class="input"
+                 minlength="8" required autocomplete="new-password"
+                 placeholder="••••••••">
+        </div>
+
+        <div class="form-group">
+          <label for="set-password-confirm"><span>Confírmala</span></label>
+          <input type="password" id="set-password-confirm" class="input"
+                 minlength="8" required autocomplete="new-password"
+                 placeholder="••••••••">
+        </div>
+
+        <button type="submit" id="set-password-submit" class="btn-login">
+          Confirmar y entrar
+        </button>
+      </form>
+
+      <p class="login-footer">
+        ¿Algo no anda? <a href="mailto:frank@neurohackers.top">Contacta a Frank</a>
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- PANTALLA 2 · DASHBOARD                        -->
+<!-- ============================================ -->
+<section id="screen-dashboard" class="screen">
+
+  <div id="admin-banner" class="admin-banner hidden">
+    <span class="badge">ADMIN</span>
+    <span>Estás viendo la cara cliente con tu cuenta. <a href="admin.html">Ir al panel admin →</a></span>
+  </div>
+
+  <header class="app-header">
+    <div class="header-left">
+      <a href="#" class="app-logo" data-screen-link="dashboard">
+        Re<span class="app-logo-dot"></span>Génesis
+      </a>
+      <nav class="app-nav">
+        <button data-screen-link="dashboard" class="active">Inicio</button>
+        <button data-screen-link="diario">Mi diario</button>
+        <button data-screen-link="calendario">Calendario</button>
+        <button data-screen-link="progreso">Mi progreso</button>
+        <button data-screen-link="libro">Mi libro</button>
+        <a href="reunion-resultados.html" class="nav-link-external">Mi reunión con Frank</a>
+        <a href="https://app.livelucky.io/" class="nav-link-external" target="_blank" rel="noopener noreferrer">CRM</a>
+        <a href="https://www.skool.com/neurohackers" class="nav-link-external nav-link-external-feature" target="_blank" rel="noopener noreferrer">Skool</a>
+      </nav>
+    </div>
+    <div class="user-area" data-user-menu-trigger tabindex="0" role="button" aria-haspopup="menu" aria-expanded="false">
+      <div class="user-info">
+        <div class="user-info-name" data-user-name>—</div>
+        <div class="user-info-meta" data-user-cohort>—</div>
+      </div>
+      <div class="avatar" data-user-initial>—</div>
+      <div class="user-menu hidden" data-user-menu role="menu">
+        <button type="button" class="user-menu-item" data-action="mi-perfil">Mi perfil</button>
+        <button type="button" class="user-menu-item" data-action="logout">Cerrar sesión</button>
+        <button type="button" class="user-menu-item user-menu-item-exit hidden" data-action="exit-viewing">
+          Salir de la vista
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="app-container" id="dashboard-container">
+
+    <!-- Pantalla de cierre cuando el cliente completa los 70 días.
+         Se muestra en lugar del dashboard normal vía .modo-cierre en el container. -->
+    <div id="dashboard-cierre" class="cierre-wrap hidden">
+      <div class="cierre-eyebrow">PROGRAMA COMPLETO</div>
+      <h1 class="cierre-titulo">
+        <span data-user-name>—</span>, llegaste al<br>
+        <span class="cierre-titulo-mark">final del camino.</span>
+      </h1>
+      <p class="cierre-sub">
+        70 días, 70 preguntas, 70 reflejos. Lo que escribiste en estas semanas
+        ya forma parte de ti. Tu libro está listo: lo puedes descargar cuando
+        quieras. Tu diario queda como archivo personal — vuelve a él cuando
+        necesites recordarte quién eres.
+      </p>
+
+      <div class="cierre-stats">
+        <div class="cierre-stat">
+          <span class="cierre-stat-num" id="cierre-respondidas">—</span>
+          <span class="cierre-stat-label">REFLEXIONES ESCRITAS</span>
+        </div>
+        <div class="cierre-stat">
+          <span class="cierre-stat-num" id="cierre-palabras">—</span>
+          <span class="cierre-stat-label">PALABRAS</span>
+        </div>
+        <div class="cierre-stat">
+          <span class="cierre-stat-num">70</span>
+          <span class="cierre-stat-label">DÍAS DE PROCESO</span>
+        </div>
+      </div>
+
+      <div class="cierre-actions">
+        <a class="cierre-cta-primary" id="cierre-libro-link" href="libro.html" target="_blank" rel="noopener">
+          Descargar mi libro <span>↗</span>
+        </a>
+        <button type="button" class="cierre-cta-secondary" data-screen-link="diario">
+          Ver mi diario
+        </button>
+      </div>
+
+      <p class="cierre-firma">
+        Con gratitud, Frank y Tatiana — Neurohackers
+      </p>
+    </div>
+
+    <div class="status-bar">
+      <div class="status-bar-item">
+        <span class="status-dot"></span>
+        <span>SESIÓN ACTIVA</span>
+      </div>
+      <div class="status-divider"></div>
+      <div class="status-bar-item" id="status-fecha">—</div>
+      <div class="status-divider"></div>
+      <div class="status-bar-item" id="status-progreso">—</div>
+    </div>
+
+<!-- Banner de procrastinación: avisa al cliente cuando está postergando algo importante.
+         Solo se muestra UNO a la vez (prioridad: personaje > pregunta del día).
+         Se puede cerrar con la X; vuelve a aparecer al día siguiente si la situación persiste. -->
+    <div class="alerta-procrastinacion hidden" id="alerta-procrastinacion" role="alert">
+      <div class="alerta-procrastinacion-icon">⚠</div>
+      <div class="alerta-procrastinacion-body">
+        <div class="alerta-procrastinacion-title" id="alerta-proc-title">—</div>
+        <div class="alerta-procrastinacion-text" id="alerta-proc-text">—</div>
+      </div>
+      <button type="button" class="alerta-procrastinacion-dismiss" id="alerta-proc-dismiss" aria-label="Cerrar por hoy">×</button>
+    </div>
+
+    <div class="testimonio-banner hidden" id="testimonio-banner" role="region" aria-label="Invitación a reunión con Frank">
+      <div class="testimonio-banner-text">
+        <div class="testimonio-banner-eyebrow" id="testimonio-banner-eyebrow">ESPACIO DE ACOMPAÑAMIENTO</div>
+        <div class="testimonio-banner-title" id="testimonio-banner-title">Programa tu reunión de resultados con Frank.</div>
+      </div>
+      <div class="testimonio-banner-actions">
+        <a href="reunion-resultados.html" class="testimonio-banner-cta">Agendar ahora →</a>
+        <button type="button" class="testimonio-banner-skip" id="testimonio-banner-skip">Más tarde</button>
+      </div>
+    </div>
+
+    <!-- Modal de edición del personaje (sigue patrón .modal-overlay + .modal) -->
+    <div class="modal-overlay" id="personaje-edit-overlay">
+      <div class="modal personaje-edit-modal">
+        <div class="modal-header">
+          <div>
+            <div class="personaje-edit-eyebrow">EDITAR PERSONAJE</div>
+            <h2 class="personaje-edit-title">Tu personaje</h2>
+          </div>
+          <button type="button" class="modal-close" id="personaje-edit-close" aria-label="Cerrar">✕</button>
+        </div>
+
+        <label class="field-label" for="personaje-edit-nombre">Nombre</label>
+        <input type="text" id="personaje-edit-nombre" class="input" maxlength="80" autocomplete="off">
+
+        <label class="field-label" for="personaje-edit-desc" style="margin-top:18px;">Descripción</label>
+        <textarea id="personaje-edit-desc" class="textarea personaje-edit-textarea"></textarea>
+
+        <div class="personaje-edit-hint">
+          Recuerda mantener el espíritu del personaje: edad, dónde vive, qué hace,
+          cómo se ve por fuera y por dentro, qué le da miedo, qué desea.
+        </div>
+
+        <div class="personaje-edit-actions">
+          <button type="button" class="btn-secondary" id="personaje-edit-cancel">Cancelar</button>
+          <button type="button" class="btn-primary" id="personaje-edit-save">Guardar cambios</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tarjeta de personaje (visible solo cuando ya fue creado).
+         Va arriba de todo, como recordatorio constante de quién es el "Otro Yo"
+         con quien el cliente dialoga en su journaling. -->
+    <div class="personaje-card hidden" id="personaje-card">
+      <div class="personaje-card-inner">
+        <div class="personaje-card-icon">◈</div>
+        <div class="personaje-card-body">
+          <div class="personaje-card-eyebrow">TU PERSONAJE</div>
+          <div class="personaje-card-nombre"><span id="personaje-nombre-display">—</span></div>
+          <div class="personaje-card-meta" id="personaje-meta-display">—</div>
+        </div>
+        <button type="button" class="personaje-card-edit" id="btn-editar-personaje">Editar</button>
+      </div>
+    </div>
+
+    <!-- BLOQUE DE CREACIÓN DE PERSONAJE — visible solo si NO existe personaje.
+         Reemplaza a la reflexión del día. El cliente no puede avanzar hasta crearlo. -->
+    <div class="personaje-creacion hidden" id="personaje-creacion">
+      <div class="creacion-eyebrow">ANTES DE EMPEZAR</div>
+      <h1 class="creacion-titulo">
+        Dale vida<br>
+        a <span class="greeting-mark">tu personaje.</span>
+      </h1>
+      <p class="creacion-intro">
+        Para entrar en este proceso vas a escribir desde la voz de un personaje
+        ficticio que tú creas. No eres tú — es alguien que carga las mismas piezas
+        que tú: tus miedos, tus dones, tus contradicciones. Le quedan
+        <strong>365 días de vida</strong>, y lo que descubra en estos 70 días son
+        las decisiones que va a tomar antes de morir.
+      </p>
+
+      <div class="creacion-form">
+        <label class="field-label" for="personaje-nombre-input">Nombre del personaje</label>
+        <input type="text" id="personaje-nombre-input" class="input"
+          placeholder="Ej. Mateo, Camila, Elías…" maxlength="80" autocomplete="off">
+
+        <label class="field-label" for="personaje-desc-input">Descripción</label>
+        <textarea id="personaje-desc-input" class="textarea creacion-textarea"
+          placeholder="Ejemplo:
+
+Mateo, 38 años. Vive en Orlando. Lleva una empresa propia desde hace 8 años.
+
+Por fuera se ve seguro, exitoso, en control. Por dentro carga un cansancio que no se permite mostrar. No sabe estar quieto — si hay silencio, lo llena con trabajo.
+
+Su mayor miedo es que descubran que no sabe tanto como aparenta. Su mayor deseo es poder llorar sin sentir que falla.
+
+Le queda un año de vida."></textarea>
+
+        <div class="creacion-tips">
+          <strong>Sugerencias para tu personaje:</strong>
+          edad, dónde vive, a qué se dedica · cómo se ve por fuera vs por dentro ·
+          qué le da miedo · qué desea en secreto · cómo carga el cuerpo.
+        </div>
+
+        <button type="button" class="btn-primary creacion-submit" id="btn-crear-personaje">
+          Crear mi personaje
+        </button>
+
+        <div class="creacion-foot">
+          Esta es la única pregunta de hoy. Cuando lo crees, mañana empezamos
+          el camino con él.
+        </div>
+      </div>
+    </div>
+
+    <div class="greeting-section">
+      <h1 class="greeting">
+        Hola, <span id="greeting-nombre">—</span>.<br>
+        Tu reflexión<span class="greeting-mark">te espera</span>
+      </h1>
+      <p class="day-counter">
+        Semana <strong id="greeting-semana">—</strong> ·
+        Tema actual <strong id="greeting-tema">—</strong> ·
+        Día <strong id="greeting-dia">—</strong>
+      </p>
+    </div>
+
+    <div class="main-grid">
+
+      <main>
+        <div class="reflection-card">
+          <div class="reflection-meta">
+            <span class="badge badge-active" id="tema-actual-nombre">—</span>
+            <span class="badge">TEMA <span id="tema-actual-numero">—</span></span>
+          </div>
+
+          <p class="sublabel">Tu pregunta de hoy</p>
+          <h2 class="reflection-prompt" id="pregunta-dia">Cargando…</h2>
+
+          <p class="field-label">Tu reflexión</p>
+          <textarea id="reflexion-textarea" class="textarea"
+            placeholder="Escribe libremente. Este espacio es solo tuyo. No hay respuestas correctas, solo verdades que se revelan al ponerlas en palabras."></textarea>
+
+          <div class="editor-footer">
+            <span class="word-count" id="word-count">0 PALABRAS</span>
+            <button type="button" class="btn-primary" id="submit-reflexion">Enviar reflexión</button>
+          </div>
+
+          <div class="ia-loading" id="ia-loading">Tu personaje está leyendo tu reflexión y formulando su pregunta. Esto toma 10–15 segundos.</div>
+
+          <div class="ia-response" id="ia-response">
+            <div class="ia-header">
+              <div class="ia-icon">◈</div>
+              <div class="ia-meta">
+                <div class="ia-title">Respuesta y Pregunta para tu personaje</div>
+                <div class="ia-subtitle">CLAUDE · BISTURÍ JUNG + HELLINGER</div>
+              </div>
+            </div>
+            <div class="ia-content" id="ia-content"></div>
+          </div>
+
+          <!-- Bloque de respuesta del personaje — aparece después de Q2 generada -->
+          <div class="personaje-respuesta hidden" id="personaje-respuesta-block">
+            <div class="personaje-respuesta-header">
+              <div class="personaje-respuesta-eyebrow">RESPONDE COMO <span id="personaje-respuesta-nombre">tu personaje</span></div>
+              <div class="personaje-respuesta-title">¿Qué decide tu personaje hoy?</div>
+            </div>
+            <textarea id="personaje-respuesta-textarea" class="textarea"
+              placeholder="Escribe en la voz de tu personaje. ¿Qué decisión va a tomar antes de que se le acabe el tiempo?"></textarea>
+            <div class="personaje-respuesta-footer">
+              <span class="personaje-respuesta-count" id="personaje-respuesta-count">0 PALABRAS</span>
+              <button type="button" class="btn-primary" id="btn-guardar-respuesta-personaje">
+                Guardar respuesta del personaje
+              </button>
+            </div>
+          </div>
+
+          <!-- Cierre del día: tercer y último mensaje IA del ritual.
+               Aparece después de que el cliente guarda su respuesta como personaje. -->
+          <div class="cierre-ia hidden" id="cierre-ia-block">
+            <div class="cierre-ia-header">
+              <div class="cierre-ia-icon">◉</div>
+              <div class="cierre-ia-meta">
+                <div class="cierre-ia-title">Cierre del día</div>
+                <div class="cierre-ia-subtitle">CONSEJO + ANCLAJE PARA HOY</div>
+              </div>
+            </div>
+            <div class="cierre-ia-loading hidden" id="cierre-ia-loading">Generando tu cierre del día…</div>
+            <div class="cierre-ia-content" id="cierre-ia-content"></div>
+          </div>
+        </div>
+      </main>
+
+      <aside class="dash-aside">
+
+        <div class="sidebar-card">
+          <div class="sidebar-header">
+            <div class="sidebar-title">Tu camino</div>
+            <div class="sidebar-meta" id="progreso-counter">— / 10</div>
+          </div>
+          <ul class="progress-list" id="progreso-temas"></ul>
+        </div>
+
+        <div class="sidebar-card session-card hidden" id="proxima-sesion-card">
+          <div class="sidebar-header">
+            <div class="sidebar-title">Próxima sesión</div>
+            <div class="sidebar-meta" id="sesion-eta">—</div>
+          </div>
+
+          <div class="session-day-block">
+            <div class="session-day-num" id="sesion-dia-num">—</div>
+            <div class="session-day-meta">
+              <span class="session-day-month" id="sesion-mes-anio">—</span>
+              <span class="session-day-week" id="sesion-semana">—</span>
+            </div>
+          </div>
+
+          <div class="session-info">
+            <div class="session-info-row">
+              <span>HORA</span>
+              <span id="sesion-hora">—</span>
+            </div>
+            <div class="session-info-row">
+              <span>MODALIDAD</span>
+              <span id="sesion-modalidad">—</span>
+            </div>
+            <div class="session-info-row">
+              <span>FACILITADOR</span>
+              <span id="sesion-facilitador">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recomendaciones para la sesión: solo visibles cuando hay próxima sesión.
+             Se sincroniza con #proxima-sesion-card desde client-app.js (mismo gate). -->
+        <div class="sidebar-card session-prep-card hidden" id="session-prep-card">
+          <div class="sidebar-header">
+            <div class="sidebar-title">Antes de tu sesión</div>
+            <div class="sidebar-meta">6 RECOMENDACIONES</div>
+          </div>
+
+          <ol class="prep-list">
+            <li class="prep-item">
+              <span class="prep-num">01</span>
+              <div class="prep-body">
+                <div class="prep-title">Audífonos de diadema</div>
+                <div class="prep-text">Trabajamos con sonido 8D. Usa audífonos de diadema; evita peinados altos que estorben.</div>
+              </div>
+            </li>
+            <li class="prep-item">
+              <span class="prep-num">02</span>
+              <div class="prep-body">
+                <div class="prep-title">Acostado</div>
+                <div class="prep-text">Parte de la sesión es proceso terapéutico y de reprogramación. Necesitas estar tumbado, cómodo.</div>
+              </div>
+            </li>
+            <li class="prep-item">
+              <span class="prep-num">03</span>
+              <div class="prep-body">
+                <div class="prep-title">Lugar privado</div>
+                <div class="prep-text">Donde nadie te interrumpa. Es posible que llores, hagas ruidos o tengas reacciones intensas.</div>
+              </div>
+            </li>
+            <li class="prep-item">
+              <span class="prep-num">04</span>
+              <div class="prep-body">
+                <div class="prep-title">Estómago liviano</div>
+                <div class="prep-text">No comas las 2 horas previas a la sesión. Hidrátate bien, evita comidas pesadas.</div>
+              </div>
+            </li>
+            <li class="prep-item">
+              <span class="prep-num">05</span>
+              <div class="prep-body">
+                <div class="prep-title">Permite los sonidos</div>
+                <div class="prep-text">Quejidos, llantos, gritos si tu proceso lo necesita. Es normal sentir sensaciones físicas.</div>
+              </div>
+            </li>
+            <li class="prep-item">
+              <span class="prep-num">06</span>
+              <div class="prep-body">
+                <div class="prep-title">Papel y bolígrafo cerca</div>
+                <div class="prep-text">A veces emergen mensajes durante o después de la sesión. Tenlos a mano para anotar.</div>
+              </div>
+            </li>
+          </ol>
+        </div>
+
+        <div class="sidebar-card">
+          <div class="sidebar-header">
+            <div class="sidebar-title">Tu diario</div>
+            <div class="sidebar-meta" id="stat-diario-count">0 ENTRADAS</div>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-block">
+              <div class="stat-num" id="stat-reflexiones">0</div>
+              <div class="stat-label">Reflexiones</div>
+            </div>
+            <div class="stat-block">
+              <div class="stat-num" id="stat-compromiso">0%</div>
+              <div class="stat-label">Compromiso</div>
+            </div>
+          </div>
+
+          <button type="button" class="btn-secondary" data-screen-link="diario">
+            Ver mi diario completo →
+          </button>
+        </div>
+
+        <button type="button" class="btn-ghost" data-logout>Cerrar sesión</button>
+      </aside>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- PANTALLA 3 · DIARIO                           -->
+<!-- ============================================ -->
+<section id="screen-diario" class="screen">
+
+  <header class="app-header">
+    <div class="header-left">
+      <a href="#" class="app-logo" data-screen-link="dashboard">
+        Re<span class="app-logo-dot"></span>Génesis
+      </a>
+      <nav class="app-nav">
+        <button data-screen-link="dashboard">Inicio</button>
+        <button data-screen-link="diario" class="active">Mi diario</button>
+        <button data-screen-link="calendario">Calendario</button>
+        <button data-screen-link="progreso">Mi progreso</button>
+        <button data-screen-link="libro">Mi libro</button>
+        <a href="reunion-resultados.html" class="nav-link-external">Mi reunión con Frank</a>
+        <a href="https://app.livelucky.io/" class="nav-link-external" target="_blank" rel="noopener noreferrer">CRM</a>
+        <a href="https://www.skool.com/neurohackers" class="nav-link-external nav-link-external-feature" target="_blank" rel="noopener noreferrer">Skool</a>
+      </nav>
+    </div>
+    <div class="user-area" data-user-menu-trigger tabindex="0" role="button" aria-haspopup="menu" aria-expanded="false">
+      <div class="user-info">
+        <div class="user-info-name" data-user-name>—</div>
+        <div class="user-info-meta" data-user-cohort>—</div>
+      </div>
+      <div class="avatar" data-user-initial>—</div>
+      <div class="user-menu hidden" data-user-menu role="menu">
+        <button type="button" class="user-menu-item" data-action="mi-perfil">Mi perfil</button>
+        <button type="button" class="user-menu-item" data-action="logout">Cerrar sesión</button>
+        <button type="button" class="user-menu-item user-menu-item-exit hidden" data-action="exit-viewing">
+          Salir de la vista
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="app-container">
+
+    <div class="diario-hero">
+      <div class="diario-eyebrow">ARCHIVO PERSONAL</div>
+      <h1 class="diario-title">Mi diario.</h1>
+      <p class="diario-subtitle">
+        El libro vivo de tu transformación, escrito en tus propias palabras
+        y reflejado por la metodología Re-Génesis.
+      </p>
+    </div>
+
+    <div class="diario-stats">
+      <div class="diario-stat">
+        <span class="diario-stat-label">REFLEXIONES</span>
+        <span class="diario-stat-num" id="diario-total-reflexiones">0</span>
+      </div>
+      <div class="diario-stat">
+        <span class="diario-stat-label">PALABRAS ESCRITAS</span>
+        <span class="diario-stat-num" id="diario-total-palabras">0</span>
+      </div>
+      <div class="diario-stat">
+        <span class="diario-stat-label">DÍAS DE PROCESO</span>
+        <span class="diario-stat-num" id="diario-total-dias">0</span>
+      </div>
+      <div class="diario-stat">
+        <span class="diario-stat-label">COMPROMISO</span>
+        <span class="diario-stat-num" id="diario-compromiso">0%</span>
+      </div>
+    </div>
+
+    <div class="filter-section">
+      <div class="filter-bar" id="filter-bar">
+        <button type="button" class="filter-chip active" data-filtro="all">Todas</button>
+      </div>
+      <div class="filter-count" id="diario-count">0 ENTRADAS</div>
+    </div>
+
+    <div class="entries-list" id="entries-list"></div>
+
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- PANTALLA 4 · CALENDARIO                       -->
+<!-- ============================================ -->
+<section id="screen-calendario" class="screen">
+  <header class="app-header">
+    <div class="header-left">
+      <a href="#" class="app-logo" data-screen-link="dashboard">
+        Re<span class="app-logo-dot"></span>Génesis
+      </a>
+      <nav class="app-nav">
+        <button data-screen-link="dashboard">Inicio</button>
+        <button data-screen-link="diario">Mi diario</button>
+        <button data-screen-link="calendario" class="active">Calendario</button>
+        <button data-screen-link="progreso">Mi progreso</button>
+        <button data-screen-link="libro">Mi libro</button>
+        <a href="reunion-resultados.html" class="nav-link-external">Mi reunión con Frank</a>
+        <a href="https://app.livelucky.io/" class="nav-link-external" target="_blank" rel="noopener noreferrer">CRM</a>
+        <a href="https://www.skool.com/neurohackers" class="nav-link-external nav-link-external-feature" target="_blank" rel="noopener noreferrer">Skool</a>
+      </nav>
+    </div>
+    <div class="user-area" data-user-menu-trigger tabindex="0" role="button" aria-haspopup="menu" aria-expanded="false">
+      <div class="user-info">
+        <div class="user-info-name" data-user-name>—</div>
+        <div class="user-info-meta" data-user-cohort>—</div>
+      </div>
+      <div class="avatar" data-user-initial>—</div>
+      <div class="user-menu hidden" data-user-menu role="menu">
+        <button type="button" class="user-menu-item" data-action="mi-perfil">Mi perfil</button>
+        <button type="button" class="user-menu-item" data-action="logout">Cerrar sesión</button>
+        <button type="button" class="user-menu-item user-menu-item-exit hidden" data-action="exit-viewing">
+          Salir de la vista
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="app-container">
+    <div class="diario-hero">
+      <div class="diario-eyebrow" id="calendario-eyebrow">AGENDA</div>
+      <h1 class="diario-title">Mi calendario.</h1>
+      <p class="diario-subtitle">
+        Tus sesiones programadas con Frank y Tatiana, ordenadas cronológicamente.
+        Las próximas arriba; las pasadas, debajo, como huellas del recorrido.
+      </p>
+    </div>
+
+    <div class="cal-section" id="cal-proxima-section">
+      <div class="cal-section-title">Próxima sesión</div>
+      <div id="cal-proxima"></div>
+    </div>
+
+    <div class="cal-section">
+      <div class="cal-section-title">Próximas
+        <span class="section-meta-inline" id="cal-proximas-count">— SESIONES</span>
+      </div>
+      <div class="cal-list" id="cal-proximas"></div>
+    </div>
+
+    <div class="cal-section">
+      <div class="cal-section-title">Anteriores
+        <span class="section-meta-inline" id="cal-pasadas-count">— SESIONES</span>
+      </div>
+      <div class="cal-list cal-list-pasadas" id="cal-pasadas"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- PANTALLA 5 · PROGRESO                         -->
+<!-- ============================================ -->
+<section id="screen-progreso" class="screen">
+  <header class="app-header">
+    <div class="header-left">
+      <a href="#" class="app-logo" data-screen-link="dashboard">
+        Re<span class="app-logo-dot"></span>Génesis
+      </a>
+      <nav class="app-nav">
+        <button data-screen-link="dashboard">Inicio</button>
+        <button data-screen-link="diario">Mi diario</button>
+        <button data-screen-link="calendario">Calendario</button>
+        <button data-screen-link="progreso" class="active">Mi progreso</button>
+        <button data-screen-link="libro">Mi libro</button>
+        <a href="reunion-resultados.html" class="nav-link-external">Mi reunión con Frank</a>
+        <a href="https://app.livelucky.io/" class="nav-link-external" target="_blank" rel="noopener noreferrer">CRM</a>
+        <a href="https://www.skool.com/neurohackers" class="nav-link-external nav-link-external-feature" target="_blank" rel="noopener noreferrer">Skool</a>
+      </nav>
+    </div>
+    <div class="user-area" data-user-menu-trigger tabindex="0" role="button" aria-haspopup="menu" aria-expanded="false">
+      <div class="user-info">
+        <div class="user-info-name" data-user-name>—</div>
+        <div class="user-info-meta" data-user-cohort>—</div>
+      </div>
+      <div class="avatar" data-user-initial>—</div>
+      <div class="user-menu hidden" data-user-menu role="menu">
+        <button type="button" class="user-menu-item" data-action="mi-perfil">Mi perfil</button>
+        <button type="button" class="user-menu-item" data-action="logout">Cerrar sesión</button>
+        <button type="button" class="user-menu-item user-menu-item-exit hidden" data-action="exit-viewing">
+          Salir de la vista
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="app-container">
+    <div class="diario-hero">
+      <div class="diario-eyebrow">ANALÍTICA PERSONAL</div>
+      <h1 class="diario-title">Mi progreso.</h1>
+      <p class="diario-subtitle">
+        Lo que escribes, cuándo lo escribes, dónde se concentra tu atención.
+        Métricas honestas, sin gamificación vacía.
+      </p>
+    </div>
+
+    <!-- Stat hero principal: día / 70 ocupando ancho completo -->
+    <div class="prog-hero">
+      <div class="prog-hero-left">
+        <div class="prog-hero-eyebrow">PROGRAMA EN CURSO</div>
+        <div class="prog-hero-num">
+          <span id="prog-dias-programa">—</span><span class="prog-hero-num-total">/70</span>
+        </div>
+        <div class="prog-hero-sub" id="prog-dias-programa-sub">—</div>
+      </div>
+      <div class="prog-hero-bar-wrap">
+        <div class="prog-hero-bar-track">
+          <div class="prog-hero-bar-fill" id="prog-hero-bar-fill" style="width: 0%"></div>
+        </div>
+        <div class="prog-hero-bar-meta">
+          <span id="prog-hero-pct">0%</span> COMPLETADO
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats secundarias en grid -->
+    <div class="prog-stats-grid">
+      <div class="prog-stat">
+        <span class="prog-stat-label">RACHA ACTUAL</span>
+        <span class="prog-stat-num" id="prog-racha">0</span>
+        <span class="prog-stat-sub">DÍAS SEGUIDOS</span>
+      </div>
+      <div class="prog-stat">
+        <span class="prog-stat-label">REFLEXIONES</span>
+        <span class="prog-stat-num" id="prog-reflexiones">0/0</span>
+        <span class="prog-stat-sub" id="prog-adherencia">— DE COMPROMISO</span>
+      </div>
+      <div class="prog-stat">
+        <span class="prog-stat-label">PALABRAS ESCRITAS</span>
+        <span class="prog-stat-num" id="prog-palabras">0</span>
+        <span class="prog-stat-sub" id="prog-palabras-prom">— PROMEDIO</span>
+      </div>
+    </div>
+
+    <div class="prog-card">
+      <div class="prog-card-header">
+        <h2 class="prog-card-title">Adherencia por semana</h2>
+        <span class="prog-card-meta">RESPONDIDAS / DÍAS ALCANZADOS</span>
+      </div>
+      <div class="prog-bars" id="prog-bars-semanas"></div>
+    </div>
+
+    <div class="prog-card">
+      <div class="prog-card-header">
+        <h2 class="prog-card-title">Distribución por tema</h2>
+        <span class="prog-card-meta">REFLEXIONES POR ÁREA TRABAJADA</span>
+      </div>
+      <div class="prog-bars" id="prog-bars-temas"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- PANTALLA 6 · MI LIBRO                         -->
+<!-- ============================================ -->
+<section id="screen-libro" class="screen">
+  <header class="app-header">
+    <div class="header-left">
+      <a href="#" class="app-logo" data-screen-link="dashboard">
+        Re<span class="app-logo-dot"></span>Génesis
+      </a>
+      <nav class="app-nav">
+        <button data-screen-link="dashboard">Inicio</button>
+        <button data-screen-link="diario">Mi diario</button>
+        <button data-screen-link="calendario">Calendario</button>
+        <button data-screen-link="progreso">Mi progreso</button>
+        <button data-screen-link="libro" class="active">Mi libro</button>
+        <a href="reunion-resultados.html" class="nav-link-external">Mi reunión con Frank</a>
+        <a href="https://app.livelucky.io/" class="nav-link-external" target="_blank" rel="noopener noreferrer">CRM</a>
+        <a href="https://www.skool.com/neurohackers" class="nav-link-external nav-link-external-feature" target="_blank" rel="noopener noreferrer">Skool</a>
+      </nav>
+    </div>
+    <div class="user-area" data-user-menu-trigger tabindex="0" role="button" aria-haspopup="menu" aria-expanded="false">
+      <div class="user-info">
+        <div class="user-info-name" data-user-name>—</div>
+        <div class="user-info-meta" data-user-cohort>—</div>
+      </div>
+      <div class="avatar" data-user-initial>—</div>
+      <div class="user-menu hidden" data-user-menu role="menu">
+        <button type="button" class="user-menu-item" data-action="mi-perfil">Mi perfil</button>
+        <button type="button" class="user-menu-item" data-action="logout">Cerrar sesión</button>
+        <button type="button" class="user-menu-item user-menu-item-exit hidden" data-action="exit-viewing">
+          Salir de la vista
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="app-container">
+    <!-- Hero card que se inyecta dinámicamente según estado -->
+    <div id="libro-hero"></div>
+
+    <!-- Galería visual de los 10 capítulos -->
+    <div class="libro-capitulos-section">
+      <div class="libro-section-eyebrow">LOS 10 CAPÍTULOS</div>
+      <h2 class="libro-section-title">Tu mapa de la transformación.</h2>
+      <p class="libro-section-sub">
+        Cada semana es un capítulo. Cada día, una página. Aquí ves cómo se llenan en tiempo real.
+      </p>
+      <div class="libro-capitulos-grid" id="libro-capitulos"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Scripts: el orden importa. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/scripts/config.js?v=20260653"></script>
+<script src="assets/scripts/supabase-client.js?v=20260653"></script>
+<script src="assets/scripts/utils.js?v=20260653"></script>
+<script src="assets/scripts/ia-service.js?v=20260653"></script>
+<script src="assets/scripts/client-app.js?v=20260653"></script>
+<script src="assets/scripts/regenesis-nav.js?v=20260633"></script>
+
+</body>
+</html>

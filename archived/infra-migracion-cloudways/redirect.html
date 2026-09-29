@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="refresh" content="0; url=https://neurohackers.cloud/">
+  <title>Re-Génesis · Nuevo dominio</title>
+  <link rel="canonical" href="https://neurohackers.cloud/">
+  <style>
+    body { font-family: -apple-system, system-ui, sans-serif; background: #F5F5F7; color: #1D1D1F; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 24px; text-align: center; }
+    .card { background: #fff; padding: 48px 36px; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04); max-width: 480px; }
+    h1 { font-size: 24px; font-weight: 600; margin: 0 0 12px; letter-spacing: -0.02em; }
+    p { color: #86868B; line-height: 1.5; margin: 0 0 24px; font-size: 15px; }
+    .dot { display: inline-block; width: 6px; height: 6px; background: #D4AF37; border-radius: 50%; margin: 0 4px; vertical-align: middle; }
+    a { color: #B8941F; font-weight: 500; text-decoration: none; }
+    .spinner { width: 24px; height: 24px; border: 2px solid #E5E5EA; border-top-color: #D4AF37; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+  <script>
+    // Preservar path + query al redirigir.
+    (function () {
+      var target = 'https://neurohackers.cloud' + window.location.pathname + window.location.search + window.location.hash;
+      window.location.replace(target);
+    })();
+  </script>
+</head>
+<body>
+  <div class="card">
+    <div class="spinner"></div>
+    <h1>Re<span class="dot"></span>Génesis se mudó</h1>
+    <p>Te estamos redirigiendo a nuestro nuevo dominio.<br>Si no carga, haz clic abajo.</p>
+    <a id="manual" href="https://neurohackers.cloud/">Ir a neurohackers.cloud →</a>
+  </div>
+  <script>
+    // Actualizar el link manual con el path actual
+    document.getElementById('manual').href = 'https://neurohackers.cloud' + window.location.pathname + window.location.search;
+  </script>
+</body>
+</html>

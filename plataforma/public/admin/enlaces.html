@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Enlaces · Admin · Neurohackers</title>
+  <script src="/shared/turbo.min.js?v=20260797"></script>
+  <link rel="stylesheet" href="/shared/styles.css?v=20260797">
+  <style>
+    /* minmax(0,1fr) + min-width:0 en la card evitan que las URLs sin wrap
+       revienten el ancho de las columnas (desborde horizontal en escritorio). */
+    .enl-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5); }
+    @media (max-width: 900px) { .enl-grid { grid-template-columns: 1fr; } }
+
+    .enl-card {
+      min-width: 0;
+      background: var(--surface);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-md);
+      padding: var(--space-6);
+    }
+    .enl-card-head { margin-bottom: var(--space-4); }
+    .enl-card-title { font-size: var(--text-lg); font-weight: 600; letter-spacing: -0.01em; }
+    .enl-card-nota { font-size: var(--text-xs); color: var(--text-muted); margin-top: 4px; line-height: 1.5; }
+
+    .enl-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3) 0;
+      border-top: 1px solid var(--border-soft);
+    }
+    .enl-row:first-of-type { border-top: none; }
+
+    .enl-meta { min-width: 0; flex: 1; }
+    .enl-label { font-size: var(--text-sm); font-weight: 500; }
+    .enl-url {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    .enl-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .enl-btn {
+      font-size: var(--text-xs);
+      font-weight: 500;
+      padding: 7px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: background var(--transition-base), border-color var(--transition-base), color var(--transition-base);
+    }
+    .enl-btn:hover { background: var(--surface-2); }
+    .enl-btn-copiar.copiado {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    @media (max-width: 480px) {
+      .enl-row { flex-wrap: wrap; }
+      .enl-actions { width: 100%; }
+      .enl-btn { flex: 1; text-align: center; }
+    }
+  </style>
+</head>
+<body class="with-sidebar admin-mode">
+
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<script>(function(){try{var c=localStorage.getItem("nav-cache-admin-v4");var w=document.getElementById("sidebar-wrapper");if(c&&w&&!w.firstChild)w.innerHTML=c;}catch(e){}})();</script>
+<div data-nav data-active="admin-enlaces" data-base="../"></div>
+
+<div class="admin-strip">
+  <div class="admin-strip-inner">
+    <span class="admin-strip-dot"></span>
+    <span>ENLACES RÁPIDOS · PAGO Y FORMULARIOS</span>
+    <span style="opacity: 0.5;">·</span>
+    <a href="index.html">Volver a clientes</a>
+  </div>
+</div>
+
+<main class="container-wide" id="main" style="max-width: 1040px;">
+
+  <section style="margin-bottom: var(--space-8);">
+    <span class="eyebrow">CENTRO DE ENLACES</span>
+    <h1 class="greeting-lg">Enlaces.</h1>
+    <p class="lead">Todos los links de pago de cada servicio, el CRM y los formularios en un solo lugar. Da click en <strong>Copiar</strong> y pégalo donde lo necesites (WhatsApp, email, GHL).</p>
+  </section>
+
+  <div class="enl-grid" id="enl-root"></div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/shared/scripts/config.js?v=20260797"></script>
+<script src="/shared/scripts/supabase-client.js?v=20260797"></script>
+<script src="/shared/scripts/cache.js?v=20260797"></script>
+<script src="/shared/scripts/utils.js?v=20260797"></script>
+<script src="/shared/scripts/auth.js?v=20260797"></script>
+<script src="/shared/scripts/event-tracker.js?v=20260797"></script>
+<script src="/shared/scripts/admin-gate.js?v=20260797"></script>
+<script src="/shared/nav.js?v=20260797"></script>
+<script>
+(async function () {
+  const auth = await window.requireAdmin();
+  if (!auth) return;
+
+  // ── Fuente de verdad de los enlaces. Para agregar/editar: toca solo aquí.
+  // Los links de pago son los mismos que usa /regenesis/pago.html (SERVICIOS).
+  const GRUPOS = [
+    {
+      titulo: 'Re-Génesis Completo',
+      nota: 'Programa terapéutico de 70 días. Primero el formulario de cliente directo (captura cuotas + modalidad); luego el link de pago según el plan que eligió.',
+      enlaces: [
+        { label: 'Formulario cliente directo', url: 'https://app.neurohackers.top/widget/form/R44gBGDszvOwYiJ1Gy4s' },
+        { label: 'Pago único', url: 'https://link.neurohackers.top/payment-link/69c56295c6a0e600f4d05acf' },
+        { label: '2 cuotas',   url: 'https://link.neurohackers.top/payment-link/699cd118a4cd1da27b85106d' },
+        { label: '3 cuotas',   url: 'https://link.neurohackers.top/payment-link/69e53056557558e89e520fe7' },
+        { label: '4 cuotas',   url: 'https://link.neurohackers.top/payment-link/69e53087557558e89e520fe8' },
+      ],
+    },
+    {
+      titulo: 'Re-Génesis Terapia',
+      nota: 'Entra al mismo programa de 70 días que Re-Génesis Completo. Primero el formulario de cliente directo, luego el link de pago.',
+      enlaces: [
+        { label: 'Formulario cliente directo', url: 'https://app.neurohackers.top/widget/form/HKtVZzo97Cdp5ZCXxbDB' },
+        { label: 'Pago único', url: 'https://app.neurohackers.top/payment-link/6a288b1903b17c94f571574d' },
+        { label: '2 cuotas',   url: 'https://app.neurohackers.top/payment-link/6a288b4303b17c94f571574f' },
+        { label: '3 cuotas',   url: 'https://app.neurohackers.top/payment-link/6a28a12903b17c94f5715799' },
+        { label: '4 cuotas',   url: 'https://app.neurohackers.top/payment-link/6a28a15303b17c94f571579a' },
+      ],
+    },
+    {
+      titulo: 'Re-Génesis Growth',
+      nota: 'No accede a la plataforma terapéutica. Primero el formulario de cliente directo, luego el link de pago. Tras pagar, el cliente ve la página de bienvenida de Growth.',
+      enlaces: [
+        { label: 'Formulario cliente directo', url: 'https://app.neurohackers.top/widget/form/6fKxuX9jNPFmfF2YOczu' },
+        { label: 'Pago único', url: 'https://app.neurohackers.top/payment-link/6a29e52771a0aa761e4641ec' },
+        { label: '2 cuotas',   url: 'https://app.neurohackers.top/payment-link/6a29e58e03b17c94f5715aab' },
+        { label: '3 cuotas',   url: 'https://app.neurohackers.top/payment-link/6a29e5c503b17c94f5715aad' },
+        { label: '4 cuotas',   url: 'https://app.neurohackers.top/payment-link/6a29e5e271a0aa761e4641ee' },
+        { label: 'Página post-pago (bienvenida Growth)', url: 'https://plataforma.neurohackers.cloud/regenesis-growth/' },
+      ],
+    },
+    {
+      titulo: 'CRM y comunidad',
+      nota: 'Acceso al CRM (white-label Live Lucky), la landing de registro/pago, la comunidad de Skool y el WhatsApp de soporte.',
+      enlaces: [
+        { label: 'CRM · Login (Live Lucky)',     url: 'https://app.livelucky.io/' },
+        { label: 'CRM · Registro / Pago',        url: 'https://plataforma.neurohackers.cloud/live-lucky/' },
+        { label: 'Comunidad Skool',      url: 'https://www.skool.com/neurohackers' },
+        { label: 'WhatsApp soporte · (407) 408-8501', url: 'https://wa.me/14074088501' },
+      ],
+    },
+    {
+      titulo: 'Formularios de contrato',
+      nota: 'Documentos que firma el cliente tras el pago (servicio, waiver y media release).',
+      enlaces: [
+        { label: 'Contrato de servicio', url: 'https://link.neurohackers.top/documents/doc-form/69f2bd1a51631f52b3a5951c' },
+        { label: 'Waiver',               url: 'https://link.neurohackers.top/documents/doc-form/69fb5c949e75ad690e4b5b6e' },
+        { label: 'Media release',        url: 'https://link.neurohackers.top/documents/doc-form/69faaef2b202948fdae2ed45' },
+      ],
+    },
+  ];
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c];
+    });
+  }
+
+  const root = document.getElementById('enl-root');
+  root.innerHTML = GRUPOS.map(function (g) {
+    var filas = g.enlaces.map(function (e) {
+      return (
+        '<div class="enl-row">' +
+          '<div class="enl-meta">' +
+            '<span class="enl-label">' + esc(e.label) + '</span>' +
+            '<span class="enl-url" title="' + esc(e.url) + '">' + esc(e.url) + '</span>' +
+          '</div>' +
+          '<div class="enl-actions">' +
+            '<button type="button" class="enl-btn enl-btn-copiar" data-copy="' + esc(e.url) + '">Copiar</button>' +
+            '<a class="enl-btn" href="' + esc(e.url) + '" target="_blank" rel="noopener">Abrir</a>' +
+          '</div>' +
+        '</div>'
+      );
+    }).join('');
+    return (
+      '<div class="enl-card">' +
+        '<div class="enl-card-head">' +
+          '<div class="enl-card-title">' + esc(g.titulo) + '</div>' +
+          (g.nota ? '<div class="enl-card-nota">' + esc(g.nota) + '</div>' : '') +
+        '</div>' +
+        filas +
+      '</div>'
+    );
+  }).join('');
+
+  // Copiar al portapapeles con fallback para navegadores sin clipboard API.
+  async function copiar(text, btn) {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (_) {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch (e) {}
+      ta.remove();
+    }
+    var original = btn.textContent;
+    btn.textContent = 'Copiado ✓';
+    btn.classList.add('copiado');
+    setTimeout(function () {
+      btn.textContent = original;
+      btn.classList.remove('copiado');
+    }, 1400);
+    if (window.utils && typeof window.utils.toast === 'function') {
+      window.utils.toast('Enlace copiado', 'success');
+    }
+  }
+
+  root.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-copy]');
+    if (!btn) return;
+    copiar(btn.getAttribute('data-copy'), btn);
+  });
+
+  document.getElementById('main').style.opacity = '1';
+})();
+</script>
+
+</body>
+</html>

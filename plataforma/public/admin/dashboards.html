@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboards · Admin · Neurohackers</title>
+  <script src="/shared/turbo.min.js?v=20260797"></script>
+  <link rel="stylesheet" href="/shared/styles.css?v=20260797">
+  <style>
+    .dash-kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-3); margin-bottom: var(--space-6); }
+    @media (max-width: 1000px) { .dash-kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 540px)  { .dash-kpi-grid { grid-template-columns: 1fr; } }
+    .dash-kpi { padding: var(--space-5); background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); }
+    .dash-kpi-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
+    .dash-kpi-num { font-size: var(--text-2xl); font-weight: 600; letter-spacing: -0.02em; margin-top: 4px; line-height: 1.1; }
+    .dash-kpi-sub { font-size: var(--text-xs); color: var(--text-muted); margin-top: 4px; display: flex; gap: 6px; align-items: center; }
+    .dash-kpi-delta { font-family: var(--font-mono); font-weight: 600; padding: 2px 6px; border-radius: 3px; font-size: 10px; }
+    .dash-kpi-delta.up   { background: #D1FAE5; color: #065F46; }
+    .dash-kpi-delta.down { background: #FEE2E2; color: #991B1B; }
+    .dash-kpi-delta.flat { background: var(--surface-2); color: var(--text-muted); }
+    .dash-kpi.success .dash-kpi-num { color: var(--success); }
+    .dash-kpi.warn    .dash-kpi-num { color: var(--accent-deeper); }
+    .dash-kpi.danger  .dash-kpi-num { color: var(--error); }
+
+    .dash-block { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); padding: var(--space-5); margin-bottom: var(--space-4); }
+    .dash-block-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--space-4); gap: var(--space-3); flex-wrap: wrap; }
+    .dash-block-title { font-size: var(--text-lg); font-weight: 600; letter-spacing: -0.01em; }
+    .dash-block-sub { font-size: var(--text-xs); color: var(--text-muted); }
+
+    .row-table { width: 100%; border-collapse: collapse; }
+    .row-table thead th { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; text-align: left; padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--border-soft); }
+    .row-table thead th.num { text-align: right; }
+    .row-table tbody td { padding: var(--space-3); border-bottom: 1px solid var(--border-soft); font-size: var(--text-sm); }
+    .row-table tbody td.num { text-align: right; font-family: var(--font-mono); }
+    .row-table tbody tr:hover { background: var(--surface-2); }
+    .row-table tbody td.bold { font-weight: 600; }
+
+    .barr-bg { background: var(--surface-3); border-radius: 999px; height: 6px; overflow: hidden; min-width: 60px; }
+    .barr-fill { height: 100%; background: var(--accent); border-radius: 999px; transition: width 250ms; }
+    .barr-fill.success { background: var(--success); }
+    .barr-fill.danger  { background: var(--error); }
+
+    /* mini bars for weekly velocity */
+    .vel-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 6px; margin-top: var(--space-3); }
+    .vel-col { display: flex; flex-direction: column; align-items: stretch; gap: 4px; min-height: 120px; }
+    .vel-bar-wrap { flex: 1; display: flex; flex-direction: column-reverse; gap: 2px; min-height: 80px; }
+    .vel-bar { background: var(--accent); border-radius: 2px 2px 0 0; min-height: 2px; }
+    .vel-bar.sesiones { background: #94A3B8; }
+    .vel-bar.activaciones { background: var(--accent); }
+    .vel-bar.casos { background: var(--success); }
+    .vel-bar.churn { background: var(--error); }
+    .vel-label { font-family: var(--font-mono); font-size: 9px; text-align: center; color: var(--text-muted); writing-mode: vertical-rl; transform: rotate(180deg); }
+    @media (max-width: 760px) { .vel-grid { grid-template-columns: repeat(6, 1fr); } .vel-col:nth-child(n+7) { display: none; } }
+
+    .leyenda { display: flex; gap: var(--space-3); flex-wrap: wrap; font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-3); }
+    .leyenda-item { display: inline-flex; align-items: center; gap: 6px; }
+    .leyenda-dot { width: 10px; height: 10px; border-radius: 2px; }
+  </style>
+</head>
+<body class="with-sidebar admin-mode">
+
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<script>(function(){try{var c=localStorage.getItem("nav-cache-admin-v4");var w=document.getElementById("sidebar-wrapper");if(c&&w&&!w.firstChild)w.innerHTML=c;}catch(e){}})();</script>
+<div data-nav data-active="admin-dashboards" data-base="../"></div>
+
+<div class="admin-strip">
+  <div class="admin-strip-inner">
+    <span class="admin-strip-dot"></span>
+    <span>DASHBOARDS · INTELIGENCIA DEL NEGOCIO</span>
+    <span style="opacity: 0.5;">·</span>
+    <a href="index.html">Volver</a>
+  </div>
+</div>
+
+<main class="container-wide" id="main">
+
+  <section style="margin-bottom: var(--space-6);">
+    <span class="eyebrow">VISIÓN GLOBAL</span>
+    <h1 class="greeting-lg">Dashboards.</h1>
+    <p class="lead">Churn, retención, LTV, casos de éxito, velocidad operativa y performance por mentor. Datos en vivo.</p>
+  </section>
+
+  <!-- KPIs TOP -->
+  <div class="dash-kpi-grid">
+    <div class="dash-kpi success">
+      <div class="dash-kpi-label">Clientes activos</div>
+      <div class="dash-kpi-num" id="k-activos">-</div>
+      <div class="dash-kpi-sub" id="k-activos-sub"></div>
+    </div>
+    <div class="dash-kpi">
+      <div class="dash-kpi-label">Casos de éxito</div>
+      <div class="dash-kpi-num" id="k-exito">-</div>
+      <div class="dash-kpi-sub" id="k-exito-sub"></div>
+    </div>
+    <div class="dash-kpi danger">
+      <div class="dash-kpi-label">Churn (total)</div>
+      <div class="dash-kpi-num" id="k-churn">-</div>
+      <div class="dash-kpi-sub" id="k-churn-sub"></div>
+    </div>
+    <div class="dash-kpi warn">
+      <div class="dash-kpi-label">Churn rate</div>
+      <div class="dash-kpi-num" id="k-churn-rate">-</div>
+      <div class="dash-kpi-sub">% sobre histórico activos + churn</div>
+    </div>
+  </div>
+
+  <div class="dash-kpi-grid">
+    <div class="dash-kpi success">
+      <div class="dash-kpi-label">Ingresos · mes</div>
+      <div class="dash-kpi-num" id="k-cash">-</div>
+      <div class="dash-kpi-sub" id="k-cash-sub"></div>
+    </div>
+    <div class="dash-kpi">
+      <div class="dash-kpi-label">MRR estimado</div>
+      <div class="dash-kpi-num" id="k-mrr">-</div>
+      <div class="dash-kpi-sub">Recurrente derivado de programas activos</div>
+    </div>
+    <div class="dash-kpi warn">
+      <div class="dash-kpi-label">Sesiones · mes</div>
+      <div class="dash-kpi-num" id="k-sesiones">-</div>
+      <div class="dash-kpi-sub" id="k-sesiones-sub"></div>
+    </div>
+    <div class="dash-kpi">
+      <div class="dash-kpi-label">Comisión devengada</div>
+      <div class="dash-kpi-num" id="k-comision">-</div>
+      <div class="dash-kpi-sub">Pendiente del mes en curso</div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-5); padding-bottom: var(--space-3); border-bottom: 1px solid var(--border-soft); flex-wrap: wrap;">
+    <button class="filter-chip active" data-tab="resumen">Resumen</button>
+    <button class="filter-chip" data-tab="cohortes">Cohortes</button>
+    <button class="filter-chip" data-tab="segmentos">Segmentos</button>
+    <button class="filter-chip" data-tab="mentores">Mentores</button>
+    <button class="filter-chip" data-tab="velocidad">Velocidad semanal</button>
+  </div>
+
+  <!-- RESUMEN: time-to + activations vs churn -->
+  <section id="tab-resumen">
+    <div class="dash-block">
+      <div class="dash-block-head">
+        <div>
+          <div class="dash-block-title">Tiempos a hitos</div>
+          <div class="dash-block-sub">Promedio en días desde la activación del programa hasta el evento.</div>
+        </div>
+      </div>
+      <div id="tt-content" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4);"></div>
+    </div>
+
+    <div class="dash-block">
+      <div class="dash-block-head">
+        <div>
+          <div class="dash-block-title">Pulso del mes</div>
+          <div class="dash-block-sub">Comparativa rápida del mes en curso vs el anterior.</div>
+        </div>
+      </div>
+      <div id="pulso-content" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4);"></div>
+    </div>
+  </section>
+
+  <!-- COHORTES -->
+  <section id="tab-cohortes" class="hidden">
+    <div class="dash-block">
+      <div class="dash-block-head">
+        <div>
+          <div class="dash-block-title">Retención por cohorte</div>
+          <div class="dash-block-sub">Cada cohorte muestra: total · activos actuales · casos de éxito · churn · % retención · ticket promedio.</div>
+        </div>
+      </div>
+      <div id="coh-content"></div>
+    </div>
+  </section>
+
+  <!-- SEGMENTOS -->
+  <section id="tab-segmentos" class="hidden">
+    <div class="dash-block">
+      <div class="dash-block-head">
+        <div>
+          <div class="dash-block-title">LTV por segmento (arquetipo)</div>
+          <div class="dash-block-sub">Vehículo del cliente y comportamiento promedio. Útil para decidir dónde invertir más.</div>
+        </div>
+      </div>
+      <div id="seg-content"></div>
+    </div>
+  </section>
+
+  <!-- MENTORES -->
+  <section id="tab-mentores" class="hidden">
+    <div class="dash-block">
+      <div class="dash-block-head">
+        <div>
+          <div class="dash-block-title">Performance por mentor</div>
+          <div class="dash-block-sub">Clientes asignados, sesiones del mes, % aprobación QC, casos de éxito y comisión devengada.</div>
+        </div>
+      </div>
+      <div id="ment-content"></div>
+    </div>
+  </section>
+
+  <!-- VELOCIDAD SEMANAL -->
+  <section id="tab-velocidad" class="hidden">
+    <div class="dash-block">
+      <div class="dash-block-head">
+        <div>
+          <div class="dash-block-title">Velocidad operativa · últimas 12 semanas</div>
+          <div class="dash-block-sub">Activaciones · casos de éxito · churn · sesiones · ingresos por semana.</div>
+        </div>
+      </div>
+      <div id="vel-content"></div>
+      <div class="leyenda">
+        <span class="leyenda-item"><span class="leyenda-dot" style="background: var(--accent);"></span>Activaciones</span>
+        <span class="leyenda-item"><span class="leyenda-dot" style="background: var(--success);"></span>Casos de éxito</span>
+        <span class="leyenda-item"><span class="leyenda-dot" style="background: var(--error);"></span>Churn</span>
+        <span class="leyenda-item"><span class="leyenda-dot" style="background: #94A3B8;"></span>Sesiones</span>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/shared/scripts/config.js?v=20260797"></script>
+<script src="/shared/scripts/supabase-client.js?v=20260797"></script>
+  <script src="/shared/scripts/cache.js?v=20260797"></script>
+<script src="/shared/scripts/utils.js?v=20260797"></script>
+<script src="/shared/scripts/auth.js?v=20260797"></script>
+  <script src="/shared/scripts/event-tracker.js?v=20260797"></script>
+<script src="/shared/scripts/admin-gate.js?v=20260797"></script>
+<script src="/shared/scripts/dashboards.js?v=20260797"></script>
+<script src="/shared/nav.js?v=20260797"></script>
+<script>
+(async function () {
+  const auth = await window.requireAdmin();
+  if (!auth) return;
+
+  const api = window.dashboardsApi;
+  const $ = (id) => document.getElementById(id);
+
+  // -- KPIs top -------------------------------------------------------------
+  async function pintarKPIs() {
+    try {
+      const k = await api.kpisGlobales();
+
+      $('k-activos').textContent = api.formatNum(k.activos);
+      $('k-activos-sub').textContent = `${api.formatNum(k.onboarding)} en onboarding · ${api.formatNum(k.en_pausa)} en pausa`;
+
+      $('k-exito').textContent = api.formatNum(k.casos_exito_total);
+      $('k-exito-sub').textContent = `+${api.formatNum(k.casos_exito_mes)} este mes`;
+
+      $('k-churn').textContent = api.formatNum(k.churn_total);
+      const deltaChurn = api.deltaPct(k.churn_mes, k.churn_mes_anterior);
+      const churnDir = Number(k.churn_mes) > Number(k.churn_mes_anterior) ? 'down' : (Number(k.churn_mes) === Number(k.churn_mes_anterior) ? 'flat' : 'up');
+      $('k-churn-sub').innerHTML = `${api.formatNum(k.churn_mes)} este mes <span class="dash-kpi-delta ${churnDir}">${deltaChurn} vs mes anterior</span>`;
+
+      $('k-churn-rate').textContent = api.formatPct(k.churn_rate_pct);
+
+      $('k-cash').textContent = api.formatMoney(k.ingresos_mes_usd);
+      const deltaCash = api.deltaPct(k.ingresos_mes_usd, k.ingresos_mes_anterior_usd);
+      const cashDir = Number(k.ingresos_mes_usd) >= Number(k.ingresos_mes_anterior_usd) ? 'up' : 'down';
+      $('k-cash-sub').innerHTML = `<span class="dash-kpi-delta ${cashDir}">${deltaCash} vs mes anterior</span>`;
+
+      $('k-mrr').textContent = api.formatMoney(k.mrr_actual_usd);
+
+      $('k-sesiones').textContent = api.formatNum(k.sesiones_mes);
+      const pct = Number(k.sesiones_mes) > 0 ? Math.round(100 * Number(k.sesiones_aprobadas_mes) / Number(k.sesiones_mes)) : 0;
+      $('k-sesiones-sub').textContent = `${api.formatNum(k.sesiones_aprobadas_mes)} aprobadas (${pct}%)`;
+
+      $('k-comision').textContent = api.formatMoney(k.comisiones_devengadas_mes_usd);
+    } catch (e) {
+      console.error('[KPIs]', e);
+      window.showToast?.('No pude cargar los KPIs globales.', 'error');
+    }
+  }
+
+  // -- Time to + pulso ------------------------------------------------------
+  async function pintarResumen() {
+    try {
+      const tt = await api.timeTo();
+      $('tt-content').innerHTML = `
+        <div>
+          <div class="dash-kpi-label">Primera venta</div>
+          <div class="dash-kpi-num" style="font-size: var(--text-xl);">${api.formatDias(tt.t_primera_venta_dias)}</div>
+          <div class="dash-kpi-sub">Promedio sobre ${api.formatNum(tt.n_con_primera_venta)} clientes</div>
+        </div>
+        <div>
+          <div class="dash-kpi-label">Caso de éxito</div>
+          <div class="dash-kpi-num" style="font-size: var(--text-xl); color: var(--success);">${api.formatDias(tt.t_caso_exito_dias)}</div>
+          <div class="dash-kpi-sub">Promedio sobre ${api.formatNum(tt.n_caso_exito)} clientes</div>
+        </div>
+        <div>
+          <div class="dash-kpi-label">Churn</div>
+          <div class="dash-kpi-num" style="font-size: var(--text-xl); color: var(--error);">${api.formatDias(tt.t_churn_dias)}</div>
+          <div class="dash-kpi-sub">Promedio sobre ${api.formatNum(tt.n_churn)} clientes</div>
+        </div>`;
+
+      const k = await api.kpisGlobales();
+      $('pulso-content').innerHTML = `
+        <div>
+          <div class="dash-kpi-label">Activaciones del mes</div>
+          <div class="dash-kpi-num" style="font-size: var(--text-xl);">${api.formatNum(k.activaciones_mes)}</div>
+          <div class="dash-kpi-sub">Programas que arrancaron en el mes en curso</div>
+        </div>
+        <div>
+          <div class="dash-kpi-label">Cobranza atrasada</div>
+          <div class="dash-kpi-num" style="font-size: var(--text-xl); color: var(--error);">${api.formatMoney(k.ingresos_atrasados_usd)}</div>
+          <div class="dash-kpi-sub">Cuotas vencidas sin pagar</div>
+        </div>
+        <div>
+          <div class="dash-kpi-label">Pipeline a cobrar</div>
+          <div class="dash-kpi-num" style="font-size: var(--text-xl);">${api.formatMoney(k.ingresos_proyectados_usd)}</div>
+          <div class="dash-kpi-sub">Cuotas programadas pendientes</div>
+        </div>`;
+    } catch (e) {
+      console.error('[Resumen]', e);
+    }
+  }
+
+  // -- Cohortes -------------------------------------------------------------
+  async function pintarCohortes() {
+    try {
+      const rows = await api.cohortes();
+      if (!rows.length) {
+        $('coh-content').innerHTML = `<div style="text-align: center; padding: var(--space-6); color: var(--text-muted);">Aún no hay cohortes con clientes asignados.</div>`;
+        return;
+      }
+      const html = `
+        <table class="row-table">
+          <thead><tr>
+            <th>Cohorte</th>
+            <th class="num">Total</th>
+            <th class="num">Activos</th>
+            <th class="num">Casos éxito</th>
+            <th class="num">Churn</th>
+            <th class="num">% Retención</th>
+            <th class="num">Ticket prom.</th>
+          </tr></thead>
+          <tbody>
+            ${rows.map((r) => {
+              const pct = Number(r.pct_retencion || 0);
+              const barClass = pct >= 70 ? 'success' : (pct >= 40 ? '' : 'danger');
+              return `
+                <tr>
+                  <td class="bold">${window.escapeHtml(r.cohorte_nombre || '-')}
+                    <div style="font-size: var(--text-xs); color: var(--text-muted); font-weight: 400;">${r.cohorte_inicio ? new Date(r.cohorte_inicio).toLocaleDateString('es-ES', {month:'short', year:'numeric'}) : ''}</div>
+                  </td>
+                  <td class="num">${api.formatNum(r.total_clientes)}</td>
+                  <td class="num">${api.formatNum(r.activos_actual)}</td>
+                  <td class="num" style="color: var(--success);">${api.formatNum(r.casos_exito)}</td>
+                  <td class="num" style="color: var(--error);">${api.formatNum(r.churn)}</td>
+                  <td class="num">
+                    <div style="display: inline-flex; align-items: center; gap: 8px; min-width: 120px; justify-content: flex-end;">
+                      <span>${api.formatPct(r.pct_retencion)}</span>
+                      <div class="barr-bg" style="width: 60px;"><div class="barr-fill ${barClass}" style="width: ${Math.min(100, pct)}%"></div></div>
+                    </div>
+                  </td>
+                  <td class="num">${api.formatMoney(r.ticket_promedio_usd)}</td>
+                </tr>`;
+            }).join('')}
+          </tbody>
+        </table>`;
+      $('coh-content').innerHTML = html;
+    } catch (e) {
+      console.error('[Cohortes]', e);
+      const msg = (e && (e.message || e.hint || e.details)) || 'desconocido';
+      $('coh-content').innerHTML = `<div style="color: var(--error); padding: var(--space-4);">Error al cargar cohortes: ${window.escapeHtml(String(msg))}</div>`;
+    }
+  }
+
+  // -- Segmentos ------------------------------------------------------------
+  async function pintarSegmentos() {
+    try {
+      const rows = await api.segmentos();
+      if (!rows.length) {
+        $('seg-content').innerHTML = `<div style="text-align: center; padding: var(--space-6); color: var(--text-muted);">Aún no hay clientes activados con segmento clasificado.</div>`;
+        return;
+      }
+      const html = `
+        <table class="row-table">
+          <thead><tr>
+            <th>Segmento</th>
+            <th class="num">Clientes</th>
+            <th class="num">Casos éxito</th>
+            <th class="num">Churn</th>
+            <th class="num">Ticket prom.</th>
+            <th class="num">LTV prom.</th>
+            <th class="num">Días en programa</th>
+          </tr></thead>
+          <tbody>
+            ${rows.map((r) => `
+              <tr>
+                <td class="bold">${window.escapeHtml((r.segmento || '-').replace(/_/g, ' '))}</td>
+                <td class="num">${api.formatNum(r.n_clientes)}</td>
+                <td class="num" style="color: var(--success);">${api.formatNum(r.casos_exito)}</td>
+                <td class="num" style="color: var(--error);">${api.formatNum(r.churn)}</td>
+                <td class="num">${api.formatMoney(r.ticket_promedio_usd)}</td>
+                <td class="num bold">${api.formatMoney(r.ltv_promedio_usd)}</td>
+                <td class="num">${api.formatDias(r.dias_promedio_en_programa)}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>`;
+      $('seg-content').innerHTML = html;
+    } catch (e) {
+      console.error('[Segmentos]', e);
+      const msg = (e && (e.message || e.hint || e.details)) || 'desconocido';
+      $('seg-content').innerHTML = `<div style="color: var(--error); padding: var(--space-4);">Error al cargar segmentos: ${window.escapeHtml(String(msg))}</div>`;
+    }
+  }
+
+  // -- Mentores -------------------------------------------------------------
+  async function pintarMentores() {
+    try {
+      const rows = await api.mentores();
+      if (!rows.length) {
+        $('ment-content').innerHTML = `<div style="text-align: center; padding: var(--space-6); color: var(--text-muted);">No hay miembros del equipo registrados como admin o moderador.</div>`;
+        return;
+      }
+      const html = `
+        <table class="row-table">
+          <thead><tr>
+            <th>Mentor</th>
+            <th class="num">Clientes activos</th>
+            <th class="num">Sesiones mes</th>
+            <th class="num">% Aprobación</th>
+            <th class="num">Casos éxito</th>
+            <th class="num">Comisión mes</th>
+            <th class="num">Pendiente total</th>
+          </tr></thead>
+          <tbody>
+            ${rows.map((r) => {
+              const ses = Number(r.sesiones_mes) || 0;
+              const apr = Number(r.sesiones_aprobadas_mes) || 0;
+              const pct = ses > 0 ? Math.round(100 * apr / ses) : null;
+              const pctTxt = pct !== null ? pct + '%' : '-';
+              const barClass = pct === null ? '' : (pct >= 80 ? 'success' : (pct >= 50 ? '' : 'danger'));
+              return `
+                <tr>
+                  <td class="bold">${window.escapeHtml(r.mentor_nombre || r.mentor_email || '-')}
+                    <div style="font-size: var(--text-xs); color: var(--text-muted); font-weight: 400;">${window.escapeHtml(r.mentor_rol || '-')}</div>
+                  </td>
+                  <td class="num">${api.formatNum(r.clientes_activos)}</td>
+                  <td class="num">${apr} / ${ses}</td>
+                  <td class="num">
+                    <div style="display: inline-flex; align-items: center; gap: 8px; min-width: 120px; justify-content: flex-end;">
+                      <span>${pctTxt}</span>
+                      ${pct !== null ? `<div class="barr-bg" style="width: 60px;"><div class="barr-fill ${barClass}" style="width: ${pct}%"></div></div>` : ''}
+                    </div>
+                  </td>
+                  <td class="num" style="color: var(--success);">${api.formatNum(r.casos_exito_total)}</td>
+                  <td class="num bold">${api.formatMoney(r.comision_mes_usd)}</td>
+                  <td class="num">${api.formatMoney(r.comision_pendiente_total_usd)}</td>
+                </tr>`;
+            }).join('')}
+          </tbody>
+        </table>`;
+      $('ment-content').innerHTML = html;
+    } catch (e) {
+      console.error('[Mentores]', e);
+      const msg = (e && (e.message || e.hint || e.details)) || 'desconocido';
+      $('ment-content').innerHTML = `<div style="color: var(--error); padding: var(--space-4);">Error al cargar mentores: ${window.escapeHtml(String(msg))}</div>`;
+    }
+  }
+
+  // -- Velocidad semanal -----------------------------------------------------
+  async function pintarVelocidad() {
+    try {
+      const rows = await api.velocidadSemanal();
+      if (!rows.length) {
+        $('vel-content').innerHTML = `<div style="color: var(--text-muted);">Sin datos.</div>`;
+        return;
+      }
+      // calcular maximo para escala
+      const maxN = Math.max(1, ...rows.map(r => Math.max(
+        Number(r.activaciones) || 0, Number(r.casos_exito) || 0,
+        Number(r.churn) || 0, Number(r.sesiones) || 0
+      )));
+      const maxIng = Math.max(1, ...rows.map(r => Number(r.ingresos_usd) || 0));
+
+      const cols = rows.map((r) => {
+        const a = Number(r.activaciones) || 0;
+        const c = Number(r.casos_exito) || 0;
+        const ch = Number(r.churn) || 0;
+        const s = Number(r.sesiones) || 0;
+        const i = Number(r.ingresos_usd) || 0;
+        const h = (v) => Math.max(2, Math.round(70 * v / maxN));
+        return `
+          <div class="vel-col" title="Semana del ${api.formatSemana(r.semana_inicio)} · activ:${a} éxito:${c} churn:${ch} ses:${s} ingr:${api.formatMoney(i)}">
+            <div class="vel-bar-wrap">
+              <div class="vel-bar activaciones" style="height: ${h(a)}px"></div>
+              <div class="vel-bar casos" style="height: ${h(c)}px"></div>
+              <div class="vel-bar churn" style="height: ${h(ch)}px"></div>
+              <div class="vel-bar sesiones" style="height: ${h(s)}px"></div>
+            </div>
+            <div class="vel-label">${api.formatSemana(r.semana_inicio)}</div>
+            <div style="font-family: var(--font-mono); font-size: 10px; text-align: center; color: var(--success);">${api.formatMoney(i)}</div>
+          </div>`;
+      }).join('');
+      $('vel-content').innerHTML = `<div class="vel-grid">${cols}</div>`;
+    } catch (e) {
+      console.error('[Velocidad]', e);
+      const msg = (e && (e.message || e.hint || e.details)) || 'desconocido';
+      $('vel-content').innerHTML = `<div style="color: var(--error); padding: var(--space-4);">Error al cargar velocidad semanal: ${window.escapeHtml(String(msg))}</div>`;
+    }
+  }
+
+  // -- Tabs ------------------------------------------------------------------
+  const tabs = ['resumen', 'cohortes', 'segmentos', 'mentores', 'velocidad'];
+  const loaders = {
+    resumen: pintarResumen,
+    cohortes: pintarCohortes,
+    segmentos: pintarSegmentos,
+    mentores: pintarMentores,
+    velocidad: pintarVelocidad,
+  };
+  const cargado = { resumen: false, cohortes: false, segmentos: false, mentores: false, velocidad: false };
+
+  document.querySelectorAll('[data-tab]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const t = btn.dataset.tab;
+      tabs.forEach((id) => $('tab-' + id).classList.toggle('hidden', id !== t));
+      document.querySelectorAll('[data-tab]').forEach((b) => b.classList.toggle('active', b === btn));
+      if (!cargado[t]) { cargado[t] = true; await loaders[t](); }
+    });
+  });
+
+  // arranque
+  await Promise.all([pintarKPIs(), pintarResumen()]);
+  cargado.resumen = true;
+
+  $('main').style.opacity = '1';
+})();
+</script>
+
+
+</body>
+</html>

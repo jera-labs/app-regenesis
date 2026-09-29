@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Comisiones · Admin · Neurohackers</title>
+  <script src="/shared/turbo.min.js?v=20260797"></script>
+  <link rel="stylesheet" href="/shared/styles.css?v=20260797">
+  <style>
+    .kpi-grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3); margin-bottom: var(--space-6); }
+    @media (max-width: 760px) { .kpi-grid3 { grid-template-columns: 1fr; } }
+    .kpi-tile { padding: var(--space-5); background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); }
+    .kpi-tile-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
+    .kpi-tile-num { font-size: var(--text-2xl); font-weight: 600; letter-spacing: -0.02em; margin-top: 4px; line-height: 1; }
+    .kpi-tile.pendientes .kpi-tile-num { color: var(--accent-deeper); }
+    .kpi-tile.pagadas .kpi-tile-num { color: var(--success); }
+
+    .ev-row { display: grid; grid-template-columns: 1fr 1fr 100px 110px 100px auto; gap: var(--space-3); padding: var(--space-3); background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-sm); margin-bottom: 4px; align-items: center; }
+    .liq-row { display: grid; grid-template-columns: 1fr 1fr 100px 100px 110px auto; gap: var(--space-3); padding: var(--space-3); background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-sm); margin-bottom: 4px; align-items: center; }
+    .monto { font-family: var(--font-mono); font-weight: 600; }
+  </style>
+</head>
+<body class="with-sidebar admin-mode">
+
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<script>(function(){try{var c=localStorage.getItem("nav-cache-admin-v4");var w=document.getElementById("sidebar-wrapper");if(c&&w&&!w.firstChild)w.innerHTML=c;}catch(e){}})();</script>
+<div data-nav data-active="admin-comisiones" data-base="../"></div>
+
+<div class="admin-strip">
+  <div class="admin-strip-inner">
+    <span class="admin-strip-dot"></span>
+    <span>COMISIONES · NÓMINA</span>
+    <span style="opacity: 0.5;">·</span>
+    <a href="index.html">Volver</a>
+    <span style="opacity: 0.5;">·</span>
+    <a href="configuracion.html">Configurar montos</a>
+  </div>
+</div>
+
+<main class="container-wide" id="main">
+
+  <section style="margin-bottom: var(--space-6);">
+    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap;">
+      <div>
+        <span class="eyebrow">PAGO AL EQUIPO</span>
+        <h1 class="greeting-lg">Comisiones.</h1>
+        <p class="lead">Cada sesión aprobada genera comisión al mentor. Cierra el mes para liquidar y marcar pagado.</p>
+      </div>
+      <div id="estado-modulo"></div>
+    </div>
+  </section>
+
+  <div class="kpi-grid3">
+    <div class="kpi-tile pendientes">
+      <div class="kpi-tile-label">Pendiente · histórico</div>
+      <div class="kpi-tile-num" id="k-pendientes">-</div>
+      <div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: 4px;">Sin liquidar</div>
+    </div>
+    <div class="kpi-tile">
+      <div class="kpi-tile-label">Devengado · este mes</div>
+      <div class="kpi-tile-num" id="k-devengado">-</div>
+      <div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: 4px;">Pendiente del mes en curso</div>
+    </div>
+    <div class="kpi-tile pagadas">
+      <div class="kpi-tile-label">Pagado · este mes</div>
+      <div class="kpi-tile-num" id="k-pagado">-</div>
+      <div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: 4px;">Liquidaciones marcadas pagadas</div>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-5); padding-bottom: var(--space-3); border-bottom: 1px solid var(--border-soft); flex-wrap: wrap;">
+    <button class="filter-chip active" data-sec="eventos">Eventos</button>
+    <button class="filter-chip" data-sec="liquidaciones">Liquidaciones</button>
+    <button class="filter-chip" data-sec="resumen">Resumen mentores</button>
+  </div>
+
+  <!-- EVENTOS -->
+  <section id="sec-eventos">
+    <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-4); flex-wrap: wrap; align-items: center;">
+      <label style="font-family: var(--font-mono); font-size: var(--text-2xs); text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted);">Mes:</label>
+      <input class="field-input" id="filtro-mes" type="month" style="max-width: 180px;">
+      <label style="font-family: var(--font-mono); font-size: var(--text-2xs); text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-left: var(--space-3);">Estado:</label>
+      <select class="field-input" id="filtro-estado" style="max-width: 160px;">
+        <option value="">Todos</option>
+        <option value="pendiente">Pendiente</option>
+        <option value="liquidada">Liquidada</option>
+        <option value="revertida">Revertida</option>
+      </select>
+      <button class="btn btn-accent btn-sm" id="btn-cerrar-mes" style="margin-left: auto;">Cerrar mes...</button>
+      <button class="btn btn-secondary btn-sm" id="btn-ajuste-manual">+ Ajuste manual</button>
+    </div>
+    <div id="ev-lista"></div>
+  </section>
+
+  <!-- LIQUIDACIONES -->
+  <section id="sec-liquidaciones" class="hidden">
+    <div id="liq-lista"></div>
+  </section>
+
+  <!-- RESUMEN POR MENTOR -->
+  <section id="sec-resumen" class="hidden">
+    <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-4); align-items: center; flex-wrap: wrap;">
+      <label style="font-family: var(--font-mono); font-size: var(--text-2xs); text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted);">Cierre masivo del mes:</label>
+      <input class="field-input" id="rm-mes" type="month" style="max-width: 180px;">
+      <button class="btn btn-secondary btn-sm" id="btn-preview-mes">Previsualizar</button>
+      <button class="btn btn-accent btn-sm" id="btn-cierre-masivo">Cerrar mes (todos)</button>
+    </div>
+    <div id="resumen-lista"></div>
+  </section>
+
+</main>
+
+<!-- MODAL CERRAR MES -->
+<div class="modal-backdrop hidden" id="modal-cierre">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">Cerrar mes y generar liquidación</span>
+      <button class="modal-close" data-close-cierre>✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size: var(--text-sm); color: var(--text-muted); margin-bottom: var(--space-3);">
+        Agrupa todas las comisiones <strong>pendientes</strong> del miembro en el periodo elegido en una liquidación con estado "aprobada". Marca las comisiones como "liquidada".
+      </p>
+      <div class="field">
+        <label class="field-label">Miembro *</label>
+        <select class="field-input" id="cm-miembro"></select>
+      </div>
+      <div class="field">
+        <label class="field-label">Periodo (mes) *</label>
+        <input class="field-input" id="cm-mes" type="month">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close-cierre>Cancelar</button>
+      <button class="btn btn-accent" id="btn-confirmar-cierre">Cerrar mes</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL AJUSTE MANUAL -->
+<div class="modal-backdrop hidden" id="modal-ajuste">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">Ajuste manual de comisión</span>
+      <button class="modal-close" data-close-ajuste>✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size: var(--text-sm); color: var(--text-muted); margin-bottom: var(--space-3);">
+        Para casos especiales (referido, upsell, bono, corrección). Crea una comisión pendiente que entra a la próxima liquidación.
+      </p>
+      <div class="field">
+        <label class="field-label">Miembro *</label>
+        <select class="field-input" id="aj-miembro"></select>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+        <div class="field">
+          <label class="field-label">Tipo</label>
+          <select class="field-input" id="aj-tipo">
+            <option value="ajuste_manual">Ajuste manual</option>
+            <option value="referido">Referido</option>
+            <option value="upsell">Upsell</option>
+            <option value="bono">Bono</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label">Monto (USD) *</label>
+          <input class="field-input" id="aj-monto" type="number" min="0" step="0.01">
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">Cliente relacionado (opcional)</label>
+        <select class="field-input" id="aj-lead"><option value="">(ninguno)</option></select>
+      </div>
+      <div class="field">
+        <label class="field-label">Detalle *</label>
+        <input class="field-input" id="aj-detalle" maxlength="200">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close-ajuste>Cancelar</button>
+      <button class="btn btn-accent" id="btn-confirmar-ajuste">Crear ajuste</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PREVIEW CIERRE MASIVO -->
+<div class="modal-backdrop hidden" id="modal-preview">
+  <div class="modal" style="max-width: 640px;">
+    <div class="modal-head">
+      <span class="modal-title">Previsualización · cierre masivo del mes</span>
+      <button class="modal-close" data-close-preview>✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size: var(--text-sm); color: var(--text-muted); margin-bottom: var(--space-3);">
+        Esto NO escribe nada todavía. Muestra qué saldría por mentor si confirmas el cierre del mes.
+      </p>
+      <div id="preview-content"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close-preview>Cerrar</button>
+      <button class="btn btn-accent" id="btn-confirmar-cierre-masivo">Confirmar cierre del mes</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MARCAR PAGADA -->
+<div class="modal-backdrop hidden" id="modal-pago">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">Marcar liquidación como pagada</span>
+      <button class="modal-close" data-close-pago>✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="pago-info" style="padding: var(--space-3); background: var(--surface-2); border-radius: var(--radius-sm); margin-bottom: var(--space-3);"></div>
+      <div class="field">
+        <label class="field-label">Método de pago</label>
+        <select class="field-input" id="pago-metodo">
+          <option value="">-</option>
+          <option value="wise">Wise</option>
+          <option value="transferencia">Transferencia</option>
+          <option value="paypal">PayPal</option>
+          <option value="crypto">Crypto</option>
+          <option value="efectivo">Efectivo</option>
+          <option value="otro">Otro</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label">Referencia</label>
+        <input class="field-input" id="pago-ref" maxlength="200" placeholder="ID transferencia, hash crypto, etc.">
+      </div>
+      <div class="field">
+        <label class="field-label">Notas</label>
+        <textarea class="field-input field-textarea" id="pago-notas"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close-pago>Cancelar</button>
+      <button class="btn btn-accent" id="btn-confirmar-pago">Confirmar pago</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/shared/scripts/config.js?v=20260797"></script>
+<script src="/shared/scripts/supabase-client.js?v=20260797"></script>
+  <script src="/shared/scripts/cache.js?v=20260797"></script>
+<script src="/shared/scripts/utils.js?v=20260797"></script>
+<script src="/shared/scripts/auth.js?v=20260797"></script>
+  <script src="/shared/scripts/event-tracker.js?v=20260797"></script>
+<script src="/shared/scripts/admin-gate.js?v=20260797"></script>
+<script src="/shared/scripts/equipo.js?v=20260797"></script>
+<script src="/shared/scripts/comisiones.js?v=20260797"></script>
+<script src="/shared/nav.js?v=20260797"></script>
+<script>
+(async function () {
+  const auth = await window.requireAdmin();
+  if (!auth) return;
+  const yo = await window.equipoApi.miRol();
+  const soyAdminFull = yo?.rol === 'admin';
+
+  // Cargar miembros y leads para selectores
+  const [miembrosRes, leadsRes, cfgRes] = await Promise.all([
+    window.db.from('usuarios_admin').select('id,nombre,email,rol,activo').eq('activo', true).order('nombre'),
+    window.db.from('leads').select('id,email,nombre').neq('estado', 'perdido').order('nombre'),
+    window.db.from('config_automatizaciones').select('comisiones_activas,comision_por_sesion_usd,comision_caso_exito_pct').eq('id', 1).maybeSingle(),
+  ]);
+  const miembros = miembrosRes.data || [];
+  const leads = leadsRes.data || [];
+  const cfg = cfgRes.data || {};
+
+  // Mostrar badge de estado del módulo
+  const estadoDiv = document.getElementById('estado-modulo');
+  if (cfg.comisiones_activas) {
+    estadoDiv.innerHTML = `<span class="badge" style="background: #D1FAE5; color: #065F46;">MÓDULO ACTIVO</span><div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: 4px;">$${cfg.comision_por_sesion_usd}/sesión · ${cfg.comision_caso_exito_pct}% caso éxito</div>`;
+  } else {
+    estadoDiv.innerHTML = `<span class="badge" style="background: #FEE2E2; color: #991B1B;">MÓDULO DESACTIVADO</span><div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: 4px;"><a href="configuracion.html">Activar →</a></div>`;
+  }
+
+  // KPIs
+  async function cargarKpis() {
+    try {
+      const m = await window.comisionesApi.metricas();
+      document.getElementById('k-pendientes').textContent = window.comisionesApi.formatMoney(m.pendientesUSD);
+      document.getElementById('k-devengado').textContent = window.comisionesApi.formatMoney(m.devengadasMesUSD);
+      document.getElementById('k-pagado').textContent = window.comisionesApi.formatMoney(m.pagadasMesUSD);
+    } catch (e) { console.error(e); }
+  }
+  await cargarKpis();
+
+  // Tabs
+  document.querySelectorAll('[data-sec]').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('[data-sec]').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    document.getElementById('sec-eventos').classList.toggle('hidden', b.dataset.sec !== 'eventos');
+    document.getElementById('sec-liquidaciones').classList.toggle('hidden', b.dataset.sec !== 'liquidaciones');
+    document.getElementById('sec-resumen').classList.toggle('hidden', b.dataset.sec !== 'resumen');
+    if (b.dataset.sec === 'liquidaciones') cargarLiquidaciones();
+    if (b.dataset.sec === 'resumen') cargarResumen();
+  }));
+
+  // Filtros mes default = mes actual
+  const hoy = new Date();
+  const mesActual = hoy.toISOString().slice(0, 7);
+  document.getElementById('filtro-mes').value = mesActual;
+
+  async function cargarEventos() {
+    const cont = document.getElementById('ev-lista');
+    cont.innerHTML = '<p class="text-muted">Cargando...</p>';
+    const mes = document.getElementById('filtro-mes').value;
+    const estado = document.getElementById('filtro-estado').value || null;
+    try {
+      const eventos = await window.comisionesApi.listarEventos({
+        mes: mes ? mes + '-01' : null,
+        estado,
+        miembro_id: soyAdminFull ? null : yo?.id,
+      });
+      if (eventos.length === 0) {
+        cont.innerHTML = '<p class="text-muted text-center" style="padding: var(--space-8);">Sin eventos en este filtro.</p>';
+        return;
+      }
+      const totalMes = eventos.reduce((s, e) => s + (e.estado === 'revertida' ? 0 : Number(e.monto_usd)), 0);
+      let header = `<div style="display: grid; grid-template-columns: 1fr 1fr 100px 110px 100px auto; gap: var(--space-3); padding: 6px var(--space-3); font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted);">
+        <div>Miembro · cliente</div><div>Detalle</div><div>Tipo</div><div>Monto</div><div>Estado</div><div></div>
+      </div>`;
+      cont.innerHTML = header + eventos.map(e => `
+        <div class="ev-row" style="${e.estado === 'revertida' ? 'opacity: 0.5;' : ''}">
+          <div>
+            <div style="font-weight: 600; font-size: var(--text-sm);">${window.utils.escapeHtml(e.miembro?.nombre || e.miembro?.email || '?')}</div>
+            <div style="font-size: var(--text-xs); color: var(--text-muted);">${e.lead ? window.utils.escapeHtml(e.lead.nombre || e.lead.email) : '-'}</div>
+          </div>
+          <div style="font-size: var(--text-xs); min-width: 0;">${window.utils.escapeHtml(e.detalle || '-')}<br><span style="color: var(--text-muted);">${window.comisionesApi.formatFecha(e.fecha_evento)}</span></div>
+          <div style="font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-muted); text-transform: uppercase;">${window.comisionesApi.TIPO_LABEL[e.tipo_evento] || e.tipo_evento}</div>
+          <div class="monto">${window.comisionesApi.formatMoney(e.monto_usd)}</div>
+          <div>${window.comisionesApi.badgeEstado(e.estado)}</div>
+          <div>${e.estado === 'pendiente' ? `<button class="btn btn-ghost btn-sm" data-revertir="${e.id}" style="color: var(--error);">Revertir</button>` : ''}</div>
+        </div>`).join('') +
+        `<div style="display: grid; grid-template-columns: 1fr 1fr 100px 110px 100px auto; gap: var(--space-3); padding: var(--space-4) var(--space-3); border-top: 2px solid var(--border); font-weight: 700;">
+          <div></div><div></div><div></div>
+          <div class="monto" style="font-size: var(--text-md);">${window.comisionesApi.formatMoney(totalMes)}</div>
+          <div></div><div></div>
+        </div>`;
+
+      cont.querySelectorAll('[data-revertir]').forEach(b => b.addEventListener('click', async () => {
+        const motivo = prompt('Motivo de la reversión:');
+        if (!motivo) return;
+        try {
+          await window.comisionesApi.revertirEvento(b.dataset.revertir, motivo);
+          window.utils.toast('Evento revertido', 'info');
+          cargarEventos();
+          cargarKpis();
+        } catch (e) { window.utils.toast('Error: ' + e.message, 'error'); }
+      }));
+    } catch (e) {
+      cont.innerHTML = `<p style="color: var(--error);">${window.utils.escapeHtml(e.message)}</p>`;
+    }
+  }
+  document.getElementById('filtro-mes').addEventListener('change', cargarEventos);
+  document.getElementById('filtro-estado').addEventListener('change', cargarEventos);
+  await cargarEventos();
+
+  // ===== LIQUIDACIONES =====
+  async function cargarLiquidaciones() {
+    const cont = document.getElementById('liq-lista');
+    cont.innerHTML = '<p class="text-muted">Cargando...</p>';
+    try {
+      const liqs = await window.comisionesApi.listarLiquidaciones({
+        miembro_id: soyAdminFull ? null : yo?.id,
+      });
+      if (liqs.length === 0) {
+        cont.innerHTML = '<p class="text-muted text-center" style="padding: var(--space-8);">Sin liquidaciones todavía. Cierra el mes en la tab Eventos.</p>';
+        return;
+      }
+      let header = `<div style="display: grid; grid-template-columns: 1fr 1fr 100px 100px 110px auto; gap: var(--space-3); padding: 6px var(--space-3); font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted);">
+        <div>Miembro</div><div>Periodo</div><div>Eventos</div><div>Total</div><div>Estado</div><div></div>
+      </div>`;
+      cont.innerHTML = header + liqs.map(l => `
+        <div class="liq-row">
+          <div>
+            <div style="font-weight: 600; font-size: var(--text-sm);">${window.utils.escapeHtml(l.miembro?.nombre || l.miembro?.email || '?')}</div>
+            <div style="font-size: var(--text-xs); color: var(--text-muted);">${l.cerrada_por_user ? 'Cerrada por ' + l.cerrada_por_user.nombre : 'Sin cerrar'}</div>
+          </div>
+          <div>
+            <div style="font-weight: 600; font-size: var(--text-sm); text-transform: capitalize;">${window.comisionesApi.formatMes(l.periodo_mes)}</div>
+            <div style="font-size: var(--text-xs); color: var(--text-muted);">${l.cerrada_at ? 'Cerrada ' + window.comisionesApi.formatFecha(l.cerrada_at) : ''}</div>
+            ${l.pagada_at ? `<div style="font-size: var(--text-xs); color: var(--success);">✓ Pagada ${window.comisionesApi.formatFecha(l.pagada_at)}</div>` : ''}
+          </div>
+          <div style="text-align: center; font-family: var(--font-mono);">${l.cantidad_eventos}</div>
+          <div class="monto">${window.comisionesApi.formatMoney(l.total_usd)}</div>
+          <div>${window.comisionesApi.badgeLiq(l.estado)}</div>
+          <div>
+            ${l.estado === 'aprobada' ? `<button class="btn btn-accent btn-sm" data-pagar="${l.id}" data-info='${JSON.stringify({m: l.miembro?.nombre, mes: l.periodo_mes, total: l.total_usd}).replace(/'/g, "&apos;")}'>Marcar pagada</button>` : ''}
+          </div>
+        </div>`).join('');
+
+      cont.querySelectorAll('[data-pagar]').forEach(b => b.addEventListener('click', () => {
+        const info = JSON.parse(b.dataset.info.replace(/&apos;/g, "'"));
+        liquidacionMarcandoId = b.dataset.pagar;
+        document.getElementById('pago-info').innerHTML = `
+          <div style="font-weight: 600;">${window.utils.escapeHtml(info.m || '?')}</div>
+          <div style="font-size: var(--text-sm); color: var(--text-muted);">${window.comisionesApi.formatMes(info.mes)} · ${window.comisionesApi.formatMoney(info.total)}</div>`;
+        document.getElementById('pago-metodo').value = '';
+        document.getElementById('pago-ref').value = '';
+        document.getElementById('pago-notas').value = '';
+        const m = document.getElementById('modal-pago');
+        m.classList.remove('hidden'); requestAnimationFrame(() => m.classList.add('show'));
+      }));
+    } catch (e) {
+      cont.innerHTML = `<p style="color: var(--error);">${window.utils.escapeHtml(e.message)}</p>`;
+    }
+  }
+
+  // ===== RESUMEN POR MENTOR + CIERRE MASIVO =====
+  document.getElementById('rm-mes').value = mesActual;
+
+  async function cargarResumen() {
+    const cont = document.getElementById('resumen-lista');
+    cont.innerHTML = '<p class="text-muted">Cargando...</p>';
+    try {
+      const filas = await window.comisionesApi.resumenPorMentor();
+      if (!filas.length) {
+        cont.innerHTML = '<p class="text-muted text-center" style="padding: var(--space-8);">Sin mentores con comisiones todavía.</p>';
+        return;
+      }
+      let header = `<div style="display: grid; grid-template-columns: 1.5fr 110px 110px 110px 110px; gap: var(--space-3); padding: 6px var(--space-3); font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted);">
+        <div>Mentor</div><div style="text-align:right;">Pend mes</div><div style="text-align:right;">Pend total</div><div style="text-align:right;">Liquidado</div><div style="text-align:right;">Pagado</div>
+      </div>`;
+      cont.innerHTML = header + filas.map(f => `
+        <div class="ev-row" style="grid-template-columns: 1.5fr 110px 110px 110px 110px;">
+          <div>
+            <div style="font-weight: 600; font-size: var(--text-sm);">${window.utils.escapeHtml(f.mentor_nombre || '?')}${f.mentor_activo === false ? ' <span class="badge" style="background:#FEE2E2;color:#991B1B;font-size:9px;">INACTIVO</span>' : ''}</div>
+            <div style="font-size: var(--text-xs); color: var(--text-muted);">${window.utils.escapeHtml(f.mentor_email || '')}</div>
+          </div>
+          <div class="monto" style="text-align:right;">${window.comisionesApi.formatMoney(f.total_pendiente_mes_usd)}<div style="font-size:9px;color:var(--text-muted);font-weight:400;">${f.eventos_pendientes_mes} ev</div></div>
+          <div class="monto" style="text-align:right;">${window.comisionesApi.formatMoney(f.total_pendiente_usd)}<div style="font-size:9px;color:var(--text-muted);font-weight:400;">${f.eventos_pendientes_total} ev</div></div>
+          <div class="monto" style="text-align:right;color:var(--text-muted);">${window.comisionesApi.formatMoney(f.total_liquidado_usd)}</div>
+          <div class="monto" style="text-align:right;color:var(--success);">${window.comisionesApi.formatMoney(f.total_pagado_usd)}</div>
+        </div>`).join('');
+    } catch (e) {
+      cont.innerHTML = `<p style="color: var(--error);">${window.utils.escapeHtml(e.message)}</p>`;
+    }
+  }
+
+  document.getElementById('btn-preview-mes').addEventListener('click', async () => {
+    if (!soyAdminFull) { window.utils.toast('Solo admin pleno', 'error'); return; }
+    const mes = document.getElementById('rm-mes').value;
+    if (!mes) { window.utils.toast('Elige un mes', 'error'); return; }
+    try {
+      const prev = await window.comisionesApi.previsualizarMes(mes + '-01');
+      const cont = document.getElementById('preview-content');
+      if (!prev?.por_mentor || prev.por_mentor.length === 0) {
+        cont.innerHTML = `<p class="text-muted">Sin comisiones pendientes para ${window.comisionesApi.formatMes(mes + '-01')}.</p>`;
+        document.getElementById('btn-confirmar-cierre-masivo').disabled = true;
+      } else {
+        document.getElementById('btn-confirmar-cierre-masivo').disabled = false;
+        cont.innerHTML = `
+          <div style="padding: var(--space-3); background: var(--surface-2); border-radius: var(--radius-sm); margin-bottom: var(--space-3);">
+            <div style="font-family: var(--font-mono); font-size: var(--text-2xs); text-transform: uppercase; color: var(--text-muted);">Total general</div>
+            <div style="font-size: var(--text-xl); font-weight: 700;">${window.comisionesApi.formatMoney(prev.total_general_usd)}</div>
+            <div style="font-size: var(--text-xs); color: var(--text-muted);">${prev.total_eventos} eventos · ${prev.por_mentor.length} mentores</div>
+          </div>
+          ${prev.por_mentor.map(m => `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--space-3); border: 1px solid var(--border-soft); border-radius: var(--radius-sm); margin-bottom: 4px;">
+              <div>
+                <div style="font-weight: 600;">${window.utils.escapeHtml(m.mentor_nombre || '?')}</div>
+                <div style="font-size: var(--text-xs); color: var(--text-muted);">${m.eventos} eventos · ${Object.keys(m.por_tipo || {}).join(', ')}</div>
+              </div>
+              <div class="monto" style="font-size: var(--text-md);">${window.comisionesApi.formatMoney(m.total_usd)}</div>
+            </div>`).join('')}`;
+      }
+      const md = document.getElementById('modal-preview');
+      md.classList.remove('hidden'); requestAnimationFrame(() => md.classList.add('show'));
+    } catch (err) { window.utils.toast('Error: ' + err.message, 'error'); }
+  });
+  document.querySelectorAll('[data-close-preview]').forEach(b => b.addEventListener('click', () => {
+    const m = document.getElementById('modal-preview'); m.classList.remove('show'); setTimeout(() => m.classList.add('hidden'), 200);
+  }));
+  document.getElementById('btn-confirmar-cierre-masivo').addEventListener('click', async (e) => {
+    const mes = document.getElementById('rm-mes').value;
+    if (!confirm(`¿Confirmas el cierre masivo del mes ${mes}? Esta acción crea liquidaciones para todos los mentores con comisiones pendientes.`)) return;
+    e.currentTarget.disabled = true;
+    try {
+      const r = await window.comisionesApi.generarLiquidacionesMes(mes + '-01');
+      window.utils.toast(`Cerrado: ${r.liquidaciones_creadas} liquidaciones · ${window.comisionesApi.formatMoney(r.total_general_usd)}`, 'success', 6000);
+      document.getElementById('modal-preview').classList.remove('show');
+      setTimeout(() => document.getElementById('modal-preview').classList.add('hidden'), 200);
+      cargarResumen(); cargarKpis(); cargarEventos();
+    } catch (err) { window.utils.toast('Error: ' + err.message, 'error', 6000); }
+    finally { e.currentTarget.disabled = false; }
+  });
+  document.getElementById('btn-cierre-masivo').addEventListener('click', () => {
+    document.getElementById('btn-preview-mes').click();
+  });
+
+  // ===== CERRAR MES =====
+  document.getElementById('btn-cerrar-mes').addEventListener('click', () => {
+    if (!soyAdminFull) { window.utils.toast('Solo admin pleno puede cerrar mes', 'error'); return; }
+    const sel = document.getElementById('cm-miembro');
+    sel.innerHTML = miembros.map(m => `<option value="${m.id}">${window.utils.escapeHtml(m.nombre || m.email)}</option>`).join('');
+    document.getElementById('cm-mes').value = mesActual;
+    const m = document.getElementById('modal-cierre');
+    m.classList.remove('hidden'); requestAnimationFrame(() => m.classList.add('show'));
+  });
+  document.querySelectorAll('[data-close-cierre]').forEach(b => b.addEventListener('click', () => {
+    const m = document.getElementById('modal-cierre'); m.classList.remove('show'); setTimeout(() => m.classList.add('hidden'), 200);
+  }));
+  document.getElementById('btn-confirmar-cierre').addEventListener('click', async (e) => {
+    const miembro_id = document.getElementById('cm-miembro').value;
+    const mes = document.getElementById('cm-mes').value;
+    if (!miembro_id || !mes) { window.utils.toast('Faltan datos', 'error'); return; }
+    e.currentTarget.disabled = true;
+    try {
+      const r = await window.comisionesApi.cerrarMesMiembro(miembro_id, mes + '-01');
+      window.utils.toast(`Liquidación creada: ${r.cantidad} eventos · ${window.comisionesApi.formatMoney(r.total_usd)}`, 'success', 5000);
+      document.getElementById('modal-cierre').classList.remove('show');
+      setTimeout(() => document.getElementById('modal-cierre').classList.add('hidden'), 200);
+      cargarEventos(); cargarKpis();
+    } catch (err) { window.utils.toast('Error: ' + err.message, 'error', 6000); }
+    finally { e.currentTarget.disabled = false; }
+  });
+
+  // ===== AJUSTE MANUAL =====
+  document.getElementById('btn-ajuste-manual').addEventListener('click', () => {
+    if (!soyAdminFull) { window.utils.toast('Solo admin pleno', 'error'); return; }
+    document.getElementById('aj-miembro').innerHTML = miembros.map(m => `<option value="${m.id}">${window.utils.escapeHtml(m.nombre || m.email)}</option>`).join('');
+    document.getElementById('aj-lead').innerHTML = '<option value="">(ninguno)</option>' + leads.map(l => `<option value="${l.id}">${window.utils.escapeHtml(l.nombre || l.email)}</option>`).join('');
+    document.getElementById('aj-tipo').value = 'ajuste_manual';
+    document.getElementById('aj-monto').value = '';
+    document.getElementById('aj-detalle').value = '';
+    const m = document.getElementById('modal-ajuste');
+    m.classList.remove('hidden'); requestAnimationFrame(() => m.classList.add('show'));
+  });
+  document.querySelectorAll('[data-close-ajuste]').forEach(b => b.addEventListener('click', () => {
+    const m = document.getElementById('modal-ajuste'); m.classList.remove('show'); setTimeout(() => m.classList.add('hidden'), 200);
+  }));
+  document.getElementById('btn-confirmar-ajuste').addEventListener('click', async (e) => {
+    const datos = {
+      miembro_id: document.getElementById('aj-miembro').value,
+      tipo_evento: document.getElementById('aj-tipo').value,
+      monto_usd: document.getElementById('aj-monto').value,
+      lead_id: document.getElementById('aj-lead').value || null,
+      detalle: document.getElementById('aj-detalle').value.trim(),
+    };
+    if (!datos.miembro_id || !datos.monto_usd || !datos.detalle) { window.utils.toast('Miembro, monto y detalle requeridos', 'error'); return; }
+    e.currentTarget.disabled = true;
+    try {
+      await window.comisionesApi.ajusteManual(datos);
+      window.utils.toast('Ajuste creado', 'success');
+      document.getElementById('modal-ajuste').classList.remove('show');
+      setTimeout(() => document.getElementById('modal-ajuste').classList.add('hidden'), 200);
+      cargarEventos(); cargarKpis();
+    } catch (err) { window.utils.toast('Error: ' + err.message, 'error'); }
+    finally { e.currentTarget.disabled = false; }
+  });
+
+  // ===== MARCAR PAGADA =====
+  let liquidacionMarcandoId = null;
+  document.querySelectorAll('[data-close-pago]').forEach(b => b.addEventListener('click', () => {
+    const m = document.getElementById('modal-pago'); m.classList.remove('show'); setTimeout(() => m.classList.add('hidden'), 200);
+  }));
+  document.getElementById('btn-confirmar-pago').addEventListener('click', async (e) => {
+    if (!liquidacionMarcandoId) return;
+    e.currentTarget.disabled = true;
+    try {
+      await window.comisionesApi.marcarLiquidacionPagada(liquidacionMarcandoId, {
+        metodo: document.getElementById('pago-metodo').value || null,
+        referencia: document.getElementById('pago-ref').value.trim() || null,
+        notas: document.getElementById('pago-notas').value.trim() || null,
+      });
+      window.utils.toast('Liquidación marcada pagada', 'success');
+      document.getElementById('modal-pago').classList.remove('show');
+      setTimeout(() => document.getElementById('modal-pago').classList.add('hidden'), 200);
+      cargarLiquidaciones(); cargarKpis();
+    } catch (err) { window.utils.toast('Error: ' + err.message, 'error'); }
+    finally { e.currentTarget.disabled = false; }
+  });
+
+  document.getElementById('main').style.opacity = '1';
+})();
+</script>
+
+</body>
+</html>

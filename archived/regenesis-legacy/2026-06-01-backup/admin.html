@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Re-Génesis · Panel admin</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600&family=Geist:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/regenesis/assets/styles/tokens.css?v=20260647">
+  <link rel="stylesheet" href="/regenesis/assets/styles/base.css?v=20260647">
+  <link rel="stylesheet" href="/regenesis/assets/styles/components.css?v=20260647">
+  <link rel="stylesheet" href="/regenesis/assets/styles/client.css?v=20260647">
+  <link rel="stylesheet" href="/regenesis/assets/styles/admin.css?v=20260647">
+</head>
+<body>
+
+<!-- ============================================ -->
+<!-- LOGIN                                         -->
+<!-- ============================================ -->
+<section id="screen-login" class="screen active">
+  <div class="login-container">
+    <div class="login-card">
+
+      <div class="login-logo">
+        Re<span class="login-logo-dot"></span>Génesis
+      </div>
+
+      <h1 class="login-headline">
+        Panel<br>
+        <span class="login-headline-mark">admin</span>
+      </h1>
+      <p class="login-subheadline">
+        Acceso restringido a Frank, Tatiana y Santiago.
+      </p>
+
+      <form id="login-form" novalidate>
+        <div class="form-group">
+          <label for="login-email">
+            <span>Email</span>
+            <span>tu correo registrado</span>
+          </label>
+          <input type="email" id="login-email" class="input"
+                 placeholder="frank@neurohackers.top" autocomplete="email" required>
+        </div>
+
+        <div class="form-group">
+          <label for="login-password"><span>Contraseña</span></label>
+          <input type="password" id="login-password" class="input"
+                 placeholder="••••••••" autocomplete="current-password" required>
+        </div>
+
+        <div class="login-meta">
+          <label class="checkbox-wrapper">
+            <input type="checkbox" checked>
+            <span>Mantener sesión</span>
+          </label>
+          <a href="#" id="forgot-link">Olvidé mi contraseña</a>
+        </div>
+
+        <button type="submit" id="login-submit" class="btn-login">Entrar al panel</button>
+      </form>
+
+      <p class="login-footer">
+        ¿Eres cliente? <a href="/regenesis/index.html">Volver a la plataforma</a>
+      </p>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- ESTABLECER CONTRASEÑA (recovery / invite)     -->
+<!-- ============================================ -->
+<section id="screen-set-password" class="screen">
+  <div class="login-container">
+    <div class="login-card">
+      <div class="login-logo">Re<span class="login-logo-dot"></span>Génesis</div>
+      <h1 class="login-headline">
+        Establece<br>
+        tu <span class="login-headline-mark">contraseña</span>
+      </h1>
+      <p class="login-subheadline" id="set-password-context">Define una contraseña nueva.</p>
+
+      <form id="set-password-form" novalidate>
+        <div class="form-group">
+          <label for="set-password-input">
+            <span>Nueva contraseña</span>
+            <span>mínimo 8 caracteres</span>
+          </label>
+          <input type="password" id="set-password-input" class="input"
+                 minlength="8" required autocomplete="new-password"
+                 placeholder="••••••••">
+        </div>
+
+        <div class="form-group">
+          <label for="set-password-confirm"><span>Confírmala</span></label>
+          <input type="password" id="set-password-confirm" class="input"
+                 minlength="8" required autocomplete="new-password"
+                 placeholder="••••••••">
+        </div>
+
+        <button type="submit" id="set-password-submit" class="btn-login">
+          Confirmar y entrar
+        </button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SHELL ADMIN                                   -->
+<!-- ============================================ -->
+<section id="screen-shell" class="screen">
+  <div class="admin-shell">
+
+    <aside class="admin-sidebar">
+      <div class="sidebar-logo">
+        Re<span class="login-logo-dot"></span>Génesis
+      </div>
+      <div class="sidebar-tag">PANEL ADMINISTRATIVO</div>
+
+      <nav class="sidebar-nav">
+        <button data-page-link="dashboard" class="active">
+          <span class="nav-icon">▦</span> Inicio
+        </button>
+        <button data-page-link="clientes">
+          <span class="nav-icon">◌</span> Clientes
+        </button>
+        <button data-page-link="mensajes">
+          <span class="nav-icon">≡</span> Mensajes
+        </button>
+        <button data-page-link="calendario">
+          <span class="nav-icon">◰</span> Calendario
+        </button>
+        <button data-page-link="testimonios">
+          <span class="nav-icon">◈</span> Testimonios
+        </button>
+        <button data-page-link="config">
+          <span class="nav-icon">⚙</span> Configuración
+        </button>
+        <button data-page-link="cron">
+          <span class="nav-icon">∼</span> Cron & Webhooks
+        </button>
+      </nav>
+
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-user">
+        <div class="sidebar-user-avatar" data-admin-initial>—</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" data-admin-name>—</div>
+          <div class="sidebar-user-role">ADMIN</div>
+        </div>
+      </div>
+      <button type="button" class="btn-ghost" id="btn-admin-cambiar-password"
+              style="width: 100%; justify-content: center; margin-top: var(--space-2);">
+        Cambiar contraseña
+      </button>
+      <button type="button" class="btn-ghost" data-logout
+              style="width: 100%; justify-content: center; margin-top: 4px;">
+        Cerrar sesión
+      </button>
+    </aside>
+
+    <main class="admin-main">
+
+      <!-- =================================== -->
+      <!-- Página: Dashboard                   -->
+      <!-- =================================== -->
+      <section id="page-dashboard" class="page active">
+        <div class="page-header">
+          <p class="page-eyebrow">RE-GÉNESIS · INICIO</p>
+          <h1 class="page-title">Hola, <span data-admin-name>—</span>.</h1>
+          <p class="page-subtitle">Resumen del programa en este momento.</p>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi-card dark">
+            <span class="kpi-label">CLIENTES ACTIVOS</span>
+            <span class="kpi-num" id="kpi-clientes-activos">0</span>
+            <span class="kpi-meta" id="kpi-clientes-total">—</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">REFLEXIONES (7d)</span>
+            <span class="kpi-num" id="kpi-reflexiones">0</span>
+            <span class="kpi-meta">esta semana</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">ADHERENCIA</span>
+            <span class="kpi-num" id="kpi-adherencia">0%</span>
+            <span class="kpi-meta">promedio del cohorte</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">PRÓXIMA SESIÓN</span>
+            <span class="kpi-num" id="kpi-proxima-sesion">—</span>
+            <span class="kpi-meta" id="kpi-proxima-meta">—</span>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-header">
+            <h2 class="section-title">Actividad reciente</h2>
+            <span class="section-meta">ÚLTIMAS 5 REFLEXIONES</span>
+          </div>
+          <div class="table-wrap">
+            <ul id="actividad-reciente" class="activity-list"></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================== -->
+      <!-- Página: Clientes                    -->
+      <!-- =================================== -->
+      <section id="page-clientes" class="page">
+        <div class="page-header">
+          <p class="page-eyebrow">RE-GÉNESIS · CLIENTES</p>
+          <h1 class="page-title">Clientes</h1>
+          <p class="page-subtitle">Lista completa. Click en una fila para ver el detalle.</p>
+        </div>
+
+        <div class="filter-row">
+          <input type="text" id="clientes-search" class="search-input"
+                 placeholder="Buscar por nombre, email o cohorte…">
+          <select id="clientes-estado-filter" class="select-input">
+            <option value="">Todos los estados</option>
+            <option value="lead">Lead</option>
+            <option value="prospecto">Prospecto</option>
+            <option value="pago_pendiente">Pago pendiente</option>
+            <option value="pagado_calentamiento">Pagado · calentamiento</option>
+            <option value="activo">Activo</option>
+            <option value="pausado">Pausado</option>
+            <option value="completado">Completado</option>
+            <option value="finalizado">Finalizado</option>
+            <option value="perdido">Perdido</option>
+          </select>
+          <span class="section-meta" id="clientes-count">— CLIENTES</span>
+        </div>
+
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Estado</th>
+                <th>Tema actual</th>
+                <th>Semana</th>
+                <th>Cohorte</th>
+                <th>Creado</th>
+              </tr>
+            </thead>
+            <tbody id="clientes-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- =================================== -->
+      <!-- Página: Mensajes (los 144)          -->
+      <!-- =================================== -->
+      <section id="page-mensajes" class="page">
+        <div class="page-header">
+          <p class="page-eyebrow">RE-GÉNESIS · CONTENIDO</p>
+          <h1 class="page-title">Mensajes</h1>
+          <p class="page-subtitle">
+            Elige una semana (sala de espera o uno de los 10 temas) y la modalidad
+            del cliente. Verás los 7 días con todos los mensajes que se envían cada día.
+          </p>
+        </div>
+
+        <div class="filter-row">
+          <select id="mensajes-tema-filter" class="select-input"></select>
+          <select id="mensajes-modalidad-filter" class="select-input">
+            <option value="presencial">Cliente presencial (sesión martes)</option>
+            <option value="virtual">Cliente virtual (sesión miércoles)</option>
+          </select>
+          <span class="section-meta" id="mensajes-count">— MENSAJES</span>
+        </div>
+
+        <div id="mensajes-list"></div>
+      </section>
+
+      <!-- =================================== -->
+      <!-- Página: Calendario                  -->
+      <!-- =================================== -->
+      <section id="page-calendario" class="page">
+        <div class="page-header">
+          <p class="page-eyebrow">RE-GÉNESIS · AGENDA</p>
+          <h1 class="page-title">Calendario</h1>
+          <p class="page-subtitle">Sesiones presenciales, virtuales y grupales. Click en una fila para editar.</p>
+        </div>
+
+        <div class="filter-row">
+          <span class="section-meta" id="calendario-count" style="margin-right: auto;">— SESIONES</span>
+          <button type="button" class="btn-primary" id="btn-nueva-sesion">+ Nueva sesión</button>
+        </div>
+
+        <div id="calendario-list"></div>
+      </section>
+
+      <!-- =================================== -->
+      <!-- Página: Testimonios                 -->
+      <!-- =================================== -->
+      <section id="page-testimonios" class="page">
+        <div class="page-header">
+          <p class="page-eyebrow">RE-GÉNESIS · CONTENIDO DE CLIENTES</p>
+          <h1 class="page-title">Testimonios</h1>
+          <p class="page-subtitle">
+            Videos grabados por los clientes desde la plataforma. Aprueba o
+            descarta cada uno antes de usarlo en marketing. Solo los aprobados
+            con permiso explícito se pueden usar públicamente.
+          </p>
+        </div>
+
+        <div class="section">
+          <div class="section-header">
+            <h2 class="section-title">Pendientes de revisión</h2>
+            <span class="section-meta" id="testimonios-count">0</span>
+          </div>
+          <div id="testimonios-list" class="testimonios-grid"></div>
+        </div>
+      </section>
+
+      <!-- =================================== -->
+      <!-- Página: Configuración               -->
+      <!-- =================================== -->
+      <section id="page-config" class="page">
+        <div class="page-header">
+          <p class="page-eyebrow">RE-GÉNESIS · SISTEMA</p>
+          <h1 class="page-title">Configuración</h1>
+          <p class="page-subtitle">Parámetros globales del programa.</p>
+        </div>
+        <div id="config-list"></div>
+      </section>
+
+      <!-- =================================== -->
+      <!-- Página: Cron & Webhooks             -->
+      <!-- =================================== -->
+      <section id="page-cron" class="page">
+        <div class="page-header">
+          <p class="page-eyebrow">RE-GÉNESIS · AUTOMATIZACIÓN</p>
+          <h1 class="page-title">Cron &amp; Webhooks</h1>
+          <p class="page-subtitle">
+            Cada cliente avanza solo según su fecha de inicio (no se mueve a mano).
+            El job diario sólo activa pagos pendientes que cruzaron su fecha, marca
+            completados al día 70, encola notificaciones y solicita testimonios.
+            Es idempotente: ejecutarlo dos veces el mismo día no duplica nada.
+          </p>
+        </div>
+
+        <div class="section">
+          <div class="section-header">
+            <h2 class="section-title">Job programado</h2>
+            <button type="button" class="btn-primary" id="btn-cron-ejecutar">Ejecutar ahora</button>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr><th>Job</th><th>Cron</th><th>Comando</th><th>Estado</th></tr>
+              </thead>
+              <tbody id="cron-job-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-header">
+            <h2 class="section-title">Últimas ejecuciones</h2>
+            <span class="section-meta" id="cron-log-count">— REGISTROS</span>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr><th>Cuándo</th><th>Resultado</th><th>Duración</th><th>Detalle</th></tr>
+              </thead>
+              <tbody id="cron-log-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-header">
+            <h2 class="section-title">Webhooks GHL recibidos</h2>
+            <span class="section-meta" id="webhook-log-count">— EVENTOS</span>
+          </div>
+          <p class="page-subtitle" style="margin-top: 0;">
+            URL para configurar en GHL:
+            <code id="webhook-url-display" style="user-select: all;"></code>
+          </p>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr><th>Cuándo</th><th>HTTP</th><th>Resultado</th><th>Lead</th><th>Email</th></tr>
+              </thead>
+              <tbody id="webhook-log-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</section>
+
+<!-- Drawer detalle cliente -->
+<div class="drawer-overlay" id="drawer-overlay"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div class="drawer-title" id="drawer-title">Cliente</div>
+    <button type="button" class="btn-ghost" id="drawer-close">Cerrar</button>
+  </div>
+  <div class="drawer-body" id="drawer-body"></div>
+</aside>
+
+<!-- Modal: nueva / editar sesión -->
+<div class="modal-overlay" id="modal-sesion">
+  <div class="modal" role="dialog" aria-labelledby="modal-sesion-title">
+    <div class="modal-header">
+      <h3 id="modal-sesion-title" style="font-size: 18px; font-weight: 600;">Nueva sesión</h3>
+      <button type="button" class="modal-close" id="modal-sesion-close" aria-label="Cerrar">×</button>
+    </div>
+
+    <form id="form-sesion">
+      <div class="form-group">
+        <label for="sesion-fecha"><span>Fecha</span></label>
+        <input type="date" id="sesion-fecha" class="input" required>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+        <div class="form-group">
+          <label for="sesion-hora-inicio"><span>Hora inicio</span></label>
+          <input type="time" id="sesion-hora-inicio" class="input" required>
+        </div>
+        <div class="form-group">
+          <label for="sesion-hora-fin"><span>Hora fin</span></label>
+          <input type="time" id="sesion-hora-fin" class="input">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="sesion-tipo"><span>Tipo</span></label>
+        <select id="sesion-tipo" class="select-input" style="width: 100%;" required>
+          <option value="presencial">Presencial</option>
+          <option value="virtual">Virtual</option>
+          <option value="tatiana_grupal">Grupal · Tatiana</option>
+          <option value="especial">Especial</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="sesion-facilitador"><span>Facilitador</span></label>
+        <input type="text" id="sesion-facilitador" class="input" placeholder="Frank Ruiz">
+      </div>
+
+      <div class="form-group">
+        <label for="sesion-ubicacion"><span>Ubicación o link</span></label>
+        <input type="text" id="sesion-ubicacion" class="input" placeholder="Sala Norte · Medellín / https://meet.google.com/...">
+      </div>
+
+      <div class="form-group">
+        <label for="sesion-estado"><span>Estado</span></label>
+        <select id="sesion-estado" class="select-input" style="width: 100%;">
+          <option value="programada">Programada</option>
+          <option value="reprogramada">Reprogramada</option>
+          <option value="cancelada">Cancelada</option>
+          <option value="completada">Completada</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="sesion-notas"><span>Notas</span></label>
+        <textarea id="sesion-notas" class="textarea" rows="2" style="min-height: 60px;"></textarea>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); margin-top: var(--space-6);">
+        <button type="button" class="btn-ghost hidden" id="btn-eliminar-sesion"
+                style="color: var(--error);">
+          Eliminar
+        </button>
+        <div style="display: flex; gap: var(--space-3); margin-left: auto;">
+          <button type="button" class="btn-secondary" id="modal-sesion-cancel">Cancelar</button>
+          <button type="submit" class="btn-primary" id="btn-guardar-sesion">Guardar</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: editar cliente -->
+<div class="modal-overlay" id="modal-cliente">
+  <div class="modal" role="dialog" aria-labelledby="modal-cliente-title">
+    <div class="modal-header">
+      <h3 id="modal-cliente-title" style="font-size: 18px; font-weight: 600;">Editar cliente</h3>
+      <button type="button" class="modal-close" id="modal-cliente-close" aria-label="Cerrar">×</button>
+    </div>
+
+    <form id="form-cliente">
+      <div class="form-group">
+        <label for="cli-nombre"><span>Nombre</span></label>
+        <input type="text" id="cli-nombre" class="input" required>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+        <div class="form-group">
+          <label for="cli-telefono"><span>Teléfono</span></label>
+          <input type="text" id="cli-telefono" class="input" placeholder="+57...">
+        </div>
+        <div class="form-group">
+          <label for="cli-cohorte"><span>Cohorte</span></label>
+          <input type="text" id="cli-cohorte" class="input" placeholder="abr-2026">
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-3);">
+        <div class="form-group">
+          <label for="cli-modalidad"><span>Modalidad</span></label>
+          <select id="cli-modalidad" class="select-input" style="width: 100%;">
+            <option value="presencial">Presencial (martes)</option>
+            <option value="virtual">Virtual (miércoles)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="cli-cuotas"><span>Cuotas elegidas</span></label>
+          <select id="cli-cuotas" class="select-input" style="width: 100%;">
+            <option value="">—</option>
+            <option value="1">1 cuota</option>
+            <option value="2">2 cuotas</option>
+            <option value="3">3 cuotas</option>
+            <option value="4">4 cuotas</option>
+            <option value="6">6 cuotas</option>
+            <option value="12">12 cuotas</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="cli-estado"><span>Estado</span></label>
+          <select id="cli-estado" class="select-input" style="width: 100%;">
+            <option value="lead">Lead</option>
+            <option value="prospecto">Prospecto</option>
+            <option value="pago_pendiente">Pago pendiente</option>
+            <option value="pagado_calentamiento">Pagado · calentamiento</option>
+            <option value="activo">Activo</option>
+            <option value="pausado">Pausado</option>
+            <option value="completado">Completado</option>
+            <option value="finalizado">Finalizado</option>
+            <option value="perdido">Perdido</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="cli-fecha-inicio"><span>Fecha inicio del programa</span></label>
+        <input type="date" id="cli-fecha-inicio" class="input">
+      </div>
+
+      <div class="form-group">
+        <label for="cli-notas"><span>Notas internas</span></label>
+        <textarea id="cli-notas" class="textarea" rows="3" style="min-height: 80px;"
+                  placeholder="Solo visible para Frank, Tatiana y Santiago. El cliente nunca las ve."></textarea>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: var(--space-3); margin-top: var(--space-6);">
+        <button type="button" class="btn-secondary" id="modal-cliente-cancel">Cancelar</button>
+        <button type="submit" class="btn-primary" id="btn-guardar-cliente">Guardar cambios</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: cambiar contraseña (admin) -->
+<div class="modal-overlay" id="modal-password">
+  <div class="modal" role="dialog" aria-labelledby="modal-password-title">
+    <div class="modal-header">
+      <h3 id="modal-password-title" style="font-size: 18px; font-weight: 600;">Cambiar contraseña</h3>
+      <button type="button" class="modal-close" id="modal-password-close" aria-label="Cerrar">×</button>
+    </div>
+
+    <form id="form-password" novalidate>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: var(--space-5);">
+        Define una contraseña nueva para tu cuenta admin. Tu sesión seguirá activa al guardar.
+      </p>
+
+      <div class="form-group">
+        <label for="pwd-nuevo">
+          <span>Nueva contraseña</span>
+          <span>mínimo 8 caracteres</span>
+        </label>
+        <input type="password" id="pwd-nuevo" class="input" minlength="8" required
+               autocomplete="new-password" placeholder="••••••••">
+      </div>
+
+      <div class="form-group">
+        <label for="pwd-confirma"><span>Confírmala</span></label>
+        <input type="password" id="pwd-confirma" class="input" minlength="8" required
+               autocomplete="new-password" placeholder="••••••••">
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: var(--space-3); margin-top: var(--space-6);">
+        <button type="button" class="btn-secondary" id="modal-password-cancel">Cancelar</button>
+        <button type="submit" class="btn-primary" id="btn-guardar-password">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/regenesis/assets/scripts/config.js?v=20260647"></script>
+<script src="/regenesis/assets/scripts/supabase-client.js?v=20260647"></script>
+<script src="/regenesis/assets/scripts/utils.js?v=20260647"></script>
+<script src="/regenesis/assets/scripts/admin-app.js?v=20260647"></script>
+
+</body>
+</html>

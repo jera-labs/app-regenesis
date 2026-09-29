@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Re-Génesis · Neurohackers Platform</title>
+  <link rel="stylesheet" href="../shared/styles.css">
+</head>
+<body>
+
+<div data-nav data-active="regenesis" data-base="../"></div>
+
+<main class="container">
+
+  <!-- HERO DEL MÓDULO -->
+  <section style="margin-bottom: var(--space-8);">
+    <div style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-4);">
+      <span class="eyebrow" style="margin: 0;">SEMANA 1 · DÍA 6</span>
+      <span class="badge badge-accent">NIÑO INTERIOR</span>
+    </div>
+    <h1 class="display">Tu pregunta de <span class="mark-accent">hoy</span>.</h1>
+    <p class="section-sub">
+      Mateo lleva 6 días contigo. Le quedan 359 días de vida.
+      Lo que escribas hoy se suma a su libro.
+    </p>
+  </section>
+
+  <div class="layout-with-sidebar">
+
+    <!-- COLUMNA PRINCIPAL: REFLEXIÓN + IA -->
+    <div>
+
+      <!-- TARJETA PERSONAJE -->
+      <div class="card card-padded mb-6" style="border-left: 4px solid var(--accent); background: linear-gradient(90deg, var(--accent-gradient-soft) 0%, var(--surface) 60%);">
+        <div style="display: flex; align-items: center; gap: var(--space-4);">
+          <div class="module-card-icon">◈</div>
+          <div style="flex: 1;">
+            <div class="card-meta">TU PERSONAJE</div>
+            <div style="font-size: var(--text-xl); font-weight: 600; letter-spacing: -0.02em; margin-top: 2px;">Mateo</div>
+            <div class="text-muted" style="font-size: var(--text-sm);">38 años · Orlando · Empresario</div>
+          </div>
+          <div style="text-align: right;">
+            <div class="stat-num-accent" style="font-size: var(--text-3xl); font-weight: 700; line-height: 1;">359</div>
+            <div class="card-meta">DÍAS DE VIDA RESTANTES</div>
+          </div>
+          <button class="btn btn-ghost btn-sm">Editar</button>
+        </div>
+      </div>
+
+      <!-- PREGUNTA DEL DÍA -->
+      <div class="card card-padded-lg mb-6">
+        <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-3);">
+          <span class="badge badge-accent">NIÑO INTERIOR</span>
+          <span class="badge">TEMA 04</span>
+        </div>
+        <p class="eyebrow-plain">Tu pregunta de hoy</p>
+        <h2 style="font-size: var(--text-3xl); line-height: 1.25; letter-spacing: -0.025em; font-weight: 500; margin: var(--space-3) 0 var(--space-6);">
+          Hoy, como adulto, hay momentos donde tu reacción es más vieja que tú. ¿En qué situaciones notas que ese niño toma el volante?
+        </h2>
+
+        <div class="field">
+          <label class="field-label">Tu reflexión</label>
+          <textarea class="field-input field-textarea" placeholder="Escribe libremente. Este espacio es solo tuyo." style="min-height: 180px;">Me pasa muy seguido en las llamadas con prospectos importantes. Tengo claro qué decir, pero hay algo que me hace dudar segundos antes de pedir el cierre. Como si una parte de mí esperara aprobación antes de hablar.</textarea>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: var(--space-2);">
+          <span class="card-meta">52 PALABRAS</span>
+          <button class="btn btn-primary">Enviar reflexión</button>
+        </div>
+      </div>
+
+      <!-- RESPUESTA IA (Q2) -->
+      <div class="card card-padded-lg mb-6" style="border-left: 3px solid var(--accent);">
+        <div style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-5); padding-bottom: var(--space-4); border-bottom: 1px solid var(--border-soft);">
+          <div class="module-card-icon">◈</div>
+          <div style="flex: 1;">
+            <div style="font-weight: 600;">Respuesta y pregunta para tu personaje</div>
+            <div class="card-meta">CLAUDE · BISTURÍ JUNG + HELLINGER</div>
+          </div>
+        </div>
+        <div style="font-size: var(--text-lg); line-height: 1.65; color: var(--text);">
+          <p style="margin-bottom: var(--space-4);">Lo que describes no es debilidad, es una <em>lealtad invisible</em> a un niño que aprendió a callar para sobrevivir. Mateo carga el mismo nudo: posterga las llamadas difíciles porque algo en él sigue esperando aprobación antes de hablar.</p>
+          <p>¿Qué decisión concreta va a tomar Mateo hoy para hablar primero, sabiendo que le quedan <strong>359 días de vida</strong>?</p>
+        </div>
+      </div>
+
+      <!-- RESPUESTA DEL PERSONAJE (Q3) -->
+      <div class="card card-padded-lg mb-6" style="background: var(--surface); border-top: 3px solid var(--accent-bright);">
+        <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-3);">
+          <span class="eyebrow-plain">RESPONDE COMO MATEO</span>
+        </div>
+        <h3 style="font-size: var(--text-xl); font-weight: 500; margin-bottom: var(--space-4);">¿Qué decide Mateo hoy?</h3>
+        <div class="field">
+          <textarea class="field-input field-textarea" placeholder="Escribe en la voz de tu personaje." style="min-height: 140px;">Mateo decide que antes de las 6 PM va a llamar a Carla, esa prospecto que lleva 9 días esperando respuesta. Sin armar el guion. Solo agarrar el teléfono y dejar que la verdad de lo que ofrece hable por él.</textarea>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: var(--space-2);">
+          <span class="card-meta">42 PALABRAS</span>
+          <button class="btn btn-primary">Guardar respuesta del personaje</button>
+        </div>
+      </div>
+
+      <!-- CIERRE IA -->
+      <div class="card card-padded-lg" style="border-left: 3px solid var(--accent-dark); background: var(--accent-gradient-soft);">
+        <div style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-4); padding-bottom: var(--space-3); border-bottom: 1px solid rgba(212,175,55,0.3);">
+          <div class="module-card-icon" style="background: var(--accent-gradient); color: var(--text-on-accent);">◉</div>
+          <div style="flex: 1;">
+            <div style="font-weight: 600;">Cierre del día</div>
+            <div class="card-meta">CONSEJO + ANCLAJE PARA HOY</div>
+          </div>
+          <span class="badge badge-success">GUARDADO</span>
+        </div>
+        <p style="font-size: var(--text-lg); line-height: 1.65; color: var(--text); font-weight: 500;">
+          Mateo, lo que tu negocio te pide es lo que llevas años postergándole. <strong>Antes de las 6 PM de hoy, haz UNA llamada que vienes evitando.</strong> Sin guion, sin perfeccionar. Solo marca. El niño aprende cuando el adulto actúa.
+        </p>
+      </div>
+
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside>
+
+      <!-- TU CAMINO -->
+      <div class="sidebar-card">
+        <div class="sidebar-card-header">
+          <div class="sidebar-card-title">Tu camino</div>
+          <span class="card-meta">SEMANA 1 / 10</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+          <div style="display: flex; align-items: center; gap: var(--space-3);">
+            <div style="width: 26px; height: 26px; border-radius: 50%; background: var(--accent-gradient); display: grid; place-items: center; font-weight: 700; color: var(--text-on-accent); font-size: var(--text-xs);">✓</div>
+            <div style="flex: 1;">
+              <div style="font-weight: 600; font-size: var(--text-sm);">Niño Interior</div>
+              <div class="text-muted" style="font-size: var(--text-xs);">Día 6 de 7 · activo</div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: var(--space-3); opacity: 0.4;">
+            <div style="width: 26px; height: 26px; border-radius: 50%; background: var(--surface-3); border: 1px solid var(--border); font-size: var(--text-xs); display: grid; place-items: center;">2</div>
+            <div style="flex: 1;">
+              <div style="font-weight: 600; font-size: var(--text-sm);">Abundancia</div>
+              <div class="text-muted" style="font-size: var(--text-xs);">Empieza el lunes</div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: var(--space-3); opacity: 0.4;">
+            <div style="width: 26px; height: 26px; border-radius: 50%; background: var(--surface-3); border: 1px solid var(--border); font-size: var(--text-xs); display: grid; place-items: center;">3</div>
+            <div style="flex: 1;">
+              <div style="font-weight: 600; font-size: var(--text-sm);">Mamá</div>
+              <div class="text-muted" style="font-size: var(--text-xs);">Semana 3</div>
+            </div>
+          </div>
+        </div>
+        <a href="#" style="display: block; margin-top: var(--space-4); font-size: var(--text-xs); color: var(--accent-dark); font-weight: 600;">Ver los 10 temas →</a>
+      </div>
+
+      <!-- TU DIARIO -->
+      <div class="sidebar-card">
+        <div class="sidebar-card-header">
+          <div class="sidebar-card-title">Tu diario</div>
+          <span class="card-meta">6 ENTRADAS</span>
+        </div>
+        <div class="grid grid-3" style="gap: var(--space-3);">
+          <div class="stat-block" style="align-items: center; text-align: center;">
+            <span class="stat-num" style="font-size: var(--text-2xl);">6</span>
+            <span class="stat-label" style="font-size: 9px;">REFLEXIONES</span>
+          </div>
+          <div class="stat-block" style="align-items: center; text-align: center;">
+            <span class="stat-num" style="font-size: var(--text-2xl);">2.4k</span>
+            <span class="stat-label" style="font-size: 9px;">PALABRAS</span>
+          </div>
+          <div class="stat-block" style="align-items: center; text-align: center;">
+            <span class="stat-num" style="font-size: var(--text-2xl); color: var(--accent-dark);">86%</span>
+            <span class="stat-label" style="font-size: 9px;">COMPROMISO</span>
+          </div>
+        </div>
+        <a href="#" class="btn btn-secondary btn-sm mt-4" style="width: 100%; justify-content: center;">Abrir mi diario</a>
+      </div>
+
+      <!-- CONEXIÓN CON VENTAS (CRUZADA) -->
+      <div class="sidebar-card" style="background: var(--accent-gradient-soft); border: 1px solid rgba(212,175,55,0.25);">
+        <div class="sidebar-card-header">
+          <div class="sidebar-card-title">Conexión con tus ventas</div>
+        </div>
+        <p style="font-size: var(--text-sm); line-height: 1.55; color: var(--text); margin-bottom: var(--space-4);">
+          Tu pregunta de hoy resuena con tu bloqueo en cierre. La IA detectó que llevas 9 días sin registrar una venta nueva.
+        </p>
+        <a href="sales-tracker.html" class="btn btn-primary btn-sm" style="width: 100%; justify-content: center;">Ver mis ventas →</a>
+      </div>
+
+    </aside>
+
+  </div>
+
+</main>
+
+<script src="../shared/nav.js"></script>
+<div data-preview-nav data-active="regenesis" data-base="../"></div>
+
+</body>
+</html>

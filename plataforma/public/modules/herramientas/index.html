@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Herramientas accionables · Neurohackers</title>
+  <script src="/shared/turbo.min.js?v=20260797"></script>
+  <link rel="stylesheet" href="/shared/styles.css?v=20260797">
+  <style>
+    .tools-tabs { display: flex; gap: var(--space-2); margin-bottom: var(--space-6); padding-bottom: var(--space-3); border-bottom: 1px solid var(--border-soft); flex-wrap: wrap; }
+    .tool-tab { padding: 10px 16px; border-radius: var(--radius-md); background: var(--surface); border: 1px solid var(--border-soft); cursor: pointer; font-size: var(--text-sm); font-weight: 500; color: var(--text-muted); transition: var(--transition-fast); display: inline-flex; align-items: center; gap: 8px; }
+    .tool-tab:hover { background: var(--surface-2); color: var(--text); }
+    .tool-tab.active { background: var(--text); color: #FFF; border-color: var(--text); }
+    .tool-tab-icon { font-size: 16px; }
+
+    .tool-panel { display: none; }
+    .tool-panel.active { display: block; }
+
+    .tool-h { padding: var(--space-5) 0 var(--space-3); }
+    .tool-h .eyebrow { color: var(--accent-deeper); }
+
+    .tool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); margin-bottom: var(--space-6); }
+    @media (max-width: 760px) { .tool-grid { grid-template-columns: 1fr; } }
+
+    .tool-block { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); padding: var(--space-5); }
+    .tool-block-title { font-size: var(--text-md); font-weight: 600; letter-spacing: -0.01em; margin-bottom: var(--space-2); }
+    .tool-block-sub { font-size: var(--text-xs); color: var(--text-muted); line-height: 1.55; margin-bottom: var(--space-4); }
+
+    .result-card { background: linear-gradient(135deg, var(--accent-soft-bg) 0%, transparent 100%); border: 1px solid var(--accent-soft); padding: var(--space-5); border-radius: var(--radius-md); margin-top: var(--space-4); }
+    .result-row { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) 0; border-bottom: 1px solid rgba(212,175,55,0.15); }
+    .result-row:last-child { border-bottom: 0; }
+    .result-label { font-size: var(--text-sm); color: var(--text-muted); }
+    .result-value { font-family: var(--font-mono); font-size: var(--text-lg); font-weight: 600; color: var(--accent-deeper); letter-spacing: -0.015em; font-variant-numeric: tabular-nums; }
+
+    .pilar-row { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-4); background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); margin-bottom: var(--space-3); }
+    .pilar-top { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
+    .pilar-nombre { font-weight: 600; font-size: var(--text-md); letter-spacing: -0.01em; }
+    .pilar-score { font-family: var(--font-mono); font-size: var(--text-xl); font-weight: 600; }
+    .pilar-progress { width: 100%; height: 4px; background: var(--surface-2); border-radius: 2px; overflow: hidden; }
+    .pilar-progress > div { height: 100%; background: linear-gradient(90deg, var(--accent-bright), var(--accent-dark)); }
+    .pilar-pregs { display: none; padding-top: var(--space-3); border-top: 1px solid var(--border-soft); }
+    .pilar-row.open .pilar-pregs { display: flex; flex-direction: column; gap: 4px; }
+    .pilar-row .toggle { background: none; border: 0; color: var(--accent-deeper); font-size: var(--text-xs); cursor: pointer; padding: 4px 0; text-align: left; font-weight: 500; }
+  </style>
+</head>
+<body>
+
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<div data-nav data-active="herramientas" data-base="../../"></div>
+
+<main class="container" id="main" style="max-width: 980px;">
+
+  <section style="margin-bottom: var(--space-8);">
+    <span class="eyebrow">CALCULADORAS · BASADAS EN TU PERFIL</span>
+    <h1 class="greeting-lg">Herramientas accionables.</h1>
+    <p class="lead">4 calculadoras conectadas a tu perfil y a tus productos. Cada una te da números concretos para tomar decisiones, no consejos genéricos.</p>
+  </section>
+
+  <div class="tools-tabs">
+    <button class="tool-tab active" data-tool="meta"><span class="tool-tab-icon">◎</span> Mi meta</button>
+    <button class="tool-tab" data-tool="precio"><span class="tool-tab-icon">$</span> Mi precio</button>
+    <button class="tool-tab" data-tool="script"><span class="tool-tab-icon">☏</span> Script de venta</button>
+    <button class="tool-tab" data-tool="competencia"><span class="tool-tab-icon">▦</span> Mi competencia</button>
+    <button class="tool-tab" data-tool="salud"><span class="tool-tab-icon">⬡</span> Salud 360</button>
+  </div>
+
+  <!-- ===================== TAB MI META ===================== -->
+  <section class="tool-panel active" id="panel-meta">
+    <div class="tool-h">
+      <span class="eyebrow">MATEMÁTICA DEL ÉXITO</span>
+      <h2 style="font-size: var(--text-xl); font-weight: 600; letter-spacing: -0.015em; margin-top: 4px;">¿Cuántos clientes necesitas para llegar a tu meta?</h2>
+      <p style="font-size: var(--text-sm); color: var(--text-muted); line-height: 1.55; margin-top: 8px;">No es magia, es matemática. Esto convierte tu meta en clientes/mes, bookings/día, mensajes outbound/día e inversión en ads.</p>
+    </div>
+
+    <div class="tool-grid">
+      <div class="tool-block">
+        <div class="tool-block-title">Tu meta</div>
+        <div class="tool-block-sub">Pre-llenamos con lo que tienes en Mi Perfil. Editar libremente.</div>
+        <div class="field">
+          <label class="field-label">Meta de facturación mensual (USD)</label>
+          <input class="field-input" id="meta-mensual" type="number" min="0" step="500">
+        </div>
+        <div class="field">
+          <label class="field-label">Precio promedio por cliente (USD)</label>
+          <input class="field-input" id="meta-precio" type="number" min="0" step="50">
+        </div>
+      </div>
+      <div class="tool-block">
+        <div class="tool-block-title">Tu embudo actual</div>
+        <div class="tool-block-sub">Estima tus tasas de conversión. Si no sabes, usa los defaults del sector.</div>
+        <div class="field">
+          <label class="field-label">% conversión booking → cliente</label>
+          <input class="field-input" id="meta-conv-booking" type="number" min="0" max="100" value="20">
+        </div>
+        <div class="field">
+          <label class="field-label">% respuesta de mensajes outbound</label>
+          <input class="field-input" id="meta-resp-msj" type="number" min="0" max="100" value="10">
+        </div>
+        <div class="field">
+          <label class="field-label">Costo por booking vía ads (USD)</label>
+          <input class="field-input" id="meta-cpa" type="number" min="0" step="10" value="100">
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-accent btn-lg" id="btn-calc-meta">Calcular mi plan</button>
+
+    <div id="result-meta" class="result-card hidden"></div>
+  </section>
+
+  <!-- ===================== TAB MI PRECIO ===================== -->
+  <section class="tool-panel" id="panel-precio">
+    <div class="tool-h">
+      <span class="eyebrow">CALCULADORA DE PRECIO · 3 MODOS</span>
+      <h2 style="font-size: var(--text-xl); font-weight: 600; letter-spacing: -0.015em; margin-top: 4px;">¿Cuánto deberías cobrar realmente?</h2>
+      <p style="font-size: var(--text-sm); color: var(--text-muted); line-height: 1.55; margin-top: 8px;">Calcula tu precio desde 3 ángulos. El más alto es tu techo, el más bajo es tu piso. La verdad casi siempre está en el medio.</p>
+    </div>
+
+    <div class="tool-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+      <div class="tool-block">
+        <div class="tool-block-title">1. Por valor percibido</div>
+        <div class="tool-block-sub">El precio que se justifica solo por lo que tu cliente gana.</div>
+        <div class="field">
+          <label class="field-label">Valor de la transformación (USD)</label>
+          <input class="field-input" id="p-valor" type="number" min="0" step="100" placeholder="Ej. 30000">
+        </div>
+        <div class="field">
+          <label class="field-label">% Probabilidad de éxito real</label>
+          <input class="field-input" id="p-tasa" type="number" min="0" max="100" value="30">
+        </div>
+        <div class="field">
+          <label class="field-label">ROI mínimo que el cliente quiere</label>
+          <input class="field-input" id="p-roi" type="number" min="1" value="10" placeholder="10 = 10x">
+        </div>
+      </div>
+      <div class="tool-block">
+        <div class="tool-block-title">2. Por tus costos + margen</div>
+        <div class="tool-block-sub">Tu piso: nunca por debajo de esto.</div>
+        <div class="field">
+          <label class="field-label">Costo total para entregar (USD)</label>
+          <input class="field-input" id="p-costo" type="number" min="0" step="50" placeholder="Ej. 800">
+        </div>
+        <div class="field">
+          <label class="field-label">% Margen deseado</label>
+          <input class="field-input" id="p-margen" type="number" min="0" max="99" value="70">
+        </div>
+      </div>
+      <div class="tool-block">
+        <div class="tool-block-title">3. Por embudo + ads</div>
+        <div class="tool-block-sub">El precio mínimo para ser rentable con ads.</div>
+        <div class="field">
+          <label class="field-label">Inversión mensual en ads (USD)</label>
+          <input class="field-input" id="p-inv-ads" type="number" min="0" step="100" placeholder="Ej. 500">
+        </div>
+        <div class="field">
+          <label class="field-label">CPL (costo por lead)</label>
+          <input class="field-input" id="p-cpl" type="number" min="0" step="0.5" value="1">
+        </div>
+        <div class="field">
+          <label class="field-label">% Asistencia / % Cierre</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+            <input class="field-input" id="p-asist" type="number" min="0" max="100" value="30" placeholder="Asist %">
+            <input class="field-input" id="p-cierre" type="number" min="0" max="100" value="20" placeholder="Cierre %">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-accent btn-lg" id="btn-calc-precio">Calcular precios sugeridos</button>
+
+    <div id="result-precio" class="result-card hidden"></div>
+  </section>
+
+  <!-- ===================== TAB SCRIPT DE VENTA ===================== -->
+  <section class="tool-panel" id="panel-script">
+    <div class="tool-h">
+      <span class="eyebrow">DISCOVERY CALL · 25-30 MIN</span>
+      <h2 style="font-size: var(--text-xl); font-weight: 600; letter-spacing: -0.015em; margin-top: 4px;">Tu guion de venta personalizado.</h2>
+      <p style="font-size: var(--text-sm); color: var(--text-muted); line-height: 1.55; margin-top: 8px;">Selecciona uno de tus productos. Generamos el script de discovery call (apertura, 5 preguntas, presentación, precio, cierre) usando tu voz y tu ICP. Lo usas tal cual en tu próxima llamada.</p>
+    </div>
+
+    <div class="tool-block" style="margin-bottom: var(--space-4);">
+      <div class="tool-block-title">¿Para qué producto?</div>
+      <div class="tool-block-sub">Solo aparecen tus productos activos. Si no tienes ninguno, agrégalo en Marca y oferta.</div>
+      <div class="field">
+        <label class="field-label">Producto a vender en esta llamada</label>
+        <select class="field-input" id="script-producto-id">
+          <option value="">Cargando productos…</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label">Notas opcionales para regenerar (ej. "más informal", "incluir caso de cliente X")</label>
+        <textarea class="field-input" id="script-notas" rows="2" placeholder="Vacío en la primera generación."></textarea>
+      </div>
+      <button class="btn btn-accent btn-lg mt-3" id="btn-generar-script">Generar script</button>
+      <span id="script-loading" class="hidden" style="margin-left: var(--space-3); font-size: var(--text-sm); color: var(--text-muted);">Generando… 8-15 seg</span>
+    </div>
+
+    <div id="script-resultado" class="hidden" style="margin-top: var(--space-6);">
+      <div style="display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-4);">
+        <div>
+          <div style="font-weight: 600; font-size: var(--text-md);">Script para <span id="script-prod-nombre"></span></div>
+          <div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: 2px;" id="script-meta"></div>
+        </div>
+        <div style="display: flex; gap: var(--space-2); flex-wrap: wrap;">
+          <button class="btn btn-secondary btn-sm" id="btn-script-copiar">Copiar todo</button>
+          <button class="btn btn-secondary btn-sm" id="btn-script-imprimir">Imprimir</button>
+        </div>
+      </div>
+
+      <div id="script-secciones" style="display: flex; flex-direction: column; gap: var(--space-4);"></div>
+    </div>
+
+    <div id="script-historial" style="margin-top: var(--space-8);"></div>
+
+    <p class="text-muted" style="font-size: var(--text-xs); margin-top: var(--space-4); line-height: 1.55;">
+      El script usa tu Esencia (voz, palabras prohibidas), tu Diagnóstico (códigos corruptos del prospect) y el producto seleccionado. Si lo cambias mucho en tu cabeza, vale la pena actualizar Marca y Oferta para que la próxima generación sea mejor.
+    </p>
+  </section>
+
+  <!-- ===================== TAB COMPETENCIA ===================== -->
+  <section class="tool-panel" id="panel-competencia">
+    <div class="tool-h">
+      <span class="eyebrow">ANALIZADOR DE COMPETIDORES</span>
+      <h2 style="font-size: var(--text-xl); font-weight: 600; letter-spacing: -0.015em; margin-top: 4px;">¿Dónde estás vs ellos?</h2>
+      <p style="font-size: var(--text-sm); color: var(--text-muted); line-height: 1.55; margin-top: 8px;">Lista tus 3-5 competidores principales. Analizamos su sitio público y los comparamos contigo en 8 dimensiones. Sale el ángulo de diferenciación más sólido para ti.</p>
+    </div>
+
+    <div class="tool-block">
+      <div class="tool-block-title">Tus competidores</div>
+      <div class="tool-block-sub">Pre-cargados desde Mi Perfil → Negocio. Edita libremente. Las URLs ayudan al análisis.</div>
+      <div id="competidores-list" style="display: flex; flex-direction: column; gap: var(--space-3);"></div>
+      <button type="button" class="btn btn-secondary btn-sm mt-3" id="btn-add-competidor">+ Agregar competidor</button>
+    </div>
+
+    <button class="btn btn-accent btn-lg mt-4" id="btn-calc-competencia">Analizar mi competencia</button>
+
+    <div id="result-competencia" class="result-card hidden"></div>
+
+    <p class="text-muted" style="font-size: var(--text-xs); margin-top: var(--space-4); line-height: 1.55;">
+      Nota: el comparador detallado se conecta cuando esté listo el módulo de scraping. Por ahora puedes guardar tus competidores aquí y los usaremos como contexto en las otras herramientas.
+    </p>
+  </section>
+
+  <!-- ===================== TAB SALUD 360 ===================== -->
+  <section class="tool-panel" id="panel-salud">
+    <div class="tool-h">
+      <span class="eyebrow">DIAGNÓSTICO 360 · 4 PILARES</span>
+      <h2 style="font-size: var(--text-xl); font-weight: 600; letter-spacing: -0.015em; margin-top: 4px;">¿Qué tan saludable está tu negocio hoy?</h2>
+      <p style="font-size: var(--text-sm); color: var(--text-muted); line-height: 1.55; margin-top: 8px;">40 preguntas binarias (sí/no) en 4 pilares: Identidad, Marketing, Ventas, Servicio. En 5 minutos tienes un score por pilar y dónde está tu cuello de botella real.</p>
+    </div>
+
+    <div id="salud-pilares"></div>
+
+    <button class="btn btn-accent btn-lg mt-6" id="btn-calc-salud">Calcular mi salud 360</button>
+
+    <div id="result-salud" class="result-card hidden"></div>
+  </section>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/shared/scripts/config.js?v=20260797"></script>
+<script src="/shared/scripts/supabase-client.js?v=20260797"></script>
+  <script src="/shared/scripts/cache.js?v=20260797"></script>
+<script src="/shared/scripts/utils.js?v=20260797"></script>
+<script src="/shared/scripts/auth.js?v=20260797"></script>
+  <script src="/shared/scripts/event-tracker.js?v=20260797"></script>
+  <script src="/shared/scripts/nps.js?v=20260797"></script>
+<script src="/shared/scripts/herramientas.js?v=20260797"></script>
+<script src="/shared/nav.js?v=20260797"></script>
+<script>
+(async function () {
+  const { session, lead } = await window.requireAuth() || {};
+  if (!session) return;
+
+  // ====== TABS ======
+  document.querySelectorAll('[data-tool]').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('[data-tool]').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      document.querySelectorAll('.tool-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('panel-' + t.dataset.tool).classList.add('active');
+    });
+  });
+
+  // ====== Pre-cargar datos del perfil ======
+  const [negocioRes, planesRes] = await Promise.all([
+    window.db.from('cliente_negocio').select('*').eq('lead_id', lead.id).maybeSingle(),
+    window.herramientasApi.cargarPlanes(lead.id),
+  ]);
+  const negocio = negocioRes.data;
+  const planes = planesRes || {};
+
+  // ====== MI META ======
+  if (negocio?.meta_facturacion_6m_usd) {
+    // meta_facturacion_6m_usd es la meta AL CIERRE del programa. La meta mensual es esa
+    document.getElementById('meta-mensual').value = Math.round(negocio.meta_facturacion_6m_usd);
+  } else if (negocio?.ingreso_ultimo_mes_usd) {
+    document.getElementById('meta-mensual').value = Math.round(negocio.ingreso_ultimo_mes_usd * 2);
+  }
+  if (negocio?.valor_promedio_compra_usd) {
+    document.getElementById('meta-precio').value = Math.round(negocio.valor_promedio_compra_usd);
+  }
+  if (negocio?.conversion_estimada_pct) {
+    document.getElementById('meta-conv-booking').value = negocio.conversion_estimada_pct;
+  }
+  if (planes.mi_meta?.inputs) {
+    Object.entries(planes.mi_meta.inputs).forEach(([k, v]) => {
+      const el = document.getElementById(`meta-${k}`);
+      if (el && v !== null) el.value = v;
+    });
+  }
+
+  document.getElementById('btn-calc-meta').addEventListener('click', async () => {
+    const inputs = {
+      mensual: document.getElementById('meta-mensual').value,
+      precio: document.getElementById('meta-precio').value,
+      'conv-booking': document.getElementById('meta-conv-booking').value,
+      'resp-msj': document.getElementById('meta-resp-msj').value,
+      cpa: document.getElementById('meta-cpa').value,
+    };
+    const r = window.herramientasApi.calcMiMeta({
+      metaMensual: inputs.mensual,
+      precioPromedio: inputs.precio,
+      conversionBookingPct: inputs['conv-booking'],
+      respuestaMensajePct: inputs['resp-msj'],
+      cpaAds: inputs.cpa,
+    });
+    if (!r) { window.utils.toast('Llena meta y precio', 'error'); return; }
+    const el = document.getElementById('result-meta');
+    el.classList.remove('hidden');
+    el.innerHTML = `
+      <div style="font-weight: 600; font-size: var(--text-md); margin-bottom: var(--space-3);">Para llegar a tu meta necesitas:</div>
+      <div class="result-row"><span class="result-label">Clientes nuevos al mes</span><span class="result-value">${r.clientesNecesarios}</span></div>
+      <div class="result-row"><span class="result-label">Bookings totales al mes (a ${inputs['conv-booking']}% cierre)</span><span class="result-value">${r.bookingsNecesarios}</span></div>
+      <div class="result-row"><span class="result-label">Bookings por día</span><span class="result-value">${r.bookingsPorDia}</span></div>
+      <div class="result-row"><span class="result-label">Ingreso anual proyectado</span><span class="result-value">${window.herramientasApi.formatMoney(r.ingresoAnual)}</span></div>
+
+      <div style="margin-top: var(--space-5); padding-top: var(--space-4); border-top: 1px solid rgba(212,175,55,0.25);">
+        <div style="font-weight: 600; font-size: var(--text-sm); margin-bottom: var(--space-3); color: var(--text);">
+          Para conseguir esos ${r.bookingsNecesarios} bookings tienes 2 caminos (puedes mezclar):
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); margin-top: var(--space-2);">
+          <div style="padding: var(--space-4); background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md);">
+            <div style="font-family: var(--font-mono); font-size: var(--text-2xs); letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; margin-bottom: var(--space-2);">CAMINO A · ORGÁNICO</div>
+            <div style="font-size: var(--text-2xl); font-weight: 600; letter-spacing: -0.02em; line-height: 1;">${r.mensajesPorDia}</div>
+            <div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: 4px;">mensajes outbound al día</div>
+            <div style="font-size: var(--text-xs); color: var(--text-faint); margin-top: 8px;">A ${inputs['resp-msj']}% de respuesta · ${r.mensajesOutbound.toLocaleString()} mensajes al mes</div>
+          </div>
+          <div style="padding: var(--space-4); background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md);">
+            <div style="font-family: var(--font-mono); font-size: var(--text-2xs); letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; margin-bottom: var(--space-2);">CAMINO B · ADS</div>
+            <div style="font-size: var(--text-2xl); font-weight: 600; letter-spacing: -0.02em; line-height: 1;">${window.herramientasApi.formatMoney(r.inversionAds)}</div>
+            <div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: 4px;">en ads al mes</div>
+            <div style="font-size: var(--text-xs); color: var(--text-faint); margin-top: 8px;">A $${Number(inputs.cpa).toLocaleString()} por booking · ${window.herramientasApi.formatMoney(r.inversionAdsPorDia)} al día</div>
+          </div>
+        </div>
+
+        <p style="font-size: var(--text-xs); color: var(--text-muted); line-height: 1.55; margin-top: var(--space-3);">
+          Estos son dos extremos. La mayoría de negocios reales combinan: una parte outbound (más esfuerzo, menos costo) y otra parte ads (menos esfuerzo, más costo). Ajusta los porcentajes de conversión arriba para ver cómo cambian estos números con tus tasas reales.
+        </p>
+      </div>
+    `;
+    try {
+      await window.herramientasApi.guardarPlan(lead.id, 'mi_meta', inputs, r);
+      window.utils.toast('Plan guardado', 'success');
+    } catch (e) { console.warn('No pude guardar:', e); }
+  });
+
+  // ====== MI PRECIO ======
+  if (planes.mi_precio?.inputs) {
+    Object.entries(planes.mi_precio.inputs).forEach(([k, v]) => {
+      const el = document.getElementById('p-' + k);
+      if (el && v !== null) el.value = v;
+    });
+  }
+  document.getElementById('btn-calc-precio').addEventListener('click', async () => {
+    const inputs = {
+      valor: document.getElementById('p-valor').value,
+      tasa: document.getElementById('p-tasa').value,
+      roi: document.getElementById('p-roi').value,
+      costo: document.getElementById('p-costo').value,
+      margen: document.getElementById('p-margen').value,
+      'inv-ads': document.getElementById('p-inv-ads').value,
+      cpl: document.getElementById('p-cpl').value,
+      asist: document.getElementById('p-asist').value,
+      cierre: document.getElementById('p-cierre').value,
+    };
+    const r = window.herramientasApi.calcMiPrecio({
+      valorTransformacion: inputs.valor,
+      tasaExito: inputs.tasa,
+      roiCliente: inputs.roi,
+      costoServicio: inputs.costo,
+      margenDeseado: inputs.margen,
+      inversionAds: inputs['inv-ads'],
+      cpl: inputs.cpl,
+      asistenciaPct: inputs.asist,
+      cierrePct: inputs.cierre,
+    });
+    const el = document.getElementById('result-precio');
+    el.classList.remove('hidden');
+    let html = '<div style="font-weight: 600; font-size: var(--text-md); margin-bottom: var(--space-3);">Precios sugeridos:</div>';
+    if (r.precioPorValor) html += `<div class="result-row"><span class="result-label">Por valor percibido (techo)</span><span class="result-value">${window.herramientasApi.formatMoney(r.precioPorValor)}</span></div>`;
+    if (r.precioPorCosto) html += `<div class="result-row"><span class="result-label">Por costos + margen (piso)</span><span class="result-value">${window.herramientasApi.formatMoney(r.precioPorCosto)}</span></div>`;
+    if (r.embudoCostoPorCliente !== undefined && r.embudoCostoPorCliente !== null) {
+      html += `<div class="result-row"><span class="result-label">Costo por cliente vía ads</span><span class="result-value">${window.herramientasApi.formatMoney(r.embudoCostoPorCliente)}</span></div>`;
+      html += `<div class="result-row"><span class="result-label">Clientes que generarían los ads</span><span class="result-value">${r.embudoClientes}</span></div>`;
+    }
+    if (!r.precioPorValor && !r.precioPorCosto && !r.embudoCostoPorCliente) html += '<p class="text-muted">Llena al menos uno de los 3 modos para ver el cálculo.</p>';
+    el.innerHTML = html;
+    try {
+      await window.herramientasApi.guardarPlan(lead.id, 'mi_precio', inputs, r);
+      window.utils.toast('Plan guardado', 'success');
+    } catch (e) { console.warn(e); }
+  });
+
+  // ====== COMPETENCIA ======
+  let competidores = [];
+  if (Array.isArray(negocio?.competidores_principales)) {
+    competidores = negocio.competidores_principales.map(c => typeof c === 'string' ? { nombre: c, url: '' } : c);
+  }
+  if (planes.mi_competencia?.inputs?.competidores) competidores = planes.mi_competencia.inputs.competidores;
+  if (!competidores.length) competidores = [{ nombre: '', url: '' }, { nombre: '', url: '' }, { nombre: '', url: '' }];
+
+  function pintarCompetidores() {
+    const c = document.getElementById('competidores-list');
+    c.innerHTML = competidores.map((comp, i) => `
+      <div style="display: grid; grid-template-columns: 1fr 1.5fr auto; gap: 8px;">
+        <input class="field-input" placeholder="Nombre del competidor" value="${window.utils.escapeHtml(comp.nombre || '')}" data-cidx="${i}" data-cfield="nombre">
+        <input class="field-input" placeholder="https://sitio.com" value="${window.utils.escapeHtml(comp.url || '')}" data-cidx="${i}" data-cfield="url">
+        <button type="button" class="btn btn-ghost btn-sm" data-del-c="${i}" style="color: var(--error);">✕</button>
+      </div>
+    `).join('');
+    c.querySelectorAll('input').forEach(inp => {
+      inp.addEventListener('input', (e) => {
+        const i = Number(e.target.dataset.cidx);
+        competidores[i] = competidores[i] || {};
+        competidores[i][e.target.dataset.cfield] = e.target.value;
+      });
+    });
+    c.querySelectorAll('[data-del-c]').forEach(b => b.addEventListener('click', () => {
+      competidores.splice(Number(b.dataset.delC), 1);
+      pintarCompetidores();
+    }));
+  }
+  pintarCompetidores();
+  document.getElementById('btn-add-competidor').addEventListener('click', () => {
+    competidores.push({ nombre: '', url: '' });
+    pintarCompetidores();
+  });
+  document.getElementById('btn-calc-competencia').addEventListener('click', async () => {
+    const limpios = competidores.filter(c => c.nombre && c.nombre.trim());
+    if (limpios.length === 0) { window.utils.toast('Agrega al menos 1 competidor', 'error'); return; }
+    try {
+      await window.herramientasApi.guardarPlan(lead.id, 'mi_competencia', { competidores: limpios }, { guardados: limpios.length });
+      const el = document.getElementById('result-competencia');
+      el.classList.remove('hidden');
+      el.innerHTML = `
+        <div style="font-weight: 600; font-size: var(--text-md); margin-bottom: var(--space-3);">Competidores guardados (${limpios.length})</div>
+        <p style="font-size: var(--text-sm); color: var(--text-muted); line-height: 1.55;">Tus competidores quedan guardados como contexto. Cuando diagnostiques un producto o generes contenido, los consideramos para diferenciar mejor tu propuesta. El comparador detallado (scraping + matriz comparativa de 8 dimensiones) se habilita cuando esté listo el módulo de análisis.</p>
+      `;
+      window.utils.toast('Competidores guardados', 'success');
+    } catch (e) { window.utils.toast('Error: ' + e.message, 'error'); }
+  });
+
+  // ====== SALUD 360 ======
+  const PILARES = window.herramientasApi.PILARES_SALUD;
+  let respuestasSalud = planes.salud_360?.inputs?.respuestas || {};
+
+  function pintarSalud() {
+    const c = document.getElementById('salud-pilares');
+    c.innerHTML = PILARES.map(p => {
+      const respondidasOk = p.preguntas.filter((_, i) => respuestasSalud[`${p.id}-${i}`]).length;
+      const score = Math.round((respondidasOk / p.preguntas.length) * 100);
+      return `
+        <div class="pilar-row" data-pilar="${p.id}">
+          <div class="pilar-top">
+            <div>
+              <div class="pilar-nombre">${window.utils.escapeHtml(p.nombre)}</div>
+              <div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: 2px;">${respondidasOk} de ${p.preguntas.length} marcados</div>
+            </div>
+            <span class="pilar-score">${score}%</span>
+          </div>
+          <div class="pilar-progress"><div style="width: ${score}%"></div></div>
+          <button class="toggle" data-toggle="${p.id}">${respondidasOk === 0 ? '+ Responder las 10 preguntas' : 'Ver/editar respuestas →'}</button>
+          <div class="pilar-pregs">
+            ${p.preguntas.map((q, i) => `
+              <label class="switch-row" style="cursor: pointer; padding: 6px 0; display: flex; gap: 10px; align-items: flex-start;">
+                <input type="checkbox" data-spq="${p.id}-${i}" ${respuestasSalud[`${p.id}-${i}`] ? 'checked' : ''}>
+                <span style="font-size: var(--text-sm); line-height: 1.5;">${window.utils.escapeHtml(q)}</span>
+              </label>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }).join('');
+    c.querySelectorAll('[data-toggle]').forEach(b => b.addEventListener('click', () => {
+      const row = b.closest('.pilar-row');
+      row.classList.toggle('open');
+    }));
+    c.querySelectorAll('[data-spq]').forEach(cb => cb.addEventListener('change', () => {
+      respuestasSalud[cb.dataset.spq] = cb.checked;
+      // Re-pintar solo el score del pilar
+      const [pilarId] = cb.dataset.spq.split('-');
+      const pilarRow = c.querySelector(`[data-pilar="${pilarId}"]`);
+      if (pilarRow) {
+        const pilar = PILARES.find(x => x.id === pilarId);
+        const yes = pilar.preguntas.filter((_, i) => respuestasSalud[`${pilarId}-${i}`]).length;
+        const sc = Math.round((yes / pilar.preguntas.length) * 100);
+        pilarRow.querySelector('.pilar-score').textContent = sc + '%';
+        pilarRow.querySelector('.pilar-progress > div').style.width = sc + '%';
+        pilarRow.querySelector('.pilar-top div div:last-child').textContent = `${yes} de ${pilar.preguntas.length} marcados`;
+      }
+    }));
+  }
+  pintarSalud();
+
+  document.getElementById('btn-calc-salud').addEventListener('click', async () => {
+    const r = window.herramientasApi.calcSalud360(respuestasSalud);
+    const el = document.getElementById('result-salud');
+    el.classList.remove('hidden');
+    el.innerHTML = `
+      <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--space-4);">
+        <div style="font-weight: 600; font-size: var(--text-md);">Tu salud 360</div>
+        <div style="font-family: var(--font-mono); font-size: var(--text-3xl); font-weight: 600; color: var(--accent-deeper);">${r.global}%</div>
+      </div>
+      ${Object.entries(r.pilares).map(([id, p]) => `
+        <div class="result-row">
+          <span class="result-label">${window.utils.escapeHtml(p.nombre)}</span>
+          <span class="result-value">${p.score}%</span>
+        </div>
+      `).join('')}
+      <div style="margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid rgba(212,175,55,0.2);">
+        <div style="font-size: var(--text-sm); color: var(--text-muted); line-height: 1.6;">
+          <strong>Tu pilar más débil:</strong> ${window.utils.escapeHtml(r.pilarMasDebil[1].nombre)} (${r.pilarMasDebil[1].score}%). Empieza ahí.<br>
+          <strong>Tu pilar más fuerte:</strong> ${window.utils.escapeHtml(r.pilarMasFuerte[1].nombre)} (${r.pilarMasFuerte[1].score}%). Apóyate en eso.
+        </div>
+      </div>
+    `;
+    try {
+      await window.herramientasApi.guardarPlan(lead.id, 'salud_360', { respuestas: respuestasSalud }, r);
+      window.utils.toast('Salud 360 guardada', 'success');
+    } catch (e) { console.warn(e); }
+  });
+
+  // ====== SCRIPT DE VENTA ======
+  const SELECT_PROD = document.getElementById('script-producto-id');
+  const BTN_GEN = document.getElementById('btn-generar-script');
+  const LOADING = document.getElementById('script-loading');
+
+  // Cargar productos activos del cliente
+  const { data: productos } = await window.db.from('productos')
+    .select('id, nombre, tipo, precio, moneda')
+    .eq('lead_id', lead.id).eq('estado', 'activo')
+    .order('created_at', { ascending: false });
+
+  if (!productos || productos.length === 0) {
+    SELECT_PROD.innerHTML = '<option value="">No tienes productos activos</option>';
+    BTN_GEN.disabled = true;
+    BTN_GEN.title = 'Agrega un producto en Marca y oferta primero';
+  } else {
+    SELECT_PROD.innerHTML = productos.map(p =>
+      `<option value="${p.id}">${window.utils.escapeHtml(p.nombre)}${p.precio ? ` · ${p.precio} ${p.moneda || 'USD'}` : ''}</option>`
+    ).join('');
+  }
+
+  // Cargar script más reciente si existe
+  async function cargarScriptReciente(productoId) {
+    if (!productoId) return null;
+    const { data } = await window.db.from('scripts_venta')
+      .select('id, estructura, generado_at, producto_id')
+      .eq('lead_id', lead.id).eq('producto_id', productoId)
+      .order('generado_at', { ascending: false }).limit(1).maybeSingle();
+    return data;
+  }
+
+  function renderScript(estructura, prodNombre, generadoAt) {
+    document.getElementById('script-prod-nombre').textContent = prodNombre;
+    document.getElementById('script-meta').textContent = `Generado ${new Date(generadoAt).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}`;
+    const cont = document.getElementById('script-secciones');
+    const sec = (titulo, num, bodyHTML) => `
+      <div class="tool-block">
+        <div style="display: flex; align-items: baseline; gap: var(--space-3); margin-bottom: var(--space-3);">
+          <span style="font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-muted); font-weight: 600; letter-spacing: 1px;">${num}</span>
+          <div class="tool-block-title" style="margin: 0;">${window.utils.escapeHtml(titulo)}</div>
+        </div>
+        <div style="font-size: var(--text-sm); line-height: 1.7; color: var(--text);">${bodyHTML}</div>
+      </div>`;
+
+    const preguntas = (estructura.descubrimiento || []).map((q, i) => `
+      <div style="padding: var(--space-3) 0; border-top: ${i === 0 ? '0' : '1px solid var(--border-soft)'};">
+        <div style="font-weight: 600; margin-bottom: 4px;">${q.orden || i+1}. ${window.utils.escapeHtml(q.pregunta || '')}</div>
+        <div style="font-size: var(--text-xs); color: var(--text-muted); line-height: 1.55;"><strong>Objetivo:</strong> ${window.utils.escapeHtml(q.objetivo || '')}</div>
+        ${q.follow_up ? `<div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: 4px; line-height: 1.55;"><strong>Follow-up:</strong> ${window.utils.escapeHtml(q.follow_up)}</div>` : ''}
+      </div>`).join('');
+
+    const pres = estructura.presentacion || {};
+    const precio = estructura.precio || {};
+    const cierre = estructura.cierre || {};
+
+    cont.innerHTML = [
+      sec('Apertura (30-45s)', '01', `<p>${window.utils.escapeHtml(estructura.apertura || '')}</p>`),
+      sec('Descubrimiento · 5 preguntas SPIN', '02', preguntas),
+      sec('Presentación', '03',
+        `<p><strong>Puente:</strong> ${window.utils.escapeHtml(pres.puente || '')}</p>
+         <p style="margin-top: var(--space-2);"><strong>Propuesta:</strong> ${window.utils.escapeHtml(pres.propuesta || '')}</p>
+         <p style="margin-top: var(--space-2);"><strong>Prueba social:</strong> ${window.utils.escapeHtml(pres.prueba_social || '')}</p>`),
+      sec('Precio · cómo decirlo y manejar objeciones', '04',
+        `<p><strong>Cómo decirlo:</strong> ${window.utils.escapeHtml(precio.como_decirlo || '')}</p>
+         <p style="margin-top: var(--space-2);"><strong>Si dice "está caro":</strong> ${window.utils.escapeHtml(precio.objecion_caro || '')}</p>
+         <p style="margin-top: var(--space-2);"><strong>Si dice "lo voy a pensar":</strong> ${window.utils.escapeHtml(precio.objecion_pensarlo || '')}</p>
+         <p style="margin-top: var(--space-2);"><strong>Si dice "hablo con socio/pareja":</strong> ${window.utils.escapeHtml(precio.objecion_socio || '')}</p>`),
+      sec('Cierre', '05',
+        `<p><strong>Cierre directo:</strong> ${window.utils.escapeHtml(cierre.directo || '')}</p>
+         <p style="margin-top: var(--space-2);"><strong>Cierre asumido:</strong> ${window.utils.escapeHtml(cierre.asumido || '')}</p>`),
+      estructura.notas_para_el_cliente
+        ? sec('Notas para ti', '✎', `<p style="font-style: normal; color: var(--text-muted);">${window.utils.escapeHtml(estructura.notas_para_el_cliente)}</p>`)
+        : ''
+    ].join('');
+
+    document.getElementById('script-resultado').classList.remove('hidden');
+  }
+
+  // Al cambiar producto, intentar cargar el script más reciente
+  SELECT_PROD.addEventListener('change', async () => {
+    const prodId = SELECT_PROD.value;
+    if (!prodId) { document.getElementById('script-resultado').classList.add('hidden'); return; }
+    const reciente = await cargarScriptReciente(prodId);
+    if (reciente) {
+      const prod = productos.find(p => p.id === prodId);
+      renderScript(reciente.estructura, prod?.nombre || '', reciente.generado_at);
+    } else {
+      document.getElementById('script-resultado').classList.add('hidden');
+    }
+  });
+
+  // Pre-seleccionar primer producto y cargar su script si existe
+  if (productos && productos.length > 0) {
+    SELECT_PROD.value = productos[0].id;
+    SELECT_PROD.dispatchEvent(new Event('change'));
+  }
+
+  BTN_GEN.addEventListener('click', async () => {
+    const productoId = SELECT_PROD.value;
+    if (!productoId) { window.utils.toast('Selecciona un producto', 'error'); return; }
+    const notas = document.getElementById('script-notas').value.trim();
+
+    BTN_GEN.disabled = true;
+    LOADING.classList.remove('hidden');
+    try {
+      const { data: { session: s } } = await window.db.auth.getSession();
+      const res = await fetch(`${window.NEURO_CONFIG.SUPABASE_URL}/functions/v1/generar-script-venta`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${s.access_token}` },
+        body: JSON.stringify({ lead_id: lead.id, producto_id: productoId, notas_regeneracion: notas || null }),
+      });
+      const body = await res.json();
+      console.log('[generar-script-venta]', { status: res.status, body });
+      if (!res.ok) throw new Error(body?.error || `HTTP ${res.status}`);
+      if (!body.ok) throw new Error(body.error || 'Sin respuesta de IA');
+
+      renderScript(body.estructura, body.producto?.nombre || '', body.generado_at);
+      document.getElementById('script-notas').value = '';
+      window.utils.toast('Script generado', 'success');
+    } catch (e) {
+      window.utils.toast('Error: ' + e.message, 'error');
+    } finally {
+      BTN_GEN.disabled = false;
+      LOADING.classList.add('hidden');
+    }
+  });
+
+  document.getElementById('btn-script-copiar')?.addEventListener('click', async () => {
+    const txt = document.getElementById('script-secciones').innerText;
+    try {
+      await navigator.clipboard.writeText(txt);
+      window.utils.toast('Script copiado', 'success');
+    } catch (_) {
+      window.utils.toast('No se pudo copiar', 'error');
+    }
+  });
+  document.getElementById('btn-script-imprimir')?.addEventListener('click', () => window.print());
+
+  document.getElementById('main').style.opacity = '1';
+})();
+</script>
+
+
+</body>
+</html>

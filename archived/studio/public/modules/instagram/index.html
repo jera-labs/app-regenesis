@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <script src="/studio/shared/turbo.min.js?v=20260716"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Instagram · Studio · Neurohackers</title>
+  <link rel="stylesheet" href="/studio/shared/styles.css?v=20260716">
+  <style>
+    .lay { display: grid; grid-template-columns: 380px 1fr; gap: var(--space-5); margin-top: var(--space-5); }
+    @media (max-width: 1100px) { .lay { grid-template-columns: 1fr; } }
+
+    .panel { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); padding: var(--space-5); }
+    .panel h3 { margin: 0 0 var(--space-3); font-size: var(--text-md); }
+
+    .pieza {
+      background: var(--surface); border: 1px solid var(--border-soft);
+      border-radius: var(--radius-md); padding: var(--space-4); margin-bottom: var(--space-3);
+      display: grid; grid-template-columns: 220px 1fr; gap: var(--space-4); align-items: flex-start;
+    }
+    @media (max-width: 760px) { .pieza { grid-template-columns: 1fr; } }
+    .pieza-img { aspect-ratio: 1/1; background: var(--surface-2); border-radius: var(--radius-sm); overflow: hidden; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 12px; position: relative; }
+    .pieza-img img { width: 100%; height: 100%; object-fit: cover; }
+    .pieza-img .spinner-img { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,.9); }
+
+    .pieza-meta { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+    .pieza-hook { font-weight: 600; font-size: var(--text-md); margin-bottom: 8px; line-height: 1.3; }
+    .pieza-cuerpo { font-size: var(--text-sm); white-space: pre-wrap; color: var(--text); line-height: 1.5; max-height: 200px; overflow: hidden; position: relative; }
+    .pieza-cuerpo.expanded { max-height: none; }
+    .pieza-cuerpo:not(.expanded)::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 50px; background: linear-gradient(transparent, var(--surface)); pointer-events: none; }
+    .pieza-cta { display: inline-block; margin-top: 8px; padding: 4px 10px; background: var(--accent-soft); color: var(--accent-dark); border-radius: 4px; font-size: 12px; font-weight: 600; }
+    .pieza-tags { font-size: 11px; color: #0891B2; margin-top: 6px; word-break: break-all; }
+    .pieza-acciones { display: flex; gap: 6px; flex-wrap: wrap; margin-top: var(--space-3); padding-top: var(--space-3); border-top: 1px solid var(--border-soft); }
+    .pieza-acciones .btn { font-size: 12px; padding: 6px 12px; }
+
+    .spinner { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<div data-studio-nav data-active="contenido-instagram"></div>
+
+<div class="admin-strip" style="background: #1D1D1F;">
+  <div class="admin-strip-inner">
+    <span class="admin-strip-dot" style="background: var(--accent);"></span>
+    <span>INSTAGRAM · GENERADOR DE POSTS</span>
+    <span style="opacity: 0.5;">·</span>
+    <a href="/studio/index.html">Inicio</a>
+  </div>
+</div>
+
+<main class="container-wide" id="main">
+
+  <section style="margin-bottom: var(--space-5);">
+    <span class="eyebrow">CONTENIDO PARA INSTAGRAM</span>
+    <h1 class="greeting-lg">Posts, carruseles y reels.</h1>
+    <p class="lead">Selecciona un producto y los formatos que necesitas. IA genera copy + imagen alineados a tu DNA. Puedes editar la imagen en el canvas o descargar el paquete listo para publicar.</p>
+  </section>
+
+  <div class="lay">
+    <!-- Panel izquierdo: generador -->
+    <div class="panel">
+      <h3>Generar contenido</h3>
+      <div class="field">
+        <label class="field-label">Producto a promocionar *</label>
+        <select class="field-input" id="sel-producto">
+          <option value="">Cargando...</option>
+        </select>
+        <div class="field-hint" id="hint-producto"></div>
+      </div>
+
+      <div class="field" style="margin-top: var(--space-3);">
+        <label class="field-label">Formatos</label>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" name="fmt" value="post_instagram" checked> Post simple (1 imagen + texto)
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" name="fmt" value="carrusel_ig"> Carrusel (5-7 slides)
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" name="fmt" value="reel"> Reel (guion + storyboard)
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" name="fmt" value="story"> Story
+          </label>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top: var(--space-3);">
+        <label class="field-label">Foco / ángulo (opcional)</label>
+        <input class="field-input" id="foco" placeholder="ej. resultado de un cliente, error común, gancho de objeción">
+      </div>
+
+      <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-top: var(--space-3); font-size: var(--text-sm);">
+        <input type="checkbox" id="gen-imagen" checked> Generar imagen IA al mismo tiempo
+      </label>
+
+      <button class="btn btn-accent" id="btn-generar" style="width: 100%; margin-top: var(--space-4);">Generar</button>
+
+      <div id="gen-loading" class="hidden" style="margin-top: var(--space-3); text-align: center; font-size: var(--text-sm); color: var(--text-muted);">
+        <span class="spinner"></span> Generando con IA (10-30s)...
+      </div>
+
+      <div id="gen-error" class="hidden" style="margin-top: var(--space-3); padding: var(--space-3); background: #FEF2F2; color: #991B1B; border-radius: 6px; font-size: 13px;"></div>
+    </div>
+
+    <!-- Panel derecho: piezas -->
+    <div>
+      <div style="display: flex; gap: 6px; margin-bottom: var(--space-3); flex-wrap: wrap;">
+        <button class="filter-chip active" data-filtro="">Todas</button>
+        <button class="filter-chip" data-filtro="borrador">Borrador</button>
+        <button class="filter-chip" data-filtro="aprobado">Aprobado</button>
+        <button class="filter-chip" data-filtro="programado">Programado</button>
+        <button class="filter-chip" data-filtro="publicado">Publicado</button>
+      </div>
+      <div id="piezas-lista">
+        <p style="color: var(--text-muted); text-align: center; padding: var(--space-6);">Cargando...</p>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/studio/shared/scripts/config.js?v=20260716"></script>
+<script src="/studio/shared/scripts/supabase-client.js?v=20260716"></script>
+<script src="/studio/shared/scripts/utils.js?v=20260716"></script>
+<script src="/studio/shared/scripts/studio-auth.js?v=20260716"></script>
+<script src="/studio/shared/scripts/studio-contenido.js?v=20260716"></script>
+<script src="/studio/shared/scripts/studio-edit-modal.js?v=20260716"></script>
+<script src="/studio/shared/scripts/studio-nav.js?v=20260716"></script>
+<script>
+(async function () {
+  const auth = await window.requireStudioModulo('contenido-instagram');
+  if (!auth) return;
+  const { lead, admin } = auth;
+  const targetLeadId = lead?.id || null;
+
+  if (!targetLeadId) {
+    document.querySelector('main').innerHTML = `
+      <div style="text-align: center; padding: var(--space-10); color: var(--text-muted);">
+        <h2>Sin cuenta de cliente</h2>
+        <p>Estás logueado como admin pero no tienes lead asociado. Para probar el generador desde tu cuenta, ingresa con un email que esté en la tabla leads.</p>
+        <p><a href="/studio/admin/index.html" class="btn btn-accent" style="margin-top: var(--space-3);">Ir a Admin →</a></p>
+      </div>`;
+    return;
+  }
+
+  const api = window.studioContenidoApi;
+  const $ = (id) => document.getElementById(id);
+
+  // Productos
+  let productos = [];
+  try {
+    productos = await api.listarProductos(targetLeadId);
+  } catch (e) { console.error(e); }
+  const sel = $('sel-producto');
+  if (!productos.length) {
+    sel.innerHTML = '<option value="">No tienes productos</option>';
+    $('hint-producto').innerHTML = '<a href="https://plataforma.neurohackers.cloud/modules/marca-oferta/index.html">Crea uno en Marca y Oferta →</a>';
+    $('btn-generar').disabled = true;
+  } else {
+    sel.innerHTML = '<option value="">Elige un producto...</option>' +
+      productos.map(p => `<option value="${p.id}">${(window.utils?.escapeHtml||window.escapeHtml||String)(p.nombre)}${p.tipo ? ' · ' + p.tipo : ''}</option>`).join('');
+  }
+
+  // Listado
+  let filtroEstado = '';
+  async function pintarLista() {
+    try {
+      const piezas = await api.listarContenido({
+        leadId: targetLeadId,
+        canal: 'instagram',
+        estado: filtroEstado || undefined,
+      });
+      if (!piezas.length) {
+        $('piezas-lista').innerHTML = `
+          <div style="text-align: center; padding: var(--space-8); color: var(--text-muted); border: 2px dashed var(--border-soft); border-radius: var(--radius-md);">
+            <div style="font-size: 32px; margin-bottom: 8px;">◌</div>
+            <p>Aún no hay contenido${filtroEstado ? ' en ' + filtroEstado : ''}.</p>
+            <p style="font-size: var(--text-sm);">Usa el panel de la izquierda para generar tu primer post.</p>
+          </div>`;
+        return;
+      }
+      $('piezas-lista').innerHTML = piezas.map(renderPieza).join('');
+      bindAcciones();
+    } catch (e) {
+      $('piezas-lista').innerHTML = `<div style="color: var(--error);">Error: ${(window.utils?.escapeHtml||window.escapeHtml||String)(e.message)}</div>`;
+    }
+  }
+
+  function renderPieza(p) {
+    const fmt = api.FORMATO_LABEL[p.formato] || p.formato;
+    const hashtags = (p.hashtags || []).map(h => h.startsWith('#') ? h : '#' + h).join(' ');
+    const imgBlock = p.imagen_url
+      ? `<img src="${p.imagen_url}" alt="">`
+      : `<span>Sin imagen<br><button class="btn btn-secondary btn-sm" data-imagen="${p.id}" style="margin-top: 8px;">Generar imagen</button></span>`;
+    return `
+      <div class="pieza" data-id="${p.id}">
+        <div class="pieza-img" id="img-${p.id}">${imgBlock}</div>
+        <div>
+          <div class="pieza-meta">${fmt} · ${api.badgeEstado(p.estado)} · ${p.producto?.nombre || '—'}</div>
+          ${p.hook ? `<div class="pieza-hook">${(window.utils?.escapeHtml||window.escapeHtml||String)(p.hook)}</div>` : ''}
+          <div class="pieza-cuerpo">${(window.utils?.escapeHtml||window.escapeHtml||String)(p.cuerpo || '')}</div>
+          ${p.cta ? `<span class="pieza-cta">${(window.utils?.escapeHtml||window.escapeHtml||String)(p.cta)}</span>` : ''}
+          ${hashtags ? `<div class="pieza-tags">${(window.utils?.escapeHtml||window.escapeHtml||String)(hashtags)}</div>` : ''}
+          <div class="pieza-acciones">
+            <button class="btn btn-secondary" data-copy="${p.id}">Copiar texto</button>
+            <button class="btn btn-secondary" data-editar="${p.id}">✎ Editar texto</button>
+            ${p.imagen_url ? `
+              <button class="btn btn-secondary" data-imagen-regen="${p.id}">↻ Regenerar imagen</button>
+              <a class="btn btn-secondary" href="/studio/modules/editor/index.html?id=${p.id}">Editar imagen</a>
+              <a class="btn btn-secondary" href="${p.imagen_url}" download="post.png">Descargar img</a>
+            ` : ''}
+            ${p.estado === 'borrador' ? `<button class="btn btn-accent" data-estado="aprobado" data-id="${p.id}">Aprobar</button>` : ''}
+            <button class="btn btn-ghost" data-estado="descartado" data-id="${p.id}">Descartar</button>
+            <button class="btn btn-ghost" data-del="${p.id}" style="color: var(--error);">Eliminar</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function bindAcciones() {
+    document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click', async () => {
+      const id = b.dataset.copy;
+      const fila = document.querySelector(`[data-id="${id}"]`);
+      const hook  = fila.querySelector('.pieza-hook')?.textContent || '';
+      const cuerpo = fila.querySelector('.pieza-cuerpo')?.textContent || '';
+      const cta   = fila.querySelector('.pieza-cta')?.textContent || '';
+      const tags  = fila.querySelector('.pieza-tags')?.textContent || '';
+      const txt = [hook, cuerpo, cta, tags].filter(Boolean).join('\n\n');
+      await navigator.clipboard.writeText(txt);
+      window.utils?.toast('Texto copiado al portapapeles', 'success');
+    }));
+
+    document.querySelectorAll('[data-imagen], [data-imagen-regen]').forEach(b => {
+      b.addEventListener('click', async () => {
+        const id = b.dataset.imagen || b.dataset.imagenRegen;
+        const target = document.getElementById('img-' + id);
+        target.innerHTML += `<div class="spinner-img"><span class="spinner"></span> Generando imagen...</div>`;
+        b.disabled = true;
+        try {
+          const r = await api.generarImagen(id, null, { size: api.sizeRecomendado('instagram') });
+          target.innerHTML = `<img src="${r.url}" alt="">`;
+          await pintarLista();
+        } catch (e) {
+          target.querySelector('.spinner-img').innerHTML = `<span style="color: var(--error); padding: 8px; font-size: 11px;">${(window.utils?.escapeHtml||window.escapeHtml||String)(e.message)}</span>`;
+          b.disabled = false;
+        }
+      });
+    });
+
+    document.querySelectorAll('[data-estado]').forEach(b => b.addEventListener('click', async () => {
+      try {
+        await api.actualizar(b.dataset.id, { estado: b.dataset.estado });
+        await pintarLista();
+      } catch (e) { window.utils?.toast('Error: ' + e.message, 'error'); }
+    }));
+
+    document.querySelectorAll('[data-editar]').forEach(b => b.addEventListener('click', async () => {
+      const id = b.dataset.editar;
+      try {
+        const { data: pieza, error } = await window.db.from('contenido_generado')
+          .select('id, titulo, hook, cuerpo, cta, hashtags').eq('id', id).single();
+        if (error) throw error;
+        const patch = await window.openEditarPiezaModal(pieza, async (p) => {
+          await api.actualizar(id, p);
+        });
+        if (patch) await pintarLista();
+      } catch (e) { window.utils?.toast?.('Error: ' + e.message, 'error'); }
+    }));
+
+    document.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', async () => {
+      if (!confirm('¿Eliminar esta pieza?')) return;
+      try {
+        await api.eliminar(b.dataset.del);
+        await pintarLista();
+      } catch (e) { window.utils?.toast('Error: ' + e.message, 'error'); }
+    }));
+  }
+
+  document.querySelectorAll('[data-filtro]').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('[data-filtro]').forEach(x => x.classList.toggle('active', x === b));
+    filtroEstado = b.dataset.filtro;
+    pintarLista();
+  }));
+
+  $('btn-generar').addEventListener('click', async () => {
+    const producto_id = $('sel-producto').value;
+    if (!producto_id) { window.utils?.toast('Elige un producto', 'error'); return; }
+    const tipos = [...document.querySelectorAll('input[name="fmt"]:checked')].map(x => x.value);
+    if (!tipos.length) { window.utils?.toast('Elige al menos un formato', 'error'); return; }
+    const foco = $('foco').value.trim();
+    const genImg = $('gen-imagen').checked;
+
+    $('btn-generar').disabled = true;
+    $('gen-loading').classList.remove('hidden');
+    $('gen-error').classList.add('hidden');
+    try {
+      const r = await api.generarContenido({ producto_id, tipos, foco });
+      // La edge function NO persiste. Hay que insertar cada pieza en contenido_generado.
+      const piezasIA = Array.isArray(r.piezas) ? r.piezas : [];
+      const rows = piezasIA.map((p) => ({
+        lead_id: targetLeadId,
+        producto_id,
+        formato: p.formato || 'post_instagram',
+        canal: p.canal || 'instagram',
+        titulo: p.titulo || null,
+        hook: p.hook || null,
+        cuerpo: p.cuerpo || '',
+        cta: p.cta || null,
+        hashtags: Array.isArray(p.hashtags) ? p.hashtags : [],
+        slides: Array.isArray(p.slides) ? p.slides : null,
+        storyboard: Array.isArray(p.storyboard) ? p.storyboard : null,
+        duracion_sugerida_seg: p.duracion_sugerida_seg || null,
+        estado: 'borrador',
+        generado_modelo: r.metadata?.modelo || 'claude-sonnet-4-6',
+        generado_prompt_version: r.metadata?.prompt_version || null,
+        generado_tokens_in: r.metadata?.tokens_input || null,
+        generado_tokens_out: r.metadata?.tokens_output || null,
+        generado_costo_usd: r.metadata?.costo_usd || null,
+        costo_a_plataforma_anthropic: r.metadata?.costo_a_plataforma_anthropic !== false,
+        contexto_completitud: r.contexto_usado?.completitud_contexto || null,
+        generado_at: new Date().toISOString(),
+      }));
+      let nuevasPiezas = [];
+      if (rows.length) {
+        const { data: inserted, error: insErr } = await window.db
+          .from('contenido_generado').insert(rows).select('id, formato');
+        if (insErr) throw new Error(`Insert: ${insErr.message}`);
+        nuevasPiezas = inserted || [];
+      }
+      // Generar imágenes en background si está chequeado
+      if (genImg && nuevasPiezas.length) {
+        const sz = api.sizeRecomendado('instagram');
+        Promise.all(nuevasPiezas.slice(0, 4).map(p =>
+          api.generarImagen(p.id, null, { size: sz }).catch(e => console.warn('imagen fallo', p.id, e.message))
+        ));
+      }
+      await pintarLista();
+      window.utils?.toast(`${nuevasPiezas.length} piezas generadas`, 'success');
+    } catch (e) {
+      $('gen-error').textContent = e.message;
+      $('gen-error').classList.remove('hidden');
+    } finally {
+      $('btn-generar').disabled = false;
+      $('gen-loading').classList.add('hidden');
+    }
+  });
+
+  await pintarLista();
+})();
+</script>
+
+</body>
+</html>

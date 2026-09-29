@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Finanzas · Admin · Neurohackers</title>
+  <script src="/shared/turbo.min.js?v=20260797"></script>
+  <link rel="stylesheet" href="/shared/styles.css?v=20260797">
+  <style>
+    .fin-kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-3); margin-bottom: var(--space-6); }
+    @media (max-width: 760px) { .fin-kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+    .fin-kpi { padding: var(--space-5); background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); }
+    .fin-kpi-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
+    .fin-kpi-num { font-size: var(--text-2xl); font-weight: 600; letter-spacing: -0.02em; margin-top: 4px; line-height: 1.1; }
+    .fin-kpi-sub { font-size: var(--text-xs); color: var(--text-muted); margin-top: 4px; }
+    .fin-kpi.atrasados { border-color: var(--error); }
+    .fin-kpi.atrasados .fin-kpi-num { color: var(--error); }
+    .fin-kpi.cash .fin-kpi-num { color: var(--success); }
+    .fin-kpi.proximos .fin-kpi-num { color: var(--accent-deeper); }
+
+    .fila-pago { display: grid; grid-template-columns: 1fr 140px 120px 120px 110px auto; gap: var(--space-3); padding: var(--space-3); background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-sm); margin-bottom: 4px; align-items: center; }
+    .fila-pago-cliente { min-width: 0; }
+    .fila-pago-nombre { font-weight: 600; font-size: var(--text-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .fila-pago-email { font-size: var(--text-xs); color: var(--text-muted); }
+    .fila-pago-monto { font-family: var(--font-mono); font-weight: 600; font-size: var(--text-md); }
+    .fila-pago-fecha { font-size: var(--text-xs); color: var(--text-muted); }
+    .fila-pago.atrasado { border-left: 3px solid var(--error); }
+  </style>
+</head>
+<body class="with-sidebar admin-mode">
+
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<script>(function(){try{var c=localStorage.getItem("nav-cache-admin-v4");var w=document.getElementById("sidebar-wrapper");if(c&&w&&!w.firstChild)w.innerHTML=c;}catch(e){}})();</script>
+<div data-nav data-active="admin-finanzas" data-base="../"></div>
+
+<div class="admin-strip">
+  <div class="admin-strip-inner">
+    <span class="admin-strip-dot"></span>
+    <span>FINANZAS · COBRANZA</span>
+    <span style="opacity: 0.5;">·</span>
+    <a href="index.html">Lista</a>
+  </div>
+</div>
+
+<main class="container-wide" id="main">
+
+  <section style="margin-bottom: var(--space-6);">
+    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap;">
+      <div>
+        <span class="eyebrow">VISIÓN GLOBAL</span>
+        <h1 class="greeting-lg">Finanzas.</h1>
+        <p class="lead">Cobranza, MRR, cash recibido y cash perdido en una pantalla. Click en un pago para abrir la ficha del cliente.</p>
+      </div>
+      <button class="btn btn-secondary" id="btn-sync-todos" title="Importa transacciones nuevas desde GHL para TODOS los clientes activos">⟳ Sincronizar GHL · todos</button>
+    </div>
+  </section>
+
+  <div class="fin-kpi-grid">
+    <div class="fin-kpi cash">
+      <div class="fin-kpi-label">Cash del mes</div>
+      <div class="fin-kpi-num" id="kpi-cash-mes">-</div>
+      <div class="fin-kpi-sub">Pagos recibidos este mes</div>
+    </div>
+    <div class="fin-kpi proximos">
+      <div class="fin-kpi-label">Próximos 7 días</div>
+      <div class="fin-kpi-num" id="kpi-proximos">-</div>
+      <div class="fin-kpi-sub">Pendientes a cobrar</div>
+    </div>
+    <div class="fin-kpi atrasados">
+      <div class="fin-kpi-label">Atrasados</div>
+      <div class="fin-kpi-num" id="kpi-atrasados">-</div>
+      <div class="fin-kpi-sub">Cuotas vencidas sin pagar</div>
+    </div>
+    <div class="fin-kpi">
+      <div class="fin-kpi-label">Cash perdido</div>
+      <div class="fin-kpi-num" id="kpi-perdido">-</div>
+      <div class="fin-kpi-sub">Reembolsos + perdonados</div>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-4); flex-wrap: wrap; align-items: center;">
+    <button class="filter-chip active" data-tab-fin="atrasados">Atrasados</button>
+    <button class="filter-chip" data-tab-fin="proximos">Próximos 7 días</button>
+    <button class="filter-chip" data-tab-fin="mes">Este mes (todos)</button>
+    <button class="filter-chip" data-tab-fin="pagados">Pagados este mes</button>
+    <select id="fin-mes-historico" class="filter-chip" style="margin-left: auto; padding: 8px 12px; cursor: pointer;">
+      <option value="">Ver mes anterior...</option>
+    </select>
+  </div>
+
+  <div id="lista-pagos"></div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/shared/scripts/config.js?v=20260797"></script>
+<script src="/shared/scripts/supabase-client.js?v=20260797"></script>
+  <script src="/shared/scripts/cache.js?v=20260797"></script>
+<script src="/shared/scripts/utils.js?v=20260797"></script>
+<script src="/shared/scripts/auth.js?v=20260797"></script>
+  <script src="/shared/scripts/event-tracker.js?v=20260797"></script>
+<script src="/shared/scripts/admin-gate.js?v=20260797"></script>
+<script src="/shared/scripts/equipo.js?v=20260797"></script>
+<script src="/shared/scripts/finanzas.js?v=20260797"></script>
+<script src="/shared/nav.js?v=20260797"></script>
+<script>
+(async function () {
+  const auth = await window.requireAdmin();
+  if (!auth) return;
+
+  // Solo admin pleno o moderador pueden ver finanzas globales
+  const yo = await window.equipoApi.miRol();
+  if (!yo || !['admin','moderador'].includes(yo.rol)) {
+    document.getElementById('main').innerHTML = '<div class="empty"><div class="empty-icon">○</div><h3 class="empty-title">Solo admin / moderador</h3></div>';
+    document.getElementById('main').style.opacity = '1';
+    return;
+  }
+
+  // KPIs (refrescables según mes histórico)
+  async function refrescarKPIs(rango) {
+    try {
+      const m = rango
+        ? await window.finanzasApi.metricasGlobalesRango(rango)
+        : await window.finanzasApi.metricasGlobales();
+      document.getElementById('kpi-cash-mes').textContent  = window.finanzasApi.formatMoney(m.cashMesUSD);
+      document.getElementById('kpi-proximos').textContent  = window.finanzasApi.formatMoney(m.proximosUSD);
+      document.getElementById('kpi-atrasados').textContent = window.finanzasApi.formatMoney(m.atrasadosUSD);
+      document.getElementById('kpi-perdido').textContent   = window.finanzasApi.formatMoney(m.cashPerdidoUSD);
+
+      // Reetiquetar para reflejar el contexto
+      const labels = document.querySelectorAll('.fin-kpi-label');
+      const subs   = document.querySelectorAll('.fin-kpi-sub');
+      if (rango) {
+        labels[0].textContent = `Cash de ${rango.label}`;
+        labels[1].textContent = `Programados en ${rango.label}`;
+        labels[2].textContent = `Atrasados de ${rango.label}`;
+        labels[3].textContent = `Cash perdido en ${rango.label}`;
+        subs[0].textContent = 'Pagos recibidos en el mes';
+        subs[1].textContent = 'Total programado (todos los estados)';
+        subs[2].textContent = 'Cuotas vencidas sin pagar';
+        subs[3].textContent = 'Reembolsos + perdonados';
+      } else {
+        labels[0].textContent = 'Cash del mes';
+        labels[1].textContent = 'Próximos 7 días';
+        labels[2].textContent = 'Atrasados';
+        labels[3].textContent = 'Cash perdido';
+        subs[0].textContent = 'Pagos recibidos este mes';
+        subs[1].textContent = 'Pendientes a cobrar';
+        subs[2].textContent = 'Cuotas vencidas sin pagar';
+        subs[3].textContent = 'Reembolsos + perdonados';
+      }
+    } catch (e) { console.error('métricas', e); }
+  }
+  await refrescarKPIs(null);
+
+  let tab = 'atrasados';
+  let mesHistorico = null; // { inicio: Date, fin: Date, label: string } cuando se selecciona en el dropdown
+
+  // Popular el select con los últimos 12 meses (excluyendo el actual, ese ya
+  // tiene su chip "Pagados este mes").
+  (function poblarMesesHistoricos() {
+    const sel = document.getElementById('fin-mes-historico');
+    if (!sel) return;
+    const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+    const ahora = new Date();
+    for (let i = 1; i <= 12; i++) {
+      const d = new Date(ahora.getFullYear(), ahora.getMonth() - i, 1);
+      const label = `${meses[d.getMonth()]} ${d.getFullYear()}`;
+      const opt = document.createElement('option');
+      opt.value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      opt.textContent = label;
+      sel.appendChild(opt);
+    }
+    sel.addEventListener('change', () => {
+      const v = sel.value;
+      if (!v) { mesHistorico = null; return; }
+      const [y, m] = v.split('-').map(Number);
+      // Strings YYYY-MM-01 directos. Evita off-by-one por timezone que ocurre
+      // con new Date(y,m-1,1).toISOString() en zonas UTC+ (Sydney, Tokio, etc).
+      const pad = (n) => String(n).padStart(2, '0');
+      const inicioStr = `${y}-${pad(m)}-01`;
+      const yFin = m === 12 ? y + 1 : y;
+      const mFin = m === 12 ? 1 : m + 1;
+      const finStr = `${yFin}-${pad(mFin)}-01`;
+      mesHistorico = { inicioStr, finStr, label: sel.options[sel.selectedIndex].textContent };
+      document.querySelectorAll('[data-tab-fin]').forEach(x => x.classList.remove('active'));
+      tab = 'historico';
+      refrescarKPIs(mesHistorico);
+      cargarLista();
+    });
+  })();
+
+  async function cargarLista() {
+    const cont = document.getElementById('lista-pagos');
+    cont.innerHTML = '<p class="text-muted">Cargando...</p>';
+    const hoy = new Date().toISOString().slice(0, 10);
+    const en7 = new Date(); en7.setDate(en7.getDate() + 7);
+    const en7str = en7.toISOString().slice(0, 10);
+    const inicioMes = new Date(); inicioMes.setDate(1);
+    const finMes = new Date(inicioMes); finMes.setMonth(finMes.getMonth() + 1);
+
+    let pagos = [];
+    try {
+      if (tab === 'atrasados') {
+        pagos = await window.finanzasApi.listarPagosCobranza({ estado: 'atrasado' });
+      } else if (tab === 'proximos') {
+        pagos = await window.finanzasApi.listarPagosCobranza({ estado: 'pendiente', fechaDesde: hoy, fechaHasta: en7str });
+      } else if (tab === 'mes') {
+        pagos = await window.finanzasApi.listarPagosCobranza({ fechaDesde: inicioMes.toISOString().slice(0,10), fechaHasta: finMes.toISOString().slice(0,10) });
+      } else if (tab === 'pagados') {
+        const { data } = await window.db
+          .from('pagos').select('*, lead:lead_id (id, nombre, email, vehiculo_negocio, telefono)')
+          .eq('estado', 'pagado')
+          .gte('fecha_pagado_at', inicioMes.toISOString())
+          .lt('fecha_pagado_at', finMes.toISOString())
+          .order('fecha_pagado_at', { ascending: false });
+        pagos = data || [];
+      } else if (tab === 'historico' && mesHistorico) {
+        // Pagos del mes histórico seleccionado (cualquier estado para tener
+        // visión completa: pagados + atrasados + perdonados + reembolsados).
+        const { data } = await window.db
+          .from('pagos').select('*, lead:lead_id (id, nombre, email, vehiculo_negocio, telefono)')
+          .gte('fecha_programada', mesHistorico.inicioStr)
+          .lt('fecha_programada', mesHistorico.finStr)
+          .order('fecha_programada', { ascending: false });
+        pagos = data || [];
+      }
+    } catch (e) {
+      cont.innerHTML = `<p style="color: var(--error);">Error: ${window.utils.escapeHtml(e.message)}</p>`;
+      return;
+    }
+
+    if (pagos.length === 0) {
+      cont.innerHTML = '<p class="text-muted text-center" style="padding: var(--space-8);">Sin pagos en esta vista.</p>';
+      return;
+    }
+
+    cont.innerHTML = pagos.map(p => {
+      const lead = p.lead || {};
+      const tipoSafe = p.tipo || 'otro';
+      const tipoLabel = tipoSafe === 'cuota' && p.numero_cuota ? `Cuota ${p.numero_cuota}` : (tipoSafe[0].toUpperCase() + tipoSafe.slice(1));
+      const isAtrasado = p.estado === 'atrasado';
+      return `
+        <div class="fila-pago ${isAtrasado ? 'atrasado' : ''}">
+          <a href="cliente.html?lead=${lead.id}#crm" class="fila-pago-cliente">
+            <div class="fila-pago-nombre">${window.utils.escapeHtml(lead.nombre || lead.email || '?')}</div>
+            <div class="fila-pago-email">${window.utils.escapeHtml(lead.email || '')}</div>
+          </a>
+          <div>
+            <div style="font-size: var(--text-xs); color: var(--text-muted);">${tipoLabel}</div>
+            <div class="fila-pago-monto">${window.finanzasApi.formatMoney(p.monto_usd)}</div>
+          </div>
+          <div class="fila-pago-fecha">
+            ${p.fecha_programada ? 'Prog: ' + window.finanzasApi.formatFecha(p.fecha_programada) : ''}
+            ${p.fecha_pagado_at ? 'Pagado: ' + window.finanzasApi.formatFecha(p.fecha_pagado_at) : ''}
+          </div>
+          <div>${window.finanzasApi.badgeEstado(p.estado)}</div>
+          <div class="fila-pago-fecha">${p.metodo_pago ? window.utils.escapeHtml(p.metodo_pago) : ''}</div>
+          <div>
+            <a href="cliente.html?lead=${lead.id}#crm" class="btn btn-secondary btn-sm">Ver →</a>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  document.querySelectorAll('[data-tab-fin]').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('[data-tab-fin]').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    tab = b.dataset.tabFin;
+    mesHistorico = null;
+    const sel = document.getElementById('fin-mes-historico');
+    if (sel) sel.value = '';
+    refrescarKPIs(null);
+    cargarLista();
+  }));
+
+  document.getElementById('btn-sync-todos').addEventListener('click', async (e) => {
+    if (!confirm('Sincronizar pagos GHL para TODOS los clientes activos?\n\nPuede tomar 30-60 segundos. Las transacciones ya importadas no se duplican.')) return;
+    const btn = e.currentTarget;
+    btn.disabled = true;
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner"></span> Sincronizando...';
+    try {
+      const r = await window.finanzasApi.syncDesdeGHL({ all: true });
+      window.utils.toast(`✓ ${r.pagos_insertados} pagos nuevos · ${r.pagos_ya_existentes} ya existían · ${r.errores} errores · ${r.leads_procesados} clientes`, r.errores ? 'warning' : 'success', 7000);
+      // Recargar métricas y lista
+      const m = await window.finanzasApi.metricasGlobales();
+      document.getElementById('kpi-cash-mes').textContent = window.finanzasApi.formatMoney(m.cashMesUSD);
+      document.getElementById('kpi-proximos').textContent = window.finanzasApi.formatMoney(m.proximosUSD);
+      document.getElementById('kpi-atrasados').textContent = window.finanzasApi.formatMoney(m.atrasadosUSD);
+      document.getElementById('kpi-perdido').textContent = window.finanzasApi.formatMoney(m.cashPerdidoUSD);
+      await cargarLista();
+    } catch (err) {
+      console.error(err);
+      window.utils.toast('Error: ' + err.message, 'error', 6000);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = orig;
+    }
+  });
+
+  await cargarLista();
+  document.getElementById('main').style.opacity = '1';
+})();
+</script>
+
+
+</body>
+</html>

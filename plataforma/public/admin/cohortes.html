@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cohortes · Admin · Neurohackers</title>
+  <script src="/shared/turbo.min.js?v=20260797"></script>
+  <link rel="stylesheet" href="/shared/styles.css?v=20260797">
+  <style>
+    .cohorte-card { display: grid; grid-template-columns: 1fr auto; gap: var(--space-4); padding: var(--space-5); background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); margin-bottom: var(--space-3); align-items: center; }
+    .cohorte-card.inactiva { opacity: 0.55; background: var(--surface-2); }
+    .cohorte-stats { display: flex; gap: var(--space-4); margin-top: 6px; }
+    .cohorte-stat { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+    .cohorte-stat strong { color: var(--text); font-weight: 600; }
+  </style>
+</head>
+<body class="with-sidebar admin-mode">
+
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<script>(function(){try{var c=localStorage.getItem("nav-cache-admin-v4");var w=document.getElementById("sidebar-wrapper");if(c&&w&&!w.firstChild)w.innerHTML=c;}catch(e){}})();</script>
+<div data-nav data-active="admin-cohortes" data-base="../"></div>
+
+<div class="admin-strip">
+  <div class="admin-strip-inner">
+    <span class="admin-strip-dot"></span>
+    <span>COHORTES · SOLO ADMIN PLENO</span>
+    <span style="opacity: 0.5;">·</span>
+    <a href="index.html">Volver a clientes</a>
+  </div>
+</div>
+
+<main class="container-wide" id="main" style="max-width: 980px;">
+
+  <section style="margin-bottom: var(--space-8);">
+    <span class="eyebrow">SEGMENTACIÓN</span>
+    <h1 class="greeting-lg">Cohortes.</h1>
+    <p class="lead">Agrupa clientes por cohorte (mes de inicio, promoción, evento, etc.) para reportes y comparativas. Cada cliente pertenece opcionalmente a una.</p>
+  </section>
+
+  <div id="no-admin" class="empty hidden">
+    <div class="empty-icon">○</div>
+    <h3 class="empty-title">Solo admin pleno</h3>
+    <a href="index.html" class="btn btn-secondary btn-lg mt-3">Volver</a>
+  </div>
+
+  <div id="contenido" class="hidden">
+    <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-6); flex-wrap: wrap;">
+      <button class="btn btn-accent" id="btn-nueva">+ Nueva cohorte</button>
+      <button class="btn btn-secondary" id="btn-toggle-inactivas">Mostrar inactivas</button>
+    </div>
+
+    <div id="lista-cohortes"></div>
+  </div>
+
+</main>
+
+<!-- MODAL -->
+<div class="modal-backdrop hidden" id="modal">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="modal-titulo">Nueva cohorte</span>
+      <button class="modal-close" data-close>✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="form-cohorte">
+        <div class="field">
+          <label class="field-label">Slug interno *</label>
+          <input class="field-input" id="f-slug" required maxlength="40" placeholder="mayo-2026" pattern="[a-z0-9_-]+">
+          <div class="field-help">Solo minúsculas, números, guiones. Ej: black-friday-2026</div>
+        </div>
+        <div class="field">
+          <label class="field-label">Nombre visible *</label>
+          <input class="field-input" id="f-nombre" required maxlength="100" placeholder="Mayo 2026">
+        </div>
+        <div class="field">
+          <label class="field-label">Descripción</label>
+          <textarea class="field-input field-textarea" id="f-descripcion" placeholder="Cohorte de clientes que arrancaron en mayo 2026"></textarea>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+          <div class="field">
+            <label class="field-label">Fecha de inicio</label>
+            <input class="field-input" id="f-fecha_inicio" type="date">
+          </div>
+          <div class="field">
+            <label class="field-label">Duración (días)</label>
+            <input class="field-input" id="f-duracion_dias" type="number" min="1" value="70">
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+          <div class="field">
+            <label class="field-label">Fecha fin estimada</label>
+            <input class="field-input" id="f-fecha_fin_estimada" type="date">
+          </div>
+          <div class="field">
+            <label class="field-label">Cupo máximo (opcional)</label>
+            <input class="field-input" id="f-cupo_maximo" type="number" min="1">
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancelar</button>
+      <button class="btn btn-accent" id="btn-guardar">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/shared/scripts/config.js?v=20260797"></script>
+<script src="/shared/scripts/supabase-client.js?v=20260797"></script>
+  <script src="/shared/scripts/cache.js?v=20260797"></script>
+<script src="/shared/scripts/utils.js?v=20260797"></script>
+<script src="/shared/scripts/auth.js?v=20260797"></script>
+  <script src="/shared/scripts/event-tracker.js?v=20260797"></script>
+<script src="/shared/scripts/admin-gate.js?v=20260797"></script>
+<script src="/shared/scripts/equipo.js?v=20260797"></script>
+<script src="/shared/scripts/crm.js?v=20260797"></script>
+<script src="/shared/nav.js?v=20260797"></script>
+<script>
+(async function () {
+  const auth = await window.requireAdmin();
+  if (!auth) return;
+
+  const yo = await window.equipoApi.miRol();
+  if (!yo || yo.rol !== 'admin') {
+    document.getElementById('no-admin').classList.remove('hidden');
+    document.getElementById('main').style.opacity = '1';
+    return;
+  }
+  document.getElementById('contenido').classList.remove('hidden');
+
+  let cohortes = [];
+  let countsByCohorte = {};
+  let mostrarInactivas = false;
+  let editandoId = null;
+
+  async function refrescar() {
+    cohortes = await window.crmApi.listarCohortes(false);
+    // Contar clientes por cohorte
+    const { data: counts } = await window.db
+      .from('leads')
+      .select('cohorte_id')
+      .not('cohorte_id', 'is', null);
+    countsByCohorte = {};
+    (counts || []).forEach(l => {
+      countsByCohorte[l.cohorte_id] = (countsByCohorte[l.cohorte_id] || 0) + 1;
+    });
+    pintar();
+  }
+
+  function pintar() {
+    const visibles = mostrarInactivas ? cohortes : cohortes.filter(c => c.activa);
+    const cont = document.getElementById('lista-cohortes');
+    if (visibles.length === 0) {
+      cont.innerHTML = '<p class="text-muted">No hay cohortes para mostrar.</p>';
+      return;
+    }
+    cont.innerHTML = visibles.map(c => `
+      <div class="cohorte-card ${c.activa ? '' : 'inactiva'}">
+        <div>
+          <div style="font-size: var(--text-md); font-weight: 600; letter-spacing: -0.01em;">${window.utils.escapeHtml(c.nombre)}</div>
+          <div class="text-muted" style="font-size: var(--text-xs); font-family: var(--font-mono);">${window.utils.escapeHtml(c.slug)}</div>
+          ${c.descripcion ? `<div class="text-muted" style="font-size: var(--text-sm); margin-top: 6px;">${window.utils.escapeHtml(c.descripcion)}</div>` : ''}
+          <div class="cohorte-stats">
+            <span class="cohorte-stat"><strong>${countsByCohorte[c.id] || 0}</strong> clientes</span>
+            ${c.fecha_inicio ? `<span class="cohorte-stat">Inicia ${window.crmApi.formatFecha(c.fecha_inicio)}</span>` : ''}
+            ${c.duracion_dias ? `<span class="cohorte-stat">${c.duracion_dias}d</span>` : ''}
+            ${c.cupo_maximo ? `<span class="cohorte-stat">Cupo ${c.cupo_maximo}</span>` : ''}
+            ${!c.activa ? '<span class="cohorte-stat" style="color: var(--error);">INACTIVA</span>' : ''}
+          </div>
+        </div>
+        <div style="display: flex; gap: var(--space-2);">
+          <button class="btn btn-secondary btn-sm" data-edit="${c.id}">Editar</button>
+          ${c.activa ? `<button class="btn btn-ghost btn-sm" data-toggle="${c.id}" data-to="false" style="color: var(--error);">Desactivar</button>`
+                     : `<button class="btn btn-ghost btn-sm" data-toggle="${c.id}" data-to="true">Reactivar</button>`}
+        </div>
+      </div>
+    `).join('');
+
+    cont.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => {
+      const c = cohortes.find(x => x.id === b.dataset.edit);
+      abrirModal(c);
+    }));
+    cont.querySelectorAll('[data-toggle]').forEach(b => b.addEventListener('click', async () => {
+      const targetActiva = b.dataset.to === 'true';
+      try {
+        await window.crmApi.actualizarCohorte(b.dataset.toggle, { activa: targetActiva });
+        window.utils.toast(targetActiva ? 'Cohorte reactivada' : 'Cohorte desactivada', 'success');
+        await refrescar();
+      } catch (err) { window.utils.toast('Error: ' + err.message, 'error'); }
+    }));
+  }
+
+  function abrirModal(cohorte = null) {
+    editandoId = cohorte?.id || null;
+    document.getElementById('modal-titulo').textContent = cohorte ? 'Editar cohorte' : 'Nueva cohorte';
+    document.getElementById('f-slug').value = cohorte?.slug || '';
+    document.getElementById('f-slug').disabled = !!cohorte;
+    document.getElementById('f-nombre').value = cohorte?.nombre || '';
+    document.getElementById('f-descripcion').value = cohorte?.descripcion || '';
+    document.getElementById('f-fecha_inicio').value = cohorte?.fecha_inicio || '';
+    document.getElementById('f-fecha_fin_estimada').value = cohorte?.fecha_fin_estimada || '';
+    document.getElementById('f-duracion_dias').value = cohorte?.duracion_dias || 70;
+    document.getElementById('f-cupo_maximo').value = cohorte?.cupo_maximo || '';
+    const m = document.getElementById('modal');
+    m.classList.remove('hidden');
+    requestAnimationFrame(() => m.classList.add('show'));
+  }
+  function cerrarModal() {
+    const m = document.getElementById('modal');
+    m.classList.remove('show');
+    setTimeout(() => m.classList.add('hidden'), 200);
+  }
+  document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', cerrarModal));
+  document.getElementById('btn-nueva').addEventListener('click', () => abrirModal());
+  document.getElementById('btn-toggle-inactivas').addEventListener('click', (e) => {
+    mostrarInactivas = !mostrarInactivas;
+    e.target.textContent = mostrarInactivas ? 'Ocultar inactivas' : 'Mostrar inactivas';
+    pintar();
+  });
+
+  document.getElementById('btn-guardar').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const datos = {
+      nombre: document.getElementById('f-nombre').value.trim(),
+      descripcion: document.getElementById('f-descripcion').value.trim(),
+      fecha_inicio: document.getElementById('f-fecha_inicio').value || null,
+      fecha_fin_estimada: document.getElementById('f-fecha_fin_estimada').value || null,
+      duracion_dias: Number(document.getElementById('f-duracion_dias').value) || 70,
+      cupo_maximo: document.getElementById('f-cupo_maximo').value ? Number(document.getElementById('f-cupo_maximo').value) : null,
+    };
+    if (!datos.nombre) { window.utils.toast('Nombre requerido', 'error'); return; }
+
+    try {
+      if (editandoId) {
+        await window.crmApi.actualizarCohorte(editandoId, datos);
+        window.utils.toast('Cohorte actualizada', 'success');
+      } else {
+        const slug = document.getElementById('f-slug').value.trim();
+        if (!slug) { window.utils.toast('Slug requerido', 'error'); return; }
+        await window.crmApi.crearCohorte({ slug, ...datos });
+        window.utils.toast('Cohorte creada', 'success');
+      }
+      cerrarModal();
+      await refrescar();
+    } catch (err) {
+      console.error(err);
+      window.utils.toast('Error: ' + err.message, 'error');
+    }
+  });
+
+  await refrescar();
+  document.getElementById('main').style.opacity = '1';
+})();
+</script>
+
+
+</body>
+</html>

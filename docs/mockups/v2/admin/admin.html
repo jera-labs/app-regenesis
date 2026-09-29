@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin · Neurohackers Platform</title>
+  <link rel="stylesheet" href="../shared/styles.css">
+  <style>
+    .admin-shell {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      min-height: 100vh;
+    }
+    .admin-sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border-soft);
+      padding: var(--space-6) 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+    .admin-sidebar-brand {
+      padding: 0 var(--space-5) var(--space-5);
+      border-bottom: 1px solid var(--border-soft);
+      margin-bottom: var(--space-4);
+    }
+    .admin-nav-section { padding: 0 var(--space-3); margin-bottom: var(--space-5); }
+    .admin-nav-section-title {
+      padding: 0 var(--space-3);
+      font-family: var(--font-mono);
+      font-size: var(--text-3xs);
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: var(--space-2);
+      font-weight: 600;
+    }
+    .admin-nav-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+      transition: var(--transition-fast);
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .admin-nav-item:hover { background: var(--surface-3); color: var(--text); }
+    .admin-nav-item.active { background: var(--accent-gradient-soft); color: var(--accent-deeper); font-weight: 600; }
+    .admin-nav-icon { width: 16px; text-align: center; font-size: 13px; }
+    .admin-main { padding: var(--space-8); overflow-x: hidden; }
+
+    .view-as-banner {
+      background: linear-gradient(135deg, #1D1D1F 0%, #2A2A2C 100%);
+      color: #FFF;
+      padding: var(--space-4) var(--space-5);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      margin-bottom: var(--space-6);
+    }
+    .view-as-banner-tag {
+      font-family: var(--font-mono);
+      font-size: var(--text-3xs);
+      letter-spacing: 1.5px;
+      background: var(--accent-gradient);
+      color: var(--text-on-accent);
+      padding: 4px 8px;
+      border-radius: var(--radius-full);
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+
+<div class="admin-shell">
+
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar-brand">
+      <div class="brand">
+        <div class="brand-logo">N</div>
+        <div class="brand-name">
+          <span class="brand-name-main">Neurohackers</span>
+          <span class="brand-name-sub">Admin</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-nav-section">
+      <div class="admin-nav-section-title">Operación</div>
+      <div class="admin-nav-item active"><span class="admin-nav-icon">▦</span> Dashboard</div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">◌</span> Clientes</div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">$</span> Ventas y placas</div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">⚐</span> Alertas y salud</div>
+    </div>
+
+    <div class="admin-nav-section">
+      <div class="admin-nav-section-title">Módulos del cliente</div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">▢</span> Success Board</div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">⌖</span> Sales Lab</div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">▤</span> Gerencia</div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">◔</span> Marketing</div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">◇</span> Tech</div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">◈</span> Re-Génesis</div>
+    </div>
+
+    <div class="admin-nav-section">
+      <div class="admin-nav-section-title">Programa</div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">📅</span> Calendario sesiones</div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">◉</span> Recursos del equipo</div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">◯</span> Testimonios</div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">⚙</span> Configuración</div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">∼</span> Cron y webhooks</div>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+
+    <section style="margin-bottom: var(--space-6);">
+      <div class="eyebrow-plain mb-2">DASHBOARD · OPERACIÓN DEL EQUIPO</div>
+      <h1 style="font-size: var(--text-3xl); font-weight: 600; letter-spacing: -0.02em;">Hola, Frank.</h1>
+    </section>
+
+    <!-- KPIs OPERACIÓN -->
+    <div class="grid grid-4 mb-8">
+      <div class="card card-padded">
+        <div class="stat-block">
+          <span class="stat-label">CLIENTES ACTIVOS</span>
+          <span class="stat-num">25</span>
+          <span class="stat-delta stat-delta-up" style="margin-top: 6px;">▲ 3 este mes</span>
+        </div>
+      </div>
+      <div class="card card-padded">
+        <div class="stat-block">
+          <span class="stat-label">VENTAS COLECTIVAS · MES</span>
+          <span class="stat-num">$184K</span>
+          <span class="text-muted" style="font-size: var(--text-2xs); margin-top: 6px;">vs $142K mes anterior</span>
+        </div>
+      </div>
+      <div class="card card-padded">
+        <div class="stat-block">
+          <span class="stat-label">COMPROMISO PROMEDIO</span>
+          <span class="stat-num">78%</span>
+          <span class="stat-delta stat-delta-up" style="margin-top: 6px;">▲ +6 pts</span>
+        </div>
+      </div>
+      <div class="card card-padded">
+        <div class="stat-block">
+          <span class="stat-label">EN RIESGO · 3 DÍAS+</span>
+          <span class="stat-num">2</span>
+          <span class="text-muted" style="font-size: var(--text-2xs); margin-top: 6px;">Aixa A. y Franklin P.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACCIÓN: VER COMO CLIENTE -->
+    <div class="view-as-banner">
+      <span class="view-as-banner-tag">VISTA ADMIN</span>
+      <div style="flex: 1;">
+        <div style="font-weight: 600; font-size: var(--text-sm);">¿Quieres ver la plataforma como la ve un cliente?</div>
+        <div style="font-size: var(--text-xs); opacity: 0.8; margin-top: 2px;">Modo lectura — entras al Hub del cliente con sus datos reales, sin afectar su sesión.</div>
+      </div>
+      <select style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #FFF; padding: 8px 14px; border-radius: var(--radius-md); font: inherit; font-size: var(--text-sm);">
+        <option>Selecciona un cliente…</option>
+        <option>Alexander González</option>
+        <option>Damaris Sandoval</option>
+        <option>Arlin Consulting</option>
+        <option>Aixa Aviles</option>
+        <option>Franklin Perez</option>
+      </select>
+      <button class="btn btn-primary btn-sm">Ver como cliente →</button>
+    </div>
+
+    <!-- LISTA DE CLIENTES -->
+    <div class="card card-padded-lg mb-8">
+      <div class="card-header">
+        <div>
+          <h2 style="font-size: var(--text-lg); font-weight: 600;">Clientes</h2>
+          <p class="text-muted" style="font-size: var(--text-xs); margin-top: 4px;">Vista rápida de salud y progreso · 25 activos</p>
+        </div>
+        <div style="display: flex; gap: var(--space-2);">
+          <button class="btn btn-secondary btn-sm">Filtrar</button>
+          <button class="btn btn-secondary btn-sm">Exportar</button>
+        </div>
+      </div>
+
+      <table style="width: 100%; border-collapse: collapse; margin-top: var(--space-4);">
+        <thead>
+          <tr style="border-bottom: 1px solid var(--border-soft);">
+            <th style="text-align: left; padding: var(--space-3) 0; font-family: var(--font-mono); font-size: var(--text-3xs); letter-spacing: 1.5px; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">CLIENTE</th>
+            <th style="text-align: left; padding: var(--space-3) 0; font-family: var(--font-mono); font-size: var(--text-3xs); letter-spacing: 1.5px; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">TEMA</th>
+            <th style="text-align: right; padding: var(--space-3) 0; font-family: var(--font-mono); font-size: var(--text-3xs); letter-spacing: 1.5px; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">VENTAS</th>
+            <th style="text-align: right; padding: var(--space-3) 0; font-family: var(--font-mono); font-size: var(--text-3xs); letter-spacing: 1.5px; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">RACHA</th>
+            <th style="text-align: right; padding: var(--space-3) 0; font-family: var(--font-mono); font-size: var(--text-3xs); letter-spacing: 1.5px; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">SALUD</th>
+            <th style="text-align: right; padding: var(--space-3) 0;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid var(--border-soft);">
+            <td style="padding: var(--space-4) 0;">
+              <div style="display: flex; align-items: center; gap: var(--space-3);">
+                <div class="rank-avatar">DS</div>
+                <div>
+                  <div style="font-weight: 600; font-size: var(--text-sm);">Damaris Sandoval</div>
+                  <div class="text-muted" style="font-size: var(--text-2xs);">damarissandoval1010@gmail.com</div>
+                </div>
+              </div>
+            </td>
+            <td style="padding: var(--space-4) 0; font-size: var(--text-sm);">Niño Interior · día 6</td>
+            <td style="padding: var(--space-4) 0; text-align: right; font-weight: 600; font-size: var(--text-sm);">$18,500</td>
+            <td style="padding: var(--space-4) 0; text-align: right; font-size: var(--text-sm);">8 días</td>
+            <td style="padding: var(--space-4) 0; text-align: right;"><span class="badge badge-success">EXCELENTE</span></td>
+            <td style="padding: var(--space-4) 0; text-align: right;">
+              <button class="btn btn-ghost btn-sm">Ver →</button>
+            </td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border-soft);">
+            <td style="padding: var(--space-4) 0;">
+              <div style="display: flex; align-items: center; gap: var(--space-3);">
+                <div class="rank-avatar">AC</div>
+                <div>
+                  <div style="font-weight: 600; font-size: var(--text-sm);">Arlin Consulting</div>
+                  <div class="text-muted" style="font-size: var(--text-2xs);">arlin1980@hotmail.com</div>
+                </div>
+              </div>
+            </td>
+            <td style="padding: var(--space-4) 0; font-size: var(--text-sm);">Niño Interior · día 6</td>
+            <td style="padding: var(--space-4) 0; text-align: right; font-weight: 600; font-size: var(--text-sm);">$12,300</td>
+            <td style="padding: var(--space-4) 0; text-align: right; font-size: var(--text-sm);">12 días</td>
+            <td style="padding: var(--space-4) 0; text-align: right;"><span class="badge badge-success">EXCELENTE</span></td>
+            <td style="padding: var(--space-4) 0; text-align: right;">
+              <button class="btn btn-ghost btn-sm">Ver →</button>
+            </td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border-soft);">
+            <td style="padding: var(--space-4) 0;">
+              <div style="display: flex; align-items: center; gap: var(--space-3);">
+                <div class="rank-avatar">AG</div>
+                <div>
+                  <div style="font-weight: 600; font-size: var(--text-sm);">Alexander González</div>
+                  <div class="text-muted" style="font-size: var(--text-2xs);">alex@marketingnativo.com</div>
+                </div>
+              </div>
+            </td>
+            <td style="padding: var(--space-4) 0; font-size: var(--text-sm);">Niño Interior · día 6</td>
+            <td style="padding: var(--space-4) 0; text-align: right; font-weight: 600; font-size: var(--text-sm);">$7,800</td>
+            <td style="padding: var(--space-4) 0; text-align: right; font-size: var(--text-sm);">6 días</td>
+            <td style="padding: var(--space-4) 0; text-align: right;"><span class="badge badge-info">EN RITMO</span></td>
+            <td style="padding: var(--space-4) 0; text-align: right;">
+              <button class="btn btn-ghost btn-sm">Ver →</button>
+            </td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border-soft);">
+            <td style="padding: var(--space-4) 0;">
+              <div style="display: flex; align-items: center; gap: var(--space-3);">
+                <div class="rank-avatar">AA</div>
+                <div>
+                  <div style="font-weight: 600; font-size: var(--text-sm);">Aixa Aviles</div>
+                  <div class="text-muted" style="font-size: var(--text-2xs);">a.aviles@eq-so.com</div>
+                </div>
+              </div>
+            </td>
+            <td style="padding: var(--space-4) 0; font-size: var(--text-sm);">Sala de espera · día 3</td>
+            <td style="padding: var(--space-4) 0; text-align: right; font-weight: 600; font-size: var(--text-sm);">$0</td>
+            <td style="padding: var(--space-4) 0; text-align: right; font-size: var(--text-sm);">0</td>
+            <td style="padding: var(--space-4) 0; text-align: right;"><span class="badge badge-warning">SIN LOGIN 4D</span></td>
+            <td style="padding: var(--space-4) 0; text-align: right;">
+              <button class="btn btn-ghost btn-sm">Ver →</button>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: var(--space-4) 0;">
+              <div style="display: flex; align-items: center; gap: var(--space-3);">
+                <div class="rank-avatar">FP</div>
+                <div>
+                  <div style="font-weight: 600; font-size: var(--text-sm);">Franklin Perez</div>
+                  <div class="text-muted" style="font-size: var(--text-2xs);">fplula2021@gmail.com</div>
+                </div>
+              </div>
+            </td>
+            <td style="padding: var(--space-4) 0; font-size: var(--text-sm);">Niño Interior · día 5</td>
+            <td style="padding: var(--space-4) 0; text-align: right; font-weight: 600; font-size: var(--text-sm);">$0</td>
+            <td style="padding: var(--space-4) 0; text-align: right; font-size: var(--text-sm);">0</td>
+            <td style="padding: var(--space-4) 0; text-align: right;"><span class="badge badge-error">NUNCA ENTRÓ</span></td>
+            <td style="padding: var(--space-4) 0; text-align: right;">
+              <button class="btn btn-ghost btn-sm">Ver →</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- BOTTOM: 2 CARDS -->
+    <div class="grid grid-2">
+      <div class="card card-padded-lg">
+        <div class="card-header">
+          <h2 style="font-size: var(--text-lg); font-weight: 600;">Placas pendientes de enviar</h2>
+          <span class="badge">2 ESTE MES</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-4);">
+          <div style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3); background: var(--surface-2); border-radius: var(--radius-sm);">
+            <div style="font-size: 24px;">🏅</div>
+            <div style="flex: 1;">
+              <div style="font-weight: 600; font-size: var(--text-sm);">Alexander G. · Bronce $5K</div>
+              <div class="text-muted" style="font-size: var(--text-2xs);">Medellín, Colombia · alcanzado 22 mayo</div>
+            </div>
+            <button class="btn btn-secondary btn-sm">Marcar enviada</button>
+          </div>
+          <div style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3); background: var(--surface-2); border-radius: var(--radius-sm);">
+            <div style="font-size: 24px;">🥈</div>
+            <div style="flex: 1;">
+              <div style="font-weight: 600; font-size: var(--text-sm);">Arlin C. · Plata $10K</div>
+              <div class="text-muted" style="font-size: var(--text-2xs);">Orlando, FL · alcanzado 20 mayo</div>
+            </div>
+            <button class="btn btn-secondary btn-sm">Marcar enviada</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card-padded-lg">
+        <div class="card-header">
+          <h2 style="font-size: var(--text-lg); font-weight: 600;">Salud del sistema</h2>
+          <span class="badge badge-success badge-live">TODO OK</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-4);">
+          <div style="display: flex; align-items: center; gap: var(--space-3); font-size: var(--text-sm);">
+            <div style="width: 6px; height: 6px; border-radius: 50%; background: var(--success);"></div>
+            <span style="flex: 1;">Cron diario · 7:00 AM</span>
+            <span class="text-muted" style="font-size: var(--text-xs);">hace 2h</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: var(--space-3); font-size: var(--text-sm);">
+            <div style="width: 6px; height: 6px; border-radius: 50%; background: var(--success);"></div>
+            <span style="flex: 1;">Sync Skool · 9:00 AM</span>
+            <span class="text-muted" style="font-size: var(--text-xs);">hace 30min</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: var(--space-3); font-size: var(--text-sm);">
+            <div style="width: 6px; height: 6px; border-radius: 50%; background: var(--success);"></div>
+            <span style="flex: 1;">Webhooks GHL · 24 procesados</span>
+            <span class="text-muted" style="font-size: var(--text-xs);">0 fallidos</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: var(--space-3); font-size: var(--text-sm);">
+            <div style="width: 6px; height: 6px; border-radius: 50%; background: var(--success);"></div>
+            <span style="flex: 1;">Edge Functions · 142 calls hoy</span>
+            <span class="text-muted" style="font-size: var(--text-xs);">$1.84 IA</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div data-preview-nav data-active="admin" data-base="../"></div>
+<script src="../shared/nav.js"></script>
+
+</body>
+</html>

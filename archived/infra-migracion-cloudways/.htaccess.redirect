@@ -1,0 +1,33 @@
+# ============================================================================
+# Re-Génesis Platform — REDIRECT permanente
+# ============================================================================
+# Este .htaccess se sube a Cloudways (regenesis.hubnativo.com) DESPUÉS de la
+# migración a neurohackers.cloud. Su única función es redirigir TODO el tráfico
+# del dominio viejo al nuevo, preservando paths y query strings.
+#
+# Una vez confirmado que no llegan más clientes por el viejo, este sitio se
+# puede apagar por completo desde Cloudways.
+# ============================================================================
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # 301 permanent redirect a neurohackers.cloud, preservando path + query
+  RewriteCond %{HTTP_HOST} ^(www\.)?regenesis\.hubnativo\.com$ [NC]
+  RewriteRule ^(.*)$ https://neurohackers.cloud/$1 [R=301,L,QSA]
+</IfModule>
+
+# Si por algún motivo mod_rewrite no está disponible, redirige el root al menos.
+<IfModule !mod_rewrite.c>
+  RedirectMatch 301 ^/(.*)$ https://neurohackers.cloud/$1
+</IfModule>
+
+# Headers de seguridad mínimos (el viejo sitio queda solo como redirector)
+<IfModule mod_headers.c>
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
+  Header always set X-Content-Type-Options "nosniff"
+  Header unset X-Powered-By
+  Header unset Server
+</IfModule>
+
+Options -Indexes

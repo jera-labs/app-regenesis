@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Re-Génesis · Mi panel</title>
+  <link rel="icon" type="image/svg+xml" href="/regenesis/favicon.svg">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600&family=Geist:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <script src="/shared/turbo.min.js?v=20260797"></script>
+  <link rel="stylesheet" href="/regenesis/assets/styles/tokens.css?v=20260797">
+  <link rel="stylesheet" href="/regenesis/assets/styles/base.css?v=20260797">
+  <link rel="stylesheet" href="/regenesis/assets/styles/components.css?v=20260797">
+  <link rel="stylesheet" href="/regenesis/assets/styles/client.css?v=20260797">
+  <link rel="stylesheet" href="/regenesis/assets/styles/platform-sidebar.css?v=20260797">
+  <style>
+    .app-header { display: none !important; }
+    body.with-sidebar .screen { padding-left: 0; }
+    body.with-sidebar .app-container { max-width: 1280px; padding: var(--space-6); margin: 0 auto; }
+    @media (max-width: 920px) {
+      body.with-sidebar .app-container { padding: var(--space-4); }
+    }
+
+    /* Ocultar dashboard hasta que init() termine y revele con opacity:1.
+       Evita ver "Hola, —" durante la carga inicial. La opacity:0 inicial
+       también está inline en el <section> por si el CSS externo tarda. */
+    #screen-dashboard {
+      transition: opacity 0.2s ease;
+    }
+    #screen-dashboard.is-ready {
+      opacity: 1 !important;
+    }
+
+    /* Loader simple mientras el dashboard está oculto: spinner centrado */
+    #regenesis-loader {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: regenesis-spin 0.8s linear infinite;
+      z-index: 10;
+    }
+    @keyframes regenesis-spin {
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+    body.regenesis-ready #regenesis-loader { display: none; }
+
+    /* Banner compacto de creación de personaje */
+    .personaje-banner {
+      display: flex;
+      align-items: center;
+      gap: var(--space-5);
+      padding: var(--space-5) var(--space-6);
+      margin: var(--space-5) 0;
+      background: linear-gradient(135deg, var(--accent-soft) 0%, #FAF2D6 100%);
+      border: 1px solid var(--accent);
+      border-radius: var(--radius-lg);
+    }
+    .personaje-banner.hidden { display: none; }
+    .personaje-banner-icon {
+      font-size: 28px;
+      flex-shrink: 0;
+      color: var(--accent-dark);
+    }
+    .personaje-banner-body { flex: 1; min-width: 0; }
+    .personaje-banner-eyebrow {
+      font-family: 'Geist Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      color: var(--accent-dark);
+      margin-bottom: 4px;
+    }
+    .personaje-banner-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .personaje-banner-text {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .personaje-banner .btn-primary { flex-shrink: 0; }
+    @media (max-width: 720px) {
+      .personaje-banner { flex-direction: column; align-items: flex-start; }
+    }
+    .personaje-edit-intro {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-muted);
+      margin: 0 0 var(--space-5);
+      padding: var(--space-4);
+      background: var(--surface-3);
+      border-radius: var(--radius-md);
+    }
+  </style>
+</head>
+<!--
+  with-sidebar aplicado directamente al <body> para evitar "flash" de layout
+  sin sidebar antes de que nav.js lo agregue.
+  #screen-dashboard inicia con opacity:0 + transition; init() lo revela cuando
+  termina de poblar datos (evita ver "Hola, —" durante la carga).
+-->
+<body class="with-sidebar">
+
+<!-- Loader inicial: spinner centrado mientras se cargan datos. -->
+<div id="regenesis-loader" aria-label="Cargando"></div>
+
+<!-- Sidebar de plataforma (mismo nav.js que el resto de plataforma.neurohackers.cloud) -->
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<div data-nav data-active="rg-hoy" data-base="../"></div>
+
+<!-- Modal: Mi perfil (logueado) -->
+<div class="modal-overlay" id="modal-perfil">
+  <div class="modal modal-perfil" role="dialog" aria-labelledby="modal-perfil-title">
+    <div class="modal-header">
+      <h3 id="modal-perfil-title" style="font-size: 18px; font-weight: 600;">Mi perfil</h3>
+      <button type="button" class="modal-close" id="modal-perfil-close" aria-label="Cerrar">×</button>
+    </div>
+
+    <div class="perfil-tabs">
+      <button type="button" class="perfil-tab active" data-perfil-tab="datos">Datos personales</button>
+      <button type="button" class="perfil-tab" data-perfil-tab="programa">Programa</button>
+      <button type="button" class="perfil-tab" data-perfil-tab="seguridad">Seguridad</button>
+    </div>
+
+    <div class="perfil-panel active" data-perfil-panel="datos">
+      <form id="form-perfil-datos" novalidate>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: var(--space-5);">
+          Información de contacto que puedes mantener actualizada.
+        </p>
+
+        <div class="form-group">
+          <label for="perfil-nombre"><span>Nombre completo</span></label>
+          <input type="text" id="perfil-nombre" class="input" required maxlength="120"
+                 autocomplete="name" placeholder="Cómo prefieres que te llamemos">
+        </div>
+
+        <div class="form-group">
+          <label for="perfil-telefono"><span>Teléfono</span></label>
+          <input type="tel" id="perfil-telefono" class="input" maxlength="32"
+                 autocomplete="tel" placeholder="+57 300 123 4567">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+          <div class="form-group">
+            <label for="perfil-pais"><span>País</span></label>
+            <input type="text" id="perfil-pais" class="input" maxlength="60"
+                   autocomplete="country" placeholder="Colombia">
+          </div>
+          <div class="form-group">
+            <label for="perfil-ciudad"><span>Ciudad</span></label>
+            <input type="text" id="perfil-ciudad" class="input" maxlength="80"
+                   autocomplete="address-level2" placeholder="Medellín">
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: var(--space-3); margin-top: var(--space-6);">
+          <button type="button" class="btn-secondary" id="modal-perfil-cancel">Cancelar</button>
+          <button type="submit" class="btn-primary" id="btn-guardar-perfil">Guardar cambios</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="perfil-panel" data-perfil-panel="programa">
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: var(--space-5);">
+        Esta información viene del sistema. Si necesitas cambiar algo aquí, escribe a
+        <a href="mailto:frank@neurohackers.top" style="color: var(--text); font-weight: 500;">frank@neurohackers.top</a>.
+      </p>
+
+      <div class="perfil-info-grid">
+        <div class="perfil-info-row"><span>EMAIL</span><strong id="perfil-info-email">—</strong></div>
+        <div class="perfil-info-row"><span>MODALIDAD</span><strong id="perfil-info-modalidad">—</strong></div>
+        <div class="perfil-info-row"><span>FECHA INICIO</span><strong id="perfil-info-inicio">—</strong></div>
+        <div class="perfil-info-row"><span>TEMA ACTUAL</span><strong id="perfil-info-tema">—</strong></div>
+        <div class="perfil-info-row"><span>SEMANA</span><strong id="perfil-info-semana">—</strong></div>
+      </div>
+    </div>
+
+    <div class="perfil-panel" data-perfil-panel="seguridad">
+      <form id="form-password" novalidate>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: var(--space-5);">
+          Define una contraseña nueva. Al guardarla, tu sesión seguirá activa.
+        </p>
+
+        <div class="form-group">
+          <label for="pwd-nuevo">
+            <span>Nueva contraseña</span>
+            <span>mínimo 8 caracteres</span>
+          </label>
+          <input type="password" id="pwd-nuevo" class="input" minlength="8" required
+                 autocomplete="new-password" placeholder="••••••••">
+        </div>
+
+        <div class="form-group">
+          <label for="pwd-confirma"><span>Confírmala</span></label>
+          <input type="password" id="pwd-confirma" class="input" minlength="8" required
+                 autocomplete="new-password" placeholder="••••••••">
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: var(--space-3); margin-top: var(--space-6);">
+          <button type="button" class="btn-secondary" id="modal-password-cancel">Cancelar</button>
+          <button type="submit" class="btn-primary" id="btn-guardar-password">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Banner: admin viendo con ?view_as= -->
+<div id="admin-viewing-banner" class="admin-viewing-banner hidden">
+  <div class="admin-viewing-inner">
+    <span class="admin-viewing-tag">VISTA ADMIN</span>
+    <span class="admin-viewing-text">
+      <strong id="admin-viewing-admin">—</strong> está viendo la sesión de
+      <strong id="admin-viewing-name">—</strong>. Modo lectura.
+    </span>
+    <a href="#" id="admin-viewing-exit" class="admin-viewing-exit">Salir de la vista ✕</a>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- DASHBOARD (única pantalla visible por ahora)  -->
+<!-- ============================================ -->
+<!-- style="opacity:0" inline para evitar FOUC: el CSS externo puede tardar en
+     aplicarse en el primer frame. init() agrega .is-ready cuando termina. -->
+<section id="screen-dashboard" class="screen active" style="opacity: 0;">
+
+  <div id="admin-banner" class="admin-banner hidden">
+    <span class="badge">ADMIN</span>
+    <span>Estás viendo la cara cliente con tu cuenta. <a href="/admin/index.html">Ir al panel admin →</a></span>
+  </div>
+
+  <div class="app-container" id="dashboard-container">
+
+    <!-- Pantalla de cierre cuando el cliente completa los 70 días -->
+    <div id="dashboard-cierre" class="cierre-wrap hidden">
+      <div class="cierre-eyebrow">PROGRAMA COMPLETO</div>
+      <h1 class="cierre-titulo">
+        <span data-user-name>—</span>, llegaste al<br>
+        <span class="cierre-titulo-mark">final del camino.</span>
+      </h1>
+      <p class="cierre-sub">
+        70 días, 70 preguntas, 70 reflejos. Lo que escribiste en estas semanas
+        ya forma parte de ti. Tu libro está listo: lo puedes descargar cuando
+        quieras. Tu diario queda como archivo personal: vuelve a él cuando
+        necesites recordarte quién eres.
+      </p>
+
+      <div class="cierre-stats">
+        <div class="cierre-stat">
+          <span class="cierre-stat-num" id="cierre-respondidas">—</span>
+          <span class="cierre-stat-label">REFLEXIONES ESCRITAS</span>
+        </div>
+        <div class="cierre-stat">
+          <span class="cierre-stat-num" id="cierre-palabras">—</span>
+          <span class="cierre-stat-label">PALABRAS</span>
+        </div>
+        <div class="cierre-stat">
+          <span class="cierre-stat-num">70</span>
+          <span class="cierre-stat-label">DÍAS DE PROCESO</span>
+        </div>
+      </div>
+
+      <div class="cierre-actions">
+        <a class="cierre-cta-primary" id="cierre-libro-link" href="/regenesis/libro.html">
+          Descargar mi libro <span>↗</span>
+        </a>
+      </div>
+
+      <p class="cierre-firma">
+        Con gratitud, Frank y Tatiana, Neurohackers
+      </p>
+    </div>
+
+    <div class="status-bar">
+      <div class="status-bar-item">
+        <span class="status-dot"></span>
+        <span>SESIÓN ACTIVA</span>
+      </div>
+      <div class="status-divider"></div>
+      <div class="status-bar-item" id="status-fecha">—</div>
+      <div class="status-divider"></div>
+      <div class="status-bar-item" id="status-progreso">—</div>
+    </div>
+
+    <div class="alerta-procrastinacion hidden" id="alerta-procrastinacion" role="alert">
+      <div class="alerta-procrastinacion-icon">⚠</div>
+      <div class="alerta-procrastinacion-body">
+        <div class="alerta-procrastinacion-title" id="alerta-proc-title">—</div>
+        <div class="alerta-procrastinacion-text" id="alerta-proc-text">—</div>
+      </div>
+      <button type="button" class="alerta-procrastinacion-dismiss" id="alerta-proc-dismiss" aria-label="Cerrar por hoy">×</button>
+    </div>
+
+    <div class="testimonio-banner hidden" id="testimonio-banner" role="region" aria-label="Invitación a reunión con Frank">
+      <div class="testimonio-banner-text">
+        <div class="testimonio-banner-eyebrow" id="testimonio-banner-eyebrow">ESPACIO DE ACOMPAÑAMIENTO</div>
+        <div class="testimonio-banner-title" id="testimonio-banner-title">Programa tu reunión de resultados con Frank.</div>
+      </div>
+      <div class="testimonio-banner-actions">
+        <a href="/regenesis/reunion.html" class="testimonio-banner-cta">Agendar ahora →</a>
+        <button type="button" class="testimonio-banner-skip" id="testimonio-banner-skip">Más tarde</button>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="personaje-edit-overlay">
+      <div class="modal personaje-edit-modal">
+        <div class="modal-header">
+          <div>
+            <div class="personaje-edit-eyebrow" id="personaje-edit-eyebrow">EDITAR PERSONAJE</div>
+            <h2 class="personaje-edit-title" id="personaje-edit-title">Tu personaje</h2>
+          </div>
+          <button type="button" class="modal-close" id="personaje-edit-close" aria-label="Cerrar">✕</button>
+        </div>
+
+        <p class="personaje-edit-intro" id="personaje-edit-intro" style="display:none;">
+          Vas a escribir desde la voz de un personaje ficticio que tú creas. No eres tú:
+          es alguien que carga las mismas piezas que tú. Le quedan
+          <strong>365 días de vida</strong>, y lo que descubra en estos 70 días
+          son las decisiones que va a tomar antes de morir.
+        </p>
+
+        <label class="field-label" for="personaje-edit-nombre">Nombre</label>
+        <input type="text" id="personaje-edit-nombre" class="input"
+               placeholder="Ej. Mateo, Camila, Elías…" maxlength="80" autocomplete="off">
+
+        <label class="field-label" for="personaje-edit-desc" style="margin-top:18px;">Descripción</label>
+        <textarea id="personaje-edit-desc" class="textarea personaje-edit-textarea"
+                  placeholder="Ejemplo:&#10;&#10;Mateo, 38 años. Vive en Orlando. Lleva una empresa propia desde hace 8 años.&#10;&#10;Por fuera se ve seguro, exitoso, en control. Por dentro carga un cansancio que no se permite mostrar.&#10;&#10;Su mayor miedo es que descubran que no sabe tanto como aparenta. Su mayor deseo es poder llorar sin sentir que falla.&#10;&#10;Le queda un año de vida."></textarea>
+
+        <div class="personaje-edit-hint">
+          Recuerda mantener el espíritu del personaje: edad, dónde vive, qué hace,
+          cómo se ve por fuera y por dentro, qué le da miedo, qué desea.
+        </div>
+
+        <div class="personaje-edit-actions">
+          <button type="button" class="btn-secondary" id="personaje-edit-cancel">Cancelar</button>
+          <button type="button" class="btn-primary" id="personaje-edit-save">Guardar cambios</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="personaje-card hidden" id="personaje-card">
+      <div class="personaje-card-inner">
+        <div class="personaje-card-icon">◈</div>
+        <div class="personaje-card-body">
+          <div class="personaje-card-eyebrow">TU PERSONAJE</div>
+          <div class="personaje-card-nombre"><span id="personaje-nombre-display">—</span></div>
+          <div class="personaje-card-meta" id="personaje-meta-display">—</div>
+        </div>
+        <button type="button" class="personaje-card-edit" id="btn-editar-personaje">Editar</button>
+      </div>
+    </div>
+
+    <!-- Banner compacto de creación de personaje (popup-driven) -->
+    <div class="personaje-banner hidden" id="personaje-banner-crear" role="region" aria-label="Crear personaje">
+      <div class="personaje-banner-icon">◈</div>
+      <div class="personaje-banner-body">
+        <div class="personaje-banner-eyebrow">ANTES DE EMPEZAR</div>
+        <div class="personaje-banner-title">Dale vida a tu personaje.</div>
+        <div class="personaje-banner-text">
+          Vas a escribir desde la voz de un personaje ficticio que carga las mismas piezas que tú. Te toma 5 minutos.
+        </div>
+      </div>
+      <button type="button" class="btn-primary" id="btn-abrir-crear-personaje">
+        Crear personaje
+      </button>
+    </div>
+
+    <div class="greeting-section">
+      <h1 class="greeting">
+        Hola, <span id="greeting-nombre">—</span>.<br>
+        Tu reflexión<span class="greeting-mark">te espera</span>
+      </h1>
+      <p class="day-counter">
+        Semana <strong id="greeting-semana">—</strong> ·
+        Tema actual <strong id="greeting-tema">—</strong> ·
+        Día <strong id="greeting-dia">—</strong>
+      </p>
+    </div>
+
+    <div class="main-grid">
+
+      <main>
+        <div class="reflection-card">
+          <div class="reflection-meta">
+            <span class="badge badge-active" id="tema-actual-nombre">—</span>
+            <span class="badge">TEMA <span id="tema-actual-numero">—</span></span>
+          </div>
+
+          <p class="sublabel">Tu pregunta de hoy</p>
+          <h2 class="reflection-prompt" id="pregunta-dia">Cargando…</h2>
+
+          <p class="field-label">Tu reflexión</p>
+          <textarea id="reflexion-textarea" class="textarea"
+            placeholder="Escribe libremente. Este espacio es solo tuyo. No hay respuestas correctas, solo verdades que se revelan al ponerlas en palabras."></textarea>
+
+          <div class="editor-footer">
+            <span class="word-count" id="word-count">0 PALABRAS</span>
+            <button type="button" class="btn-primary" id="submit-reflexion">Enviar reflexión</button>
+          </div>
+
+          <div class="ia-loading hidden" id="ia-loading">Tu personaje está leyendo tu reflexión y formulando su pregunta. Esto toma 10-15 segundos.</div>
+
+          <div class="ia-response hidden" id="ia-response">
+            <div class="ia-header">
+              <div class="ia-icon">◈</div>
+              <div class="ia-meta">
+                <div class="ia-title">Respuesta y Pregunta para tu personaje</div>
+              </div>
+            </div>
+            <div class="ia-content" id="ia-content"></div>
+          </div>
+
+          <div class="personaje-respuesta hidden" id="personaje-respuesta-block">
+            <div class="personaje-respuesta-header">
+              <div class="personaje-respuesta-eyebrow">RESPONDE COMO <span id="personaje-respuesta-nombre">tu personaje</span></div>
+              <div class="personaje-respuesta-title">¿Qué decide tu personaje hoy?</div>
+            </div>
+            <textarea id="personaje-respuesta-textarea" class="textarea"
+              placeholder="Escribe en la voz de tu personaje. ¿Qué decisión va a tomar antes de que se le acabe el tiempo?"></textarea>
+            <div class="personaje-respuesta-footer">
+              <span class="personaje-respuesta-count" id="personaje-respuesta-count">0 PALABRAS</span>
+              <button type="button" class="btn-primary" id="btn-guardar-respuesta-personaje">
+                Guardar respuesta del personaje
+              </button>
+            </div>
+          </div>
+
+          <div class="cierre-ia hidden" id="cierre-ia-block">
+            <div class="cierre-ia-header">
+              <div class="cierre-ia-icon">◉</div>
+              <div class="cierre-ia-meta">
+                <div class="cierre-ia-title">Cierre del día</div>
+                <div class="cierre-ia-subtitle">CONSEJO + ANCLAJE PARA HOY</div>
+              </div>
+            </div>
+            <div class="cierre-ia-loading hidden" id="cierre-ia-loading">Generando tu cierre del día…</div>
+            <div class="cierre-ia-content" id="cierre-ia-content"></div>
+          </div>
+        </div>
+      </main>
+
+      <aside class="dash-aside">
+
+        <div class="sidebar-card">
+          <div class="sidebar-header">
+            <div class="sidebar-title">Tu camino</div>
+            <div class="sidebar-meta" id="progreso-counter">— / 10</div>
+          </div>
+          <ul class="progress-list" id="progreso-temas"></ul>
+        </div>
+
+        <div class="sidebar-card session-card hidden" id="proxima-sesion-card">
+          <div class="sidebar-header">
+            <div class="sidebar-title">Próxima sesión</div>
+            <div class="sidebar-meta" id="sesion-eta">—</div>
+          </div>
+
+          <div class="session-day-block">
+            <div class="session-day-num" id="sesion-dia-num">—</div>
+            <div class="session-day-meta">
+              <span class="session-day-month" id="sesion-mes-anio">—</span>
+              <span class="session-day-week" id="sesion-semana">—</span>
+            </div>
+          </div>
+
+          <div class="session-info">
+            <div class="session-info-row">
+              <span>HORA</span><span id="sesion-hora">—</span>
+            </div>
+            <div class="session-info-row">
+              <span>MODALIDAD</span><span id="sesion-modalidad">—</span>
+            </div>
+            <div class="session-info-row">
+              <span>FACILITADOR</span><span id="sesion-facilitador">—</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-card session-prep-card hidden" id="session-prep-card">
+          <div class="sidebar-header">
+            <div class="sidebar-title">Antes de tu sesión</div>
+            <div class="sidebar-meta">6 RECOMENDACIONES</div>
+          </div>
+
+          <ol class="prep-list">
+            <li class="prep-item">
+              <span class="prep-num">01</span>
+              <div class="prep-body">
+                <div class="prep-title">Audífonos de diadema</div>
+                <div class="prep-text">Trabajamos con sonido 8D. Usa audífonos de diadema; evita peinados altos que estorben.</div>
+              </div>
+            </li>
+            <li class="prep-item">
+              <span class="prep-num">02</span>
+              <div class="prep-body">
+                <div class="prep-title">Acostado</div>
+                <div class="prep-text">Parte de la sesión es proceso terapéutico y de reprogramación. Necesitas estar tumbado, cómodo.</div>
+              </div>
+            </li>
+            <li class="prep-item">
+              <span class="prep-num">03</span>
+              <div class="prep-body">
+                <div class="prep-title">Lugar privado</div>
+                <div class="prep-text">Donde nadie te interrumpa. Es posible que llores, hagas ruidos o tengas reacciones intensas.</div>
+              </div>
+            </li>
+            <li class="prep-item">
+              <span class="prep-num">04</span>
+              <div class="prep-body">
+                <div class="prep-title">Estómago liviano</div>
+                <div class="prep-text">No comas las 2 horas previas a la sesión. Hidrátate bien, evita comidas pesadas.</div>
+              </div>
+            </li>
+            <li class="prep-item">
+              <span class="prep-num">05</span>
+              <div class="prep-body">
+                <div class="prep-title">Permite los sonidos</div>
+                <div class="prep-text">Quejidos, llantos, gritos si tu proceso lo necesita. Es normal sentir sensaciones físicas.</div>
+              </div>
+            </li>
+            <li class="prep-item">
+              <span class="prep-num">06</span>
+              <div class="prep-body">
+                <div class="prep-title">Papel y bolígrafo cerca</div>
+                <div class="prep-text">A veces emergen mensajes durante o después de la sesión. Tenlos a mano para anotar.</div>
+              </div>
+            </li>
+          </ol>
+        </div>
+
+        <div class="sidebar-card">
+          <div class="sidebar-header">
+            <div class="sidebar-title">Tu diario</div>
+            <div class="sidebar-meta" id="stat-diario-count">0 ENTRADAS</div>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-block">
+              <div class="stat-num" id="stat-reflexiones">0</div>
+              <div class="stat-label">Reflexiones</div>
+            </div>
+            <div class="stat-block">
+              <div class="stat-num" id="stat-compromiso">0%</div>
+              <div class="stat-label">Compromiso</div>
+            </div>
+          </div>
+
+          <a class="btn-secondary" href="/regenesis/diario.html">
+            Ver mi diario completo →
+          </a>
+        </div>
+      </aside>
+
+    </div>
+  </div>
+</section>
+
+<!-- Scripts: orden importante -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/shared/scripts/config.js?v=20260797"></script>
+<script src="/shared/scripts/supabase-client.js?v=20260797"></script>
+  <script src="/shared/scripts/cache.js?v=20260797"></script>
+<script src="/shared/scripts/utils.js?v=20260797"></script>
+<script src="/shared/scripts/auth.js?v=20260797"></script>
+  <script src="/shared/scripts/event-tracker.js?v=20260797"></script>
+  <script src="/shared/scripts/nps.js?v=20260797"></script>
+<script src="/regenesis/assets/scripts/utils.js?v=20260797"></script>
+<script src="/regenesis/assets/scripts/ia-service.js?v=20260797"></script>
+<script src="/regenesis/assets/scripts/client-app.js?v=20260800"></script>
+<script src="/shared/nav.js?v=20260797"></script>
+
+<!--
+  Bootstrap inline: los scripts inline SÍ se re-ejecutan en cada Turbo
+  navigation (a diferencia de <script src=...> que Turbo deduplica).
+  Esto garantiza que regenesisInit() corra tanto en el primer load como
+  cuando llegas via click en el sidebar desde otra página de plataforma.
+-->
+<script>
+  // Polling defensivo: si el inline corre antes que client-app.js (race
+  // posible en Turbo navigations), esperamos hasta 3s a que regenesisInit
+  // aparezca antes de declarar fallo.
+  (async function bootRegenesisDashboard() {
+    // Polling defensivo: el inline script puede correr ANTES que client-app.js
+    // en navegaciones Turbo. Esperamos hasta 3s a que regenesisInit aparezca.
+    let tries = 0;
+    while (typeof window.regenesisInit !== 'function' && tries < 60) {
+      await new Promise(r => setTimeout(r, 50));
+      tries++;
+    }
+    if (typeof window.regenesisInit !== 'function') {
+      console.error('[Re-Génesis] regenesisInit no expuesto después de 3s. Verifica que client-app.js cargue.');
+      return;
+    }
+    try { await window.regenesisInit(); }
+    catch (e) { console.error('[Re-Génesis] init error:', e); }
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,82 @@
+/* ============================================ */
+/* Re-Génesis — Design tokens                    */
+/* Fuente única de verdad para colores,          */
+/* espaciado, tipografía y sombras.              */
+/* NUNCA hardcodear estos valores en otro CSS.   */
+/* ============================================ */
+
+:root {
+  /* ---------- Backgrounds (Apple-style) ---------- */
+  --bg: #F5F5F7;
+  --surface: #FFFFFF;
+  --surface-2: #FAFAFA;
+  --surface-3: #F2F2F4;
+
+  /* ---------- Borders (sutiles, pero presentes cuando se necesita) ---------- */
+  --border: #D2D2D7;
+  --border-soft: #E5E5EA;
+  --border-strong: #B8B8BD;
+
+  /* ---------- Text (Apple grayscale) ---------- */
+  --text: #1D1D1F;
+  --text-muted: #86868B;
+  --text-faint: #A1A1A6;
+
+  /* ---------- Accent — dorado Frank Ruiz / OINL ---------- */
+  /* Usar con mesura: CTAs principales, badges activos, énfasis del cliente. */
+  --accent: #D4AF37;
+  --accent-soft: #F5E9B8;
+  --accent-bright: #E5C147;
+  --accent-dark: #B8941F;
+  --accent-glow: rgba(212, 175, 55, 0.18);
+
+  /* ---------- Estados ---------- */
+  --black: #1D1D1F;
+  --error: #D70015;
+  --error-bg: #FEF1F2;
+  --success: #248A3D;
+  --warning: #B25000;
+
+  /* ---------- Sombras (Apple-style: muy suaves) ---------- */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.08);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.04);
+  --shadow-card-hover: 0 4px 8px rgba(0, 0, 0, 0.06), 0 16px 32px rgba(0, 0, 0, 0.06);
+  --shadow-glow: 0 0 0 4px rgba(212, 175, 55, 0.2);
+
+  /* ---------- Espaciado (múltiplos de 4) ---------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-9: 36px;
+  --space-10: 40px;
+  --space-11: 44px;
+  --space-12: 48px;
+  --space-14: 56px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+
+  /* ---------- Radios (Apple usa más generosos) ---------- */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --radius-full: 980px;
+
+  /* ---------- Transiciones (suaves Apple) ---------- */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 400ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ---------- Tipografía ---------- */
+  --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+  --font-mono: 'Geist Mono', 'SF Mono', Menlo, Consolas, monospace;
+}

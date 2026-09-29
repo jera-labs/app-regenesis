@@ -1,0 +1,67 @@
+# Variables de entorno
+.env
+.env.local
+.env.*.local
+
+# Config de MCP (contiene tokens/credenciales — NO subir a git)
+.mcp.json
+
+# Dependencias (por si en el futuro se agrega algo)
+node_modules/
+package-lock.json
+
+# Supabase local
+.supabase/
+
+# IDE
+.vscode/settings.json
+.idea/
+
+# Claude Code (memorias y proyecto local del agente, no van al repo)
+.claude/*
+!.claude/skills/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Backups locales
+*_backup*
+*_old*
+
+# Outputs temporales
+/tmp/
+/dist/
+/build/
+
+# Archivos temp del sistema mal nombrados (paths Windows accidentales)
+UsersandreAppDataLocalTemp*
+
+# Resultados de load testing (los scripts sí van; los outputs no)
+loadtest/results/
+
+# Zips para deploy (no se versionan)
+*.zip
+
+# Scripts de deploy local con credenciales (NO subir a git)
+deploy.ps1
+deploy.cmd
+deploy.bat
+# === Archivos grandes (>100MB GitHub limit) ===
+*.mp4
+*.mov
+*.avi
+*.mkv
+
+# === Office originales (preferir export markdown/txt) ===
+# Mantenemos estos como reference local pero NO en git para no inflar repo
+docs/analiza/**/*.docx
+docs/analiza/**/*.xlsx
+docs/analiza/**/*.pdf
+docs/analiza/**/*.pptx
+docs/analiza/**/*.jpg
+docs/analiza/**/*.jpeg
+docs/analiza/**/*.png

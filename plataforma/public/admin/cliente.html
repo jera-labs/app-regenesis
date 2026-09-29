@@ -1,0 +1,3418 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vista cliente · Admin · Neurohackers</title>
+  <script src="/shared/turbo.min.js?v=20260797"></script>
+  <link rel="stylesheet" href="/shared/styles.css?v=20260797">
+</head>
+<body class="with-sidebar admin-mode">
+
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<script>(function(){try{var c=localStorage.getItem("nav-cache-admin-v4");var w=document.getElementById("sidebar-wrapper");if(c&&w&&!w.firstChild)w.innerHTML=c;}catch(e){}})();</script>
+<div data-nav data-active="admin" data-base="../"></div>
+
+<div class="impersonate-banner">
+  <div class="impersonate-banner-inner">
+    <span style="font-weight: 600;" id="impersonate-rol-tag">Vista admin</span>
+    <span>Estás viendo como <strong id="cliente-nombre">[cliente]</strong>.<span id="impersonate-modo-text"></span></span>
+    <a href="index.html" class="btn btn-secondary btn-sm" style="margin-left: auto;">← Volver al panel</a>
+  </div>
+</div>
+
+<!-- Modal edición de datos del cliente (mismo patrón que otros modales del CRM) -->
+<div class="modal-backdrop hidden" id="editar-cliente-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">Editar · <span id="ec-titulo-nombre">cliente</span></span>
+      <button class="modal-close" type="button" id="btn-ec-cerrar" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="editar-cliente-form" novalidate>
+        <div class="field">
+          <label class="field-label">Nombre</label>
+          <input class="field-input" type="text" id="ec-nombre" maxlength="120" required>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+          <div class="field">
+            <label class="field-label">Teléfono</label>
+            <input class="field-input" type="tel" id="ec-telefono" maxlength="32">
+          </div>
+          <div class="field">
+            <label class="field-label">Email (solo lectura)</label>
+            <input class="field-input" type="email" id="ec-email" disabled style="opacity:0.55;">
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+          <div class="field">
+            <label class="field-label">País</label>
+            <input class="field-input" type="text" id="ec-pais" maxlength="60">
+          </div>
+          <div class="field">
+            <label class="field-label">Ciudad</label>
+            <input class="field-input" type="text" id="ec-ciudad" maxlength="80">
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">Modalidad</label>
+          <select class="field-input" id="ec-modalidad">
+            <option value="">— Sin definir</option>
+            <option value="presencial">Presencial</option>
+            <option value="virtual">Virtual</option>
+            <!-- Removida 'mixta': viola leads_modalidad_check (solo presencial|virtual) -->
+          </select>
+        </div>
+        <div class="field-help-block" style="margin-top: var(--space-3); font-size: 12px;">
+          <strong>Cohorte</strong> y <strong>email</strong> NO se editan aquí — la cohorte vive en el tab CRM (con su FK)
+          y el email rompería el login. Para esos, usa el tab CRM o contacta a soporte.
+        </div>
+      </form>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" type="button" id="btn-ec-cancel">Cancelar</button>
+      <button class="btn btn-accent" type="button" id="btn-ec-save">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de link generado -->
+<div id="acceso-modal" class="modal-overlay hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 1000; display: none; align-items: center; justify-content: center; padding: var(--space-4);">
+  <div style="background: var(--surface); border-radius: var(--radius-lg); max-width: 640px; width: 100%; padding: var(--space-8); box-shadow: var(--shadow-card-hover);">
+    <h3 id="acceso-modal-titulo" style="margin: 0 0 var(--space-3); font-size: var(--text-lg);">Link generado</h3>
+    <p id="acceso-modal-detalle" class="text-muted" style="font-size: 13px; line-height: 1.55; margin-bottom: var(--space-4);"></p>
+    <div style="background: var(--surface-3); border: 1px solid var(--border-soft); border-radius: var(--radius-md); padding: var(--space-3); margin-bottom: var(--space-3);">
+      <textarea id="acceso-modal-link" readonly style="width: 100%; min-height: 90px; border: none; background: transparent; font-family: var(--font-mono); font-size: 11px; resize: vertical; outline: none;"></textarea>
+    </div>
+    <div style="display: flex; gap: var(--space-2); flex-wrap: wrap;">
+      <button class="btn btn-accent" id="btn-copiar-link">Copiar link</button>
+      <button class="btn btn-secondary" id="btn-abrir-link">Abrir en pestaña nueva</button>
+      <button class="btn btn-ghost" id="btn-cerrar-modal" style="margin-left: auto;">Cerrar</button>
+    </div>
+    <p class="text-muted" style="margin-top: var(--space-4); font-size: 11px;">Este link vence en 1 hora. Quedó registrado en webhook_log con tu email como solicitante.</p>
+  </div>
+</div>
+
+<div style="background: var(--surface-2); border-bottom: 1px solid var(--border-soft); padding: var(--space-3) 0;">
+  <div class="container-wide" style="padding: 0 var(--space-8); display: flex; gap: var(--space-3); flex-wrap: wrap; align-items: center;">
+    <button class="filter-chip active" data-tab="hub">Hoy</button>
+    <button class="filter-chip" data-tab="estado">Estado</button>
+    <button class="filter-chip" data-tab="salud">Salud</button>
+    <button class="filter-chip" data-tab="tracker">Tracker</button>
+    <button class="filter-chip" data-tab="crm">CRM</button>
+    <button class="filter-chip" data-tab="bitacora">Bitácora</button>
+    <button class="filter-chip" data-tab="perfil">Perfil completo</button>
+    <button class="filter-chip" data-tab="marca">Marca y Oferta</button>
+    <button class="filter-chip" data-tab="regenesis">Re-Génesis</button>
+    <button class="filter-chip" data-tab="datos">Datos</button>
+    <button class="filter-chip" data-tab="asignaciones">Equipo asignado</button>
+    <button class="filter-chip" data-tab="historial">Historial</button>
+
+    <!-- Acciones del cliente (admin/moderador). Lector solo ve los informativos.
+         Estilo filter-chip para que se vean iguales a los tabs de arriba. -->
+    <div class="cliente-acciones" style="margin-left: auto; display: flex; gap: var(--space-3); flex-wrap: wrap;">
+      <button type="button" class="filter-chip" id="btn-editar-cliente" title="Edita nombre, teléfono, país, ciudad, modalidad, cohorte del cliente.">✎ Editar datos</button>
+      <button type="button" class="filter-chip" id="btn-ver-como-cliente" title="Abre la plataforma del cliente en modo lectura (?view_as=).">↗ Ver como cliente</button>
+      <button type="button" class="filter-chip" id="btn-ver-libro" title="Abre el libro de transformación del cliente.">▢ Ver libro</button>
+      <button type="button" class="filter-chip" id="btn-acceso-cliente" title="Genera un magic link para que el cliente entre a la plataforma sin contraseña.">⚿ Magic link</button>
+      <button type="button" class="filter-chip" id="btn-reset-password" title="Genera una contraseña temporal nueva. El cliente debe cambiarla en su próximo login.">🔑 Password temporal</button>
+      <button type="button" class="filter-chip" id="btn-eliminar-cliente" title="Borra al cliente y todos sus datos. NO se puede deshacer." style="color: #B91C1C; border-color: rgba(185,28,28,0.3);">✕ Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<main class="container-wide" id="main">
+
+  <div id="loading-state" class="text-center" style="padding: var(--space-16);">
+    <span class="spinner" style="color: var(--accent);"></span>
+    <p class="text-muted mt-4">Cargando datos del cliente...</p>
+  </div>
+
+  <!-- TAB HUB -->
+  <section id="tab-hub" class="hidden">
+    <span class="eyebrow" id="hub-eyebrow">CLIENTE</span>
+    <h1 class="greeting-lg" id="hub-saludo">Hub del cliente.</h1>
+    <p class="lead" id="hub-intro"></p>
+
+    <div class="progress-strip" style="margin-top: var(--space-8);">
+      <div class="progress-strip-item">
+        <span class="progress-strip-num" id="kpi-productos">-</span>
+        <span class="progress-strip-label">Productos</span>
+      </div>
+      <div class="progress-strip-divider"></div>
+      <div class="progress-strip-item">
+        <span class="progress-strip-num" id="kpi-salud">-</span>
+        <span class="progress-strip-label">Salud promedio</span>
+      </div>
+      <div class="progress-strip-divider"></div>
+      <div class="progress-strip-item">
+        <span class="progress-strip-num" id="kpi-tema">-</span>
+        <span class="progress-strip-label">Re-Génesis</span>
+      </div>
+      <div class="progress-strip-divider"></div>
+      <div class="progress-strip-item">
+        <span class="progress-strip-num" id="kpi-dias">-</span>
+        <span class="progress-strip-label">Días en programa</span>
+      </div>
+    </div>
+
+    <div class="section-h">
+      <span class="section-h-title">Sus acciones del día (lo que vería al entrar)</span>
+      <span class="section-h-meta">SIMULADO</span>
+    </div>
+    <div id="acciones-cliente"></div>
+  </section>
+
+  <!-- TAB ESTADO (Fase 2: estado vigente, transiciones, etiquetas, timeline) -->
+  <section id="tab-estado" class="hidden">
+    <div style="display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap;">
+      <div>
+        <span class="eyebrow">CICLO COMERCIAL</span>
+        <h1 class="greeting-lg">Estado y etiquetas.</h1>
+        <p class="lead">Posición vigente en el pipeline, transiciones permitidas, etiquetas operativas e historial completo.</p>
+      </div>
+    </div>
+
+    <!-- ===== Estado vigente + acción ===== -->
+    <div class="grid grid-2" style="margin-top: var(--space-8);">
+      <div class="card">
+        <span class="eyebrow eyebrow-accent">ESTADO VIGENTE</span>
+        <div style="margin-top: var(--space-3); display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap;">
+          <div id="estado-badge-grande"></div>
+          <span class="text-muted" style="font-size: var(--text-xs);" id="estado-desde">-</span>
+        </div>
+        <p class="text-muted" style="font-size: var(--text-sm); margin-top: var(--space-3);" id="estado-motivo"></p>
+        <div id="estado-cambiado-por" class="text-muted" style="font-size: var(--text-xs); margin-top: var(--space-2);"></div>
+      </div>
+
+      <div class="card">
+        <span class="eyebrow eyebrow-accent">CAMBIAR ESTADO</span>
+        <p class="text-muted" style="font-size: var(--text-sm); margin: var(--space-2) 0 var(--space-3);">Solo se muestran las transiciones permitidas para tu rol.</p>
+        <div id="estado-transiciones" style="display: flex; flex-direction: column; gap: var(--space-2);"></div>
+      </div>
+    </div>
+
+    <!-- ===== Etiquetas ===== -->
+    <div class="section-h" style="margin-top: var(--space-10);">
+      <span class="section-h-title">Etiquetas operativas</span>
+      <span class="section-h-meta" id="etiquetas-count">-</span>
+    </div>
+    <div class="card">
+      <div id="etiquetas-aplicadas" style="display: flex; flex-wrap: wrap; gap: var(--space-2); margin-bottom: var(--space-4);"></div>
+      <div style="display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap;">
+        <select class="field-input" id="etiqueta-select" style="max-width: 320px;">
+          <option value="">Seleccionar etiqueta para agregar...</option>
+        </select>
+        <button class="btn btn-accent btn-sm" id="btn-agregar-etiqueta">+ Aplicar</button>
+      </div>
+    </div>
+
+    <!-- ===== Timeline ===== -->
+    <div class="section-h" style="margin-top: var(--space-10);">
+      <span class="section-h-title">Historial de estados</span>
+      <span class="section-h-meta" id="timeline-count">-</span>
+    </div>
+    <div class="card" id="estado-timeline">
+      <p class="text-muted">Cargando...</p>
+    </div>
+
+  </section>
+
+  <!-- MODAL: crear calendario de pagos -->
+  <div class="modal-backdrop hidden" id="modal-finanzas">
+    <div class="modal">
+      <div class="modal-head">
+        <span class="modal-title">Crear calendario de pagos</span>
+        <button class="modal-close" data-close-finanzas>✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: var(--text-sm); line-height: 1.55; color: var(--text-muted); margin-bottom: var(--space-3);">
+          Esto crea un snapshot inmutable del deal + N filas de pagos pendientes. Una vez creado, los pagos individuales se editan, pero el snapshot queda como auditoría.
+        </p>
+        <div class="field">
+          <label class="field-label">Monto total del programa (USD) *</label>
+          <input class="field-input" id="ff-monto-total" type="number" min="0" step="0.01" placeholder="3500">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+          <div class="field">
+            <label class="field-label">Modalidad *</label>
+            <select class="field-input" id="ff-modalidad"></select>
+          </div>
+          <div class="field">
+            <label class="field-label">Número de cuotas *</label>
+            <input class="field-input" id="ff-n-cuotas" type="number" min="1" max="36" value="1">
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+          <div class="field">
+            <label class="field-label">Fecha primer pago *</label>
+            <input class="field-input" id="ff-fecha-primer" type="date">
+          </div>
+          <div class="field">
+            <label class="field-label">Frecuencia (días entre cuotas)</label>
+            <input class="field-input" id="ff-frecuencia" type="number" min="1" value="30">
+            <div class="field-help">30 = mensual (default).</div>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+          <div class="field">
+            <label class="field-label">Closer (quien cerró la venta)</label>
+            <select class="field-input" id="ff-closer"><option value="">(no especificado)</option></select>
+          </div>
+          <div class="field">
+            <label class="field-label">Método de pago preferido</label>
+            <select class="field-input" id="ff-metodo"><option value="">(no especificado)</option></select>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">Notas (opcional)</label>
+          <textarea class="field-input field-textarea" id="ff-notas" placeholder="Descuentos aplicados, condiciones especiales..."></textarea>
+        </div>
+        <div id="ff-preview" class="field-help-block" style="margin-top: var(--space-3); display: none;">
+          <strong>Vista previa:</strong> <span id="ff-preview-text"></span>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" data-close-finanzas>Cancelar</button>
+        <button class="btn btn-accent" id="btn-confirmar-finanzas">Crear calendario</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: marcar pago como pagado -->
+  <div class="modal-backdrop hidden" id="modal-marcar-pago">
+    <div class="modal">
+      <div class="modal-head">
+        <span class="modal-title">Marcar pago como pagado</span>
+        <button class="modal-close" data-close-pagar>✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="mp-pago-info" style="padding: var(--space-3); background: var(--surface-2); border-radius: var(--radius-sm); margin-bottom: var(--space-3); font-size: var(--text-sm);"></div>
+        <div class="field">
+          <label class="field-label">Fecha de pago real</label>
+          <input class="field-input" id="mp-fecha" type="date">
+          <div class="field-help">Si lo dejas vacío, usa hoy.</div>
+        </div>
+        <div class="field">
+          <label class="field-label">Método de pago</label>
+          <select class="field-input" id="mp-metodo"></select>
+        </div>
+        <div class="field">
+          <label class="field-label">Referencia externa (invoice ID, transacción, etc.)</label>
+          <input class="field-input" id="mp-referencia" maxlength="200">
+        </div>
+        <div class="field">
+          <label class="field-label">Notas (opcional)</label>
+          <textarea class="field-input field-textarea" id="mp-notas" placeholder="Cualquier contexto del pago"></textarea>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" data-close-pagar>Cancelar</button>
+        <button class="btn btn-accent" id="btn-confirmar-pago">Confirmar pago</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: confirmar transición con motivo/categoría -->
+  <div class="modal-backdrop hidden" id="modal-transicion">
+    <div class="modal">
+      <div class="modal-head">
+        <span class="modal-title" id="modal-transicion-titulo">Confirmar cambio</span>
+        <button class="modal-close" data-close-transicion>✕</button>
+      </div>
+      <div class="modal-body">
+        <!-- Visualización desde → hacia -->
+        <div style="display: flex; align-items: center; justify-content: center; gap: var(--space-3); padding: var(--space-4); background: var(--surface-2); border-radius: var(--radius-md); margin-bottom: var(--space-4);">
+          <div style="text-align: center;">
+            <div style="font-family: var(--font-mono); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;">Estado actual</div>
+            <div id="modal-desde-badge"></div>
+          </div>
+          <div style="font-size: 24px; color: var(--accent);">→</div>
+          <div style="text-align: center;">
+            <div style="font-family: var(--font-mono); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;">Nuevo estado</div>
+            <div id="modal-hacia-badge"></div>
+          </div>
+        </div>
+        <p style="font-size: var(--text-sm); line-height: 1.55;" id="modal-transicion-msg"></p>
+        <div class="field" id="modal-motivo-field">
+          <label class="field-label">Motivo *</label>
+          <textarea class="field-input field-textarea" id="modal-motivo" placeholder="Razón breve y específica"></textarea>
+        </div>
+        <div class="field hidden" id="modal-categoria-field">
+          <label class="field-label">Categoría de churn *</label>
+          <select class="field-input" id="modal-categoria"></select>
+        </div>
+        <div class="field">
+          <label class="field-label">Notas internas (opcional)</label>
+          <textarea class="field-input field-textarea" id="modal-notas" placeholder="Contexto adicional para el equipo"></textarea>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" data-close-transicion>Cancelar</button>
+        <button class="btn btn-accent" id="btn-confirmar-transicion">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB SALUD (Fase 4: semáforos engagement + progreso) -->
+  <section id="tab-salud" class="hidden">
+    <div style="display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap;">
+      <div>
+        <span class="eyebrow">DIAGNÓSTICO INSTANTÁNEO</span>
+        <h1 class="greeting-lg">Salud del cliente.</h1>
+        <p class="lead">2 luces que resumen el estado del cliente en un vistazo. Engagement mide qué tan activo está. Progreso mide qué tan cerca está de cumplir la promesa.</p>
+      </div>
+      <div style="display: flex; gap: var(--space-2); flex-wrap: wrap;">
+        <button class="btn btn-secondary btn-sm" id="btn-recalcular-salud">⟳ Recalcular</button>
+        <button class="btn btn-secondary btn-sm" id="btn-override-salud">⚙ Override manual</button>
+      </div>
+    </div>
+
+    <!-- Las 2 luces grandes -->
+    <div class="grid grid-2" style="margin-top: var(--space-8);">
+      <div class="card" id="card-engagement" style="border-left: 4px solid var(--border);">
+        <div style="display: flex; align-items: center; gap: var(--space-4);">
+          <div id="luz-engagement"></div>
+          <div style="flex: 1; min-width: 0;">
+            <span class="eyebrow eyebrow-accent">ENGAGEMENT</span>
+            <div style="font-size: var(--text-2xl); font-weight: 600; letter-spacing: -0.02em; margin-top: 4px;" id="eng-color-label">-</div>
+            <div style="font-family: var(--font-mono); font-size: var(--text-sm); color: var(--text-muted);" id="eng-score">-</div>
+          </div>
+        </div>
+        <div id="eng-razones" style="margin-top: var(--space-4);"></div>
+      </div>
+
+      <div class="card" id="card-progreso" style="border-left: 4px solid var(--border);">
+        <div style="display: flex; align-items: center; gap: var(--space-4);">
+          <div id="luz-progreso"></div>
+          <div style="flex: 1; min-width: 0;">
+            <span class="eyebrow eyebrow-accent">PROGRESO</span>
+            <div style="font-size: var(--text-2xl); font-weight: 600; letter-spacing: -0.02em; margin-top: 4px;" id="prog-color-label">-</div>
+            <div style="font-family: var(--font-mono); font-size: var(--text-sm); color: var(--text-muted);" id="prog-score">-</div>
+          </div>
+        </div>
+        <div id="prog-razones" style="margin-top: var(--space-4);"></div>
+      </div>
+    </div>
+
+    <!-- Override banner -->
+    <div id="override-banner" class="hidden" style="margin-top: var(--space-4); padding: var(--space-4); background: var(--accent-soft-bg); border: 1px solid var(--accent-soft); border-radius: var(--radius-md);">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-3); flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 0;">
+          <strong style="font-size: var(--text-sm);">⚙ Override manual activo</strong>
+          <div class="text-muted" style="font-size: var(--text-xs); margin-top: 4px;" id="override-detalle"></div>
+        </div>
+        <button class="btn btn-ghost btn-sm" id="btn-quitar-override" style="color: var(--error);">Quitar override</button>
+      </div>
+    </div>
+
+    <p class="text-muted" style="font-size: var(--text-xs); margin-top: var(--space-4); line-height: 1.55;">
+      Las señales de engagement y progreso son: días sin login, pagos atrasados, churn, tiempo transcurrido vs duración, lanzamiento, primera venta, caso de éxito.
+      Si el dato calculado no refleja la realidad, usa "Override manual" con un motivo.
+    </p>
+  </section>
+
+  <!-- MODAL: override semáforos -->
+  <div class="modal-backdrop hidden" id="modal-override">
+    <div class="modal">
+      <div class="modal-head">
+        <span class="modal-title">Override manual de semáforos</span>
+        <button class="modal-close" data-close-override>✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: var(--text-sm); color: var(--text-muted); margin-bottom: var(--space-3);">
+          Forza un color diferente al calculado. Útil cuando el sistema no ve algo (ej. cliente avisó por WhatsApp que viajó).
+        </p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+          <div class="field">
+            <label class="field-label">Engagement</label>
+            <select class="field-input" id="ov-engagement">
+              <option value="">(usar calculado)</option>
+              <option value="verde">Verde</option>
+              <option value="amarillo">Amarillo</option>
+              <option value="rojo">Rojo</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label">Progreso</label>
+            <select class="field-input" id="ov-progreso">
+              <option value="">(usar calculado)</option>
+              <option value="verde">Verde</option>
+              <option value="amarillo">Amarillo</option>
+              <option value="rojo">Rojo</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">Motivo (requerido)</label>
+          <textarea class="field-input field-textarea" id="ov-motivo" placeholder="Ej: Cliente avisó que vuelve la próxima semana"></textarea>
+        </div>
+        <div class="field">
+          <label class="field-label">Vence (opcional, sin vence = indefinido)</label>
+          <input class="field-input" id="ov-hasta" type="datetime-local">
+          <div class="field-help">Si lo dejas vacío, el override aplica hasta que lo quites manualmente.</div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" data-close-override>Cancelar</button>
+        <button class="btn btn-accent" id="btn-confirmar-override">Aplicar override</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB TRACKER (Fase 5: KPIs últimos 7d + roadmap + tareas + facturación) -->
+  <section id="tab-tracker" class="hidden">
+    <div style="display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap;">
+      <div>
+        <span class="eyebrow">OPERACIÓN DIARIA DEL CLIENTE</span>
+        <h1 class="greeting-lg">Tracker.</h1>
+        <p class="lead">Lo que el cliente registra cada día: KPIs, roadmap, tareas asignadas, facturación mensual.</p>
+      </div>
+      <a id="link-tracker-cfg" href="tracker-config.html" class="btn btn-secondary btn-sm">⚙ Configurar catálogo</a>
+    </div>
+
+    <!-- KPIs últimos 7d -->
+    <div class="section-h" style="margin-top: var(--space-8);">
+      <span class="section-h-title">KPIs últimos 7 días</span>
+      <span class="section-h-meta" id="tracker-kpis-meta">-</span>
+    </div>
+    <div class="card">
+      <div id="tracker-kpis-tabla"></div>
+    </div>
+
+    <!-- Roadmap -->
+    <div class="section-h" style="margin-top: var(--space-8);">
+      <span class="section-h-title">Roadmap del programa</span>
+      <span class="section-h-meta" id="tracker-roadmap-meta">-</span>
+    </div>
+    <div class="card">
+      <div id="tracker-roadmap-lista"></div>
+    </div>
+
+    <!-- Tareas -->
+    <div class="section-h" style="margin-top: var(--space-8);">
+      <span class="section-h-title">Tareas asignadas</span>
+      <button class="btn btn-accent btn-sm" id="btn-add-tarea">+ Nueva tarea</button>
+    </div>
+    <div class="card">
+      <div id="tracker-tareas-lista"></div>
+    </div>
+
+    <!-- Facturación -->
+    <div class="section-h" style="margin-top: var(--space-8);">
+      <span class="section-h-title">Facturación mensual del cliente</span>
+      <span class="section-h-meta" id="tracker-fact-meta">-</span>
+    </div>
+    <div class="card">
+      <div id="tracker-fact-lista"></div>
+    </div>
+
+    <!-- Sesiones 1:1 del cliente -->
+    <div class="section-h" style="margin-top: var(--space-8);">
+      <span class="section-h-title">Sesiones 1:1 con el cliente</span>
+      <a href="sesiones.html" class="text-muted" style="font-size: var(--text-xs); text-decoration: none;">Ver todas →</a>
+    </div>
+    <div class="card">
+      <div id="tracker-sesiones-lista"></div>
+    </div>
+  </section>
+
+  <!-- MODAL: nueva tarea -->
+  <div class="modal-backdrop hidden" id="modal-tarea">
+    <div class="modal">
+      <div class="modal-head">
+        <span class="modal-title">Asignar tarea</span>
+        <button class="modal-close" data-close-tarea>✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="field">
+          <label class="field-label">Título *</label>
+          <input class="field-input" id="tar-titulo" maxlength="200" placeholder="Ej: Publicar 3 posts en LinkedIn esta semana">
+        </div>
+        <div class="field">
+          <label class="field-label">Detalle</label>
+          <textarea class="field-input field-textarea" id="tar-detalle"></textarea>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-3);">
+          <div class="field">
+            <label class="field-label">Prioridad</label>
+            <select class="field-input" id="tar-prioridad">
+              <option value="alta">Alta</option>
+              <option value="media" selected>Media</option>
+              <option value="baja">Baja</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label">Esfuerzo (min)</label>
+            <input class="field-input" id="tar-esfuerzo" type="number" min="0">
+          </div>
+          <div class="field">
+            <label class="field-label">Fecha límite</label>
+            <input class="field-input" id="tar-fecha" type="date">
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" data-close-tarea>Cancelar</button>
+        <button class="btn btn-accent" id="btn-guardar-tarea">Asignar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB CRM (Fase 1: vehículo, arquetipo, enlaces, fechas operativas, churn) -->
+  <section id="tab-crm" class="hidden">
+    <div style="display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap;">
+      <div>
+        <span class="eyebrow">SEGUIMIENTO COMERCIAL</span>
+        <h1 class="greeting-lg">CRM del cliente.</h1>
+        <p class="lead">Vehículo del negocio, arquetipo estratégico, enlaces operativos, fechas del programa y estado de salida.</p>
+      </div>
+    </div>
+
+    <!-- ===== STRIP DE FECHAS OPERATIVAS ===== -->
+    <div class="progress-strip" style="margin-top: var(--space-8);">
+      <div class="progress-strip-item">
+        <span class="progress-strip-num" id="crm-kpi-activacion">-</span>
+        <span class="progress-strip-label">Activación</span>
+      </div>
+      <div class="progress-strip-divider"></div>
+      <div class="progress-strip-item">
+        <span class="progress-strip-num" id="crm-kpi-fin">-</span>
+        <span class="progress-strip-label">Fin contractual</span>
+      </div>
+      <div class="progress-strip-divider"></div>
+      <div class="progress-strip-item">
+        <span class="progress-strip-num" id="crm-kpi-dias-restantes">-</span>
+        <span class="progress-strip-label">Días restantes</span>
+      </div>
+      <div class="progress-strip-divider"></div>
+      <div class="progress-strip-item">
+        <span class="progress-strip-num" id="crm-kpi-sesiones">0</span>
+        <span class="progress-strip-label">Sesiones 1:1</span>
+      </div>
+    </div>
+
+    <!-- ===== GRID 2 COL: NEGOCIO + ARQUETIPO ===== -->
+    <div class="grid grid-2" style="margin-top: var(--space-8);">
+
+      <!-- BLOQUE: VEHÍCULO + PROMESA + PRECIO -->
+      <div class="card">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--space-4);">
+          <span class="eyebrow eyebrow-accent">▦ NEGOCIO DEL CLIENTE</span>
+          <button class="btn btn-ghost btn-sm" id="btn-crm-edit-negocio">Editar</button>
+        </div>
+        <form id="crm-form-negocio" class="hidden">
+          <div class="field">
+            <label class="field-label">Vehículo del negocio</label>
+            <select class="field-input" id="f-vehiculo_negocio">
+              <option value="">(no definido)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label">Nicho / mercado</label>
+            <input class="field-input" id="f-nicho_mercado" maxlength="200" placeholder="Ej. founders SaaS B2B con $10K-$50K MRR">
+          </div>
+          <div class="field">
+            <label class="field-label">Promesa de transformación</label>
+            <textarea class="field-input field-textarea" id="f-promesa_transformacion" placeholder="Ej. 20% más conversión en 30 días, medible"></textarea>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+            <div class="field">
+              <label class="field-label">Precio oferta principal (USD)</label>
+              <input class="field-input" id="f-precio_oferta_principal_usd" type="number" min="0" step="1" placeholder="3500">
+            </div>
+            <div class="field">
+              <label class="field-label">LTV oferta (USD)</label>
+              <input class="field-input" id="f-ltv_oferta_principal_usd" type="number" min="0" step="1" placeholder="12000">
+            </div>
+          </div>
+          <div style="display: flex; gap: var(--space-2);">
+            <button type="submit" class="btn btn-accent btn-sm">Guardar</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-crm-cancel-negocio">Cancelar</button>
+          </div>
+        </form>
+        <div id="crm-view-negocio">
+          <div class="fila-readonly"><span class="fila-readonly-label">Vehículo</span><span class="fila-readonly-valor" id="v-vehiculo_negocio">-</span></div>
+          <div class="fila-readonly"><span class="fila-readonly-label">Nicho</span><span class="fila-readonly-valor" id="v-nicho_mercado">-</span></div>
+          <div class="fila-readonly"><span class="fila-readonly-label">Promesa</span><span class="fila-readonly-valor" id="v-promesa_transformacion">-</span></div>
+          <div class="fila-readonly"><span class="fila-readonly-label">Precio oferta</span><span class="fila-readonly-valor" id="v-precio_oferta_principal_usd">-</span></div>
+          <div class="fila-readonly"><span class="fila-readonly-label">LTV oferta</span><span class="fila-readonly-valor" id="v-ltv_oferta_principal_usd">-</span></div>
+        </div>
+      </div>
+
+      <!-- BLOQUE: ARQUETIPO ESTRATÉGICO -->
+      <div class="card">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--space-4);">
+          <span class="eyebrow eyebrow-accent">◇ ARQUETIPO ESTRATÉGICO</span>
+          <button class="btn btn-ghost btn-sm" id="btn-crm-edit-arquetipo">Editar</button>
+        </div>
+        <form id="crm-form-arquetipo" class="hidden">
+          <div class="field">
+            <label class="field-label">Arquetipo</label>
+            <select class="field-input" id="f-arquetipo"></select>
+            <div class="field-help" id="f-arquetipo-desc"></div>
+          </div>
+          <div class="field">
+            <label class="field-label">Sub-arquetipo (opcional)</label>
+            <input class="field-input" id="f-sub_arquetipo" maxlength="80" placeholder="Ej. Constructor con bloqueo de cierre">
+          </div>
+          <div class="field">
+            <label class="field-label">Razón / contexto</label>
+            <textarea class="field-input field-textarea" id="f-razon_arquetipo" placeholder="¿Por qué este arquetipo? Útil para el mentor."></textarea>
+          </div>
+          <div style="display: flex; gap: var(--space-2);">
+            <button type="submit" class="btn btn-accent btn-sm">Guardar</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-crm-cancel-arquetipo">Cancelar</button>
+          </div>
+        </form>
+        <div id="crm-view-arquetipo">
+          <div id="arquetipo-badge-wrap" style="margin-bottom: var(--space-3);"></div>
+          <div class="fila-readonly"><span class="fila-readonly-label">Sub-arquetipo</span><span class="fila-readonly-valor" id="v-sub_arquetipo">-</span></div>
+          <div class="fila-readonly"><span class="fila-readonly-label">Razón</span><span class="fila-readonly-valor" id="v-razon_arquetipo">-</span></div>
+          <div class="fila-readonly"><span class="fila-readonly-label">Determinado por</span><span class="fila-readonly-valor" id="v-determinado_por">-</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ENLACES OPERATIVOS ===== -->
+    <div class="section-h" style="margin-top: var(--space-10);">
+      <span class="section-h-title">Enlaces operativos</span>
+      <span class="section-h-meta">VSL · GRABACIÓN · CONTRATO · DRIVE</span>
+    </div>
+    <div class="card">
+      <div id="enlaces-lista" style="display: flex; flex-direction: column; gap: var(--space-2);"></div>
+      <button class="btn btn-accent btn-sm mt-3" id="btn-add-enlace">+ Agregar enlace</button>
+    </div>
+
+    <!-- ===== FECHAS Y PROGRAMA ===== -->
+    <div class="section-h" style="margin-top: var(--space-10);">
+      <span class="section-h-title">Fechas del programa</span>
+      <span class="section-h-meta">CICLO COMERCIAL</span>
+    </div>
+    <div class="card">
+      <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--space-4);">
+        <p class="text-muted" style="font-size: var(--text-sm); margin: 0;">Fechas críticas del ciclo de vida. La fecha fin contractual se autocalcula con duración.</p>
+        <button class="btn btn-ghost btn-sm" id="btn-crm-edit-fechas">Editar</button>
+      </div>
+      <form id="crm-form-fechas" class="hidden">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+          <div class="field">
+            <label class="field-label">Cohorte</label>
+            <select class="field-input" id="f-cohorte_id"><option value="">(sin cohorte)</option></select>
+          </div>
+          <div class="field">
+            <label class="field-label">Duración (días)</label>
+            <input class="field-input" id="f-duracion_contractual_dias" type="number" min="1" placeholder="70">
+            <div class="field-help">Default 70 (10 semanas Re-Génesis). Editable.</div>
+          </div>
+          <div class="field">
+            <label class="field-label">Activación del programa</label>
+            <input class="field-input" id="f-fecha_activacion_programa" type="date">
+          </div>
+          <div class="field">
+            <label class="field-label">Monto total programa (USD)</label>
+            <input class="field-input" id="f-monto_total_programa_usd" type="number" min="0" step="1">
+          </div>
+          <div class="field">
+            <label class="field-label">Lanzamiento (cliente lanzó oferta)</label>
+            <input class="field-input" id="f-launched_at" type="date">
+          </div>
+          <div class="field">
+            <label class="field-label">Primera venta</label>
+            <input class="field-input" id="f-primera_venta_at" type="date">
+          </div>
+        </div>
+        <div style="display: flex; gap: var(--space-2); margin-top: var(--space-3);">
+          <button type="submit" class="btn btn-accent btn-sm">Guardar</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="btn-crm-cancel-fechas">Cancelar</button>
+        </div>
+      </form>
+      <div id="crm-view-fechas" style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+        <div class="fila-readonly"><span class="fila-readonly-label">Cohorte</span><span class="fila-readonly-valor" id="v-cohorte">-</span></div>
+        <div class="fila-readonly"><span class="fila-readonly-label">Duración</span><span class="fila-readonly-valor" id="v-duracion_contractual_dias">-</span></div>
+        <div class="fila-readonly"><span class="fila-readonly-label">Fecha de pago</span><span class="fila-readonly-valor" id="v-fecha_pago">-</span></div>
+        <div class="fila-readonly"><span class="fila-readonly-label">Activación</span><span class="fila-readonly-valor" id="v-fecha_activacion_programa">-</span></div>
+        <div class="fila-readonly"><span class="fila-readonly-label">Fin contractual</span><span class="fila-readonly-valor" id="v-fecha_fin_contractual">-</span></div>
+        <div class="fila-readonly"><span class="fila-readonly-label">Días transcurridos</span><span class="fila-readonly-valor" id="v-dias-transcurridos">-</span></div>
+        <div class="fila-readonly"><span class="fila-readonly-label">Monto total</span><span class="fila-readonly-valor" id="v-monto_total_programa_usd">-</span></div>
+        <div class="fila-readonly"><span class="fila-readonly-label">Lanzamiento</span><span class="fila-readonly-valor" id="v-launched_at">-</span></div>
+        <div class="fila-readonly"><span class="fila-readonly-label">Primera venta</span><span class="fila-readonly-valor" id="v-primera_venta_at">-</span></div>
+        <div class="fila-readonly"><span class="fila-readonly-label">Caso de éxito</span><span class="fila-readonly-valor" id="v-caso_exito_at">-</span></div>
+      </div>
+    </div>
+
+    <!-- ===== FINANZAS DEL DEAL ===== -->
+    <div class="section-h" style="margin-top: var(--space-10);">
+      <span class="section-h-title">Finanzas del programa</span>
+      <span class="section-h-meta" id="fin-meta">CARGANDO</span>
+    </div>
+
+    <!-- Si NO hay finanzas creadas -->
+    <div id="fin-empty" class="card hidden" style="text-align: center; padding: var(--space-7);">
+      <p class="text-muted mb-3">Aún no hay calendario de pagos para este cliente.</p>
+      <div style="display: flex; gap: var(--space-2); justify-content: center; flex-wrap: wrap;">
+        <button class="btn btn-accent" id="btn-crear-finanzas">+ Crear calendario manual</button>
+        <button class="btn btn-secondary" id="btn-sync-ghl-empty">⟳ Sincronizar desde GHL</button>
+      </div>
+      <p class="text-muted" style="font-size: var(--text-xs); margin-top: var(--space-3); line-height: 1.55;">
+        Si el cliente ya pagó por GHL, sincroniza para importar las transacciones reales.
+      </p>
+    </div>
+
+    <!-- Si SÍ hay finanzas -->
+    <div id="fin-presente" class="hidden">
+      <div class="card" style="margin-bottom: var(--space-3);">
+        <div class="progress-strip" style="margin: 0;">
+          <div class="progress-strip-item"><span class="progress-strip-num" id="fin-total">-</span><span class="progress-strip-label">Total del deal</span></div>
+          <div class="progress-strip-divider"></div>
+          <div class="progress-strip-item"><span class="progress-strip-num" id="fin-pagado">-</span><span class="progress-strip-label">Pagado</span></div>
+          <div class="progress-strip-divider"></div>
+          <div class="progress-strip-item"><span class="progress-strip-num" id="fin-pendiente">-</span><span class="progress-strip-label">Pendiente</span></div>
+          <div class="progress-strip-divider"></div>
+          <div class="progress-strip-item"><span class="progress-strip-num" id="fin-progreso">-</span><span class="progress-strip-label">Progreso</span></div>
+        </div>
+      </div>
+
+      <!-- Snapshot del deal -->
+      <div class="card" style="margin-bottom: var(--space-3);">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--space-3);">
+          <span class="eyebrow eyebrow-accent">SNAPSHOT DEL DEAL</span>
+          <span class="text-muted" style="font-size: var(--text-xs);" id="fin-snapshot-creado">-</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+          <div class="fila-readonly"><span class="fila-readonly-label">Modalidad</span><span class="fila-readonly-valor" id="fin-modalidad">-</span></div>
+          <div class="fila-readonly"><span class="fila-readonly-label">Cuotas pactadas</span><span class="fila-readonly-valor" id="fin-cuotas">-</span></div>
+          <div class="fila-readonly"><span class="fila-readonly-label">Monto cuota</span><span class="fila-readonly-valor" id="fin-monto-cuota">-</span></div>
+          <div class="fila-readonly"><span class="fila-readonly-label">Frecuencia</span><span class="fila-readonly-valor" id="fin-frecuencia">-</span></div>
+          <div class="fila-readonly"><span class="fila-readonly-label">Closer</span><span class="fila-readonly-valor" id="fin-closer">-</span></div>
+          <div class="fila-readonly"><span class="fila-readonly-label">Método preferido</span><span class="fila-readonly-valor" id="fin-metodo">-</span></div>
+        </div>
+      </div>
+
+      <!-- Tabla de pagos -->
+      <div class="card">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--space-3); gap: var(--space-2); flex-wrap: wrap;">
+          <span class="eyebrow eyebrow-accent">CALENDARIO DE PAGOS</span>
+          <div style="display: flex; gap: var(--space-2); flex-wrap: wrap;">
+            <button class="btn btn-secondary btn-sm" id="btn-sync-ghl-presente" title="Importa transacciones nuevas desde GoHighLevel">⟳ Sync GHL</button>
+            <button class="btn btn-secondary btn-sm" id="btn-agregar-upsell">+ Upsell/ajuste</button>
+          </div>
+        </div>
+        <div id="fin-tabla-pagos"></div>
+      </div>
+    </div>
+
+    <!-- ===== CHURN (solo si churn_at no es null) ===== -->
+    <div id="crm-churn-block" class="hidden">
+      <div class="section-h" style="margin-top: var(--space-10);">
+        <span class="section-h-title" style="color: var(--error);">Salida del programa</span>
+        <span class="section-h-meta">CHURN</span>
+      </div>
+      <div class="card" style="border-color: var(--error);">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+          <div class="fila-readonly"><span class="fila-readonly-label">Fecha</span><span class="fila-readonly-valor" id="v-churn_at">-</span></div>
+          <div class="fila-readonly"><span class="fila-readonly-label">Categoría</span><span class="fila-readonly-valor" id="v-churn_categoria">-</span></div>
+        </div>
+        <div class="fila-readonly"><span class="fila-readonly-label">Motivo</span><span class="fila-readonly-valor" id="v-churn_motivo">-</span></div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- TAB BITÁCORA DEL EQUIPO -->
+  <section id="tab-bitacora" class="hidden">
+    <div style="display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap;">
+      <div>
+        <span class="eyebrow">NOTAS DEL EQUIPO</span>
+        <h1 class="greeting-lg">Bitácora del cliente.</h1>
+        <p class="lead">Lo que cualquier mentor escribe acá lo ve el resto. Deja contexto después de cada sesión: qué pasó, qué viste, qué hay que hacer.</p>
+      </div>
+    </div>
+
+    <!-- Form para nueva nota -->
+    <div class="card" style="margin-top: var(--space-6);" id="bita-form-wrap">
+      <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--space-3);">
+        <span class="eyebrow eyebrow-accent">✎ NUEVA NOTA</span>
+        <span class="text-muted" style="font-size: var(--text-xs);" id="bita-autor-hint"></span>
+      </div>
+      <div class="field">
+        <textarea class="field-input field-textarea" id="bita-contenido" rows="4" placeholder="Qué pasó en la sesión, qué se acordó, qué quedó pendiente, alertas para el siguiente mentor..." maxlength="4000"></textarea>
+      </div>
+      <div style="display: flex; gap: var(--space-3); align-items: center; flex-wrap: wrap;">
+        <div class="field" style="margin: 0; min-width: 180px;">
+          <label class="field-label">Tipo</label>
+          <select class="field-input" id="bita-tipo">
+            <option value="general">◇ General</option>
+            <option value="llamada">☏ Llamada/Sesión</option>
+            <option value="alerta">! Alerta</option>
+            <option value="seguimiento">◐ Seguimiento</option>
+            <option value="contexto">◈ Contexto</option>
+          </select>
+        </div>
+        <label style="display: flex; align-items: center; gap: 6px; font-size: var(--text-sm); cursor: pointer;">
+          <input type="checkbox" id="bita-pinned"> Fijar arriba
+        </label>
+        <div style="flex: 1;"></div>
+        <button class="btn btn-accent btn-sm" id="bita-btn-publicar">Publicar nota</button>
+      </div>
+    </div>
+
+    <!-- Lista de notas -->
+    <div style="margin-top: var(--space-6);">
+      <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--space-3);">
+        <span class="eyebrow">HISTORIAL</span>
+        <span class="text-muted" style="font-size: var(--text-xs);" id="bita-count">0 notas</span>
+      </div>
+      <div id="bita-lista"></div>
+    </div>
+  </section>
+
+  <!-- TAB PERFIL COMPLETO -->
+  <section id="tab-perfil" class="hidden">
+    <div style="display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap;">
+      <div>
+        <span class="eyebrow">DIAGNÓSTICO PRE-SESIÓN</span>
+        <h1 class="greeting-lg">Perfil completo del cliente.</h1>
+        <p class="lead">Lo que el cliente ha llenado en sus 4 capas. Léelo antes de cada sesión 1:1.</p>
+      </div>
+      <div style="display: flex; gap: var(--space-2); flex-wrap: wrap;">
+        <button class="btn btn-secondary" id="btn-sync-ghl" title="Importa custom fields del form GHL del closer (modalidad, facturación, ICP, bloqueos, etc.) sin sobrescribir lo que el cliente ya llenó.">⟳ Sincronizar desde GHL</button>
+        <button class="btn btn-secondary" id="btn-export-json">↓ Exportar JSON</button>
+        <button class="btn btn-secondary" id="btn-export-csv">↓ Exportar CSV</button>
+        <button class="btn btn-secondary" id="btn-export-txt">↓ Exportar texto</button>
+      </div>
+    </div>
+
+    <!-- Overview de completitud -->
+    <div class="progress-strip" style="margin-top: var(--space-8);">
+      <div class="progress-strip-item">
+        <span class="progress-strip-num" id="perf-global">-</span>
+        <span class="progress-strip-label">Global</span>
+      </div>
+      <div class="progress-strip-divider"></div>
+      <div class="progress-strip-item">
+        <span class="progress-strip-num" id="perf-datos">-</span>
+        <span class="progress-strip-label">Datos personales</span>
+      </div>
+      <div class="progress-strip-divider"></div>
+      <div class="progress-strip-item">
+        <span class="progress-strip-num" id="perf-esencia">-</span>
+        <span class="progress-strip-label">Esencia</span>
+      </div>
+      <div class="progress-strip-divider"></div>
+      <div class="progress-strip-item">
+        <span class="progress-strip-num" id="perf-negocio">-</span>
+        <span class="progress-strip-label">Negocio</span>
+      </div>
+      <div class="progress-strip-divider"></div>
+      <div class="progress-strip-item">
+        <span class="progress-strip-num" id="perf-diag">-</span>
+        <span class="progress-strip-label">Diagnóstico</span>
+      </div>
+    </div>
+
+    <!-- Si todo vacío, banner -->
+    <div id="perfil-empty" class="empty hidden">
+      <div class="empty-icon">○</div>
+      <h3 class="empty-title">Este cliente aún no ha llenado nada de su perfil</h3>
+      <p class="empty-detail">Considera escribirle para invitarlo a llenarlo. Sin esto, todo lo que generemos para él sale genérico.</p>
+    </div>
+
+    <!-- Capa: Esencia -->
+    <div class="section-h" style="margin-top: var(--space-10);">
+      <span class="section-h-title">◈ Esencia · cómo se ve y cómo habla</span>
+      <span class="section-h-meta" id="meta-esencia">-</span>
+    </div>
+    <div class="grid grid-2" id="grid-esencia"></div>
+
+    <!-- Capa: Negocio -->
+    <div class="section-h" style="margin-top: var(--space-10);">
+      <span class="section-h-title">▦ Negocio · estado real hoy</span>
+      <span class="section-h-meta" id="meta-negocio">-</span>
+    </div>
+    <div class="grid grid-2" id="grid-negocio"></div>
+
+    <!-- Capa: Diagnóstico Neurohackers -->
+    <div class="section-h" style="margin-top: var(--space-10);">
+      <span class="section-h-title">◇ Diagnóstico Neurohackers · por qué profundo</span>
+      <span class="section-h-meta" id="meta-diag">-</span>
+    </div>
+    <div id="grid-diag"></div>
+
+  </section>
+
+  <!-- TAB MARCA -->
+  <section id="tab-marca" class="hidden">
+    <span class="eyebrow">CATÁLOGO DEL CLIENTE</span>
+    <h1 class="greeting-lg">Sus productos y servicios.</h1>
+    <p class="lead">Todo lo que el cliente ha registrado en su Marca y Oferta.</p>
+
+    <div id="productos-lista" style="margin-top: var(--space-6);"></div>
+  </section>
+
+  <!-- TAB ASIGNACIONES -->
+  <section id="tab-asignaciones" class="hidden">
+    <div style="display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap;">
+      <div>
+        <span class="eyebrow">QUIÉN ATIENDE A ESTE CLIENTE</span>
+        <h1 class="greeting-lg">Equipo asignado.</h1>
+        <p class="lead">Miembros del equipo que tienen acceso a este cliente, con su función específica. Los que NO estén aquí, no lo ven.</p>
+      </div>
+      <button class="btn btn-accent" id="btn-asignar-nuevo" style="display: none;">+ Asignar miembro</button>
+    </div>
+
+    <div id="asignaciones-lista" style="margin-top: var(--space-6);"></div>
+  </section>
+
+  <!-- TAB HISTORIAL -->
+  <section id="tab-historial" class="hidden">
+    <span class="eyebrow">QUIÉN TOCÓ QUÉ Y CUÁNDO</span>
+    <h1 class="greeting-lg">Historial de cambios.</h1>
+    <p class="lead">Cada vez que tú o alguien del equipo modifica datos de este cliente, queda registrado aquí. El cliente nunca aparece como autor (eso son sus propias ediciones desde la plataforma).</p>
+
+    <div id="historial-lista" style="margin-top: var(--space-6);"></div>
+  </section>
+
+  <!-- TAB RE-GÉNESIS -->
+  <section id="tab-regenesis" class="hidden">
+    <span class="eyebrow">PROGRAMA DE 70 DÍAS</span>
+    <h1 class="greeting-lg">Resumen Re-Génesis.</h1>
+    <p class="lead">Datos del cliente, pago, contratos firmados y avance del programa.</p>
+
+    <div id="regenesis-resumen" style="margin-top: var(--space-6);"></div>
+  </section>
+
+  <!-- TAB DATOS -->
+  <section id="tab-datos" class="hidden">
+    <span class="eyebrow">FICHA OPERATIVA</span>
+    <h1 class="greeting-lg">Datos del cliente.</h1>
+    <p class="lead">Información que tenemos en Supabase y GHL.</p>
+
+    <div class="grid grid-2" id="datos-grid" style="margin-top: var(--space-6);"></div>
+  </section>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/shared/scripts/config.js?v=20260797"></script>
+<script src="/shared/scripts/supabase-client.js?v=20260797"></script>
+  <script src="/shared/scripts/cache.js?v=20260797"></script>
+<script src="/shared/scripts/utils.js?v=20260797"></script>
+<script src="/shared/scripts/auth.js?v=20260797"></script>
+  <script src="/shared/scripts/event-tracker.js?v=20260797"></script>
+<script src="/shared/scripts/admin-gate.js?v=20260797"></script>
+<script src="/shared/scripts/equipo.js?v=20260797"></script>
+<script src="/shared/scripts/crm.js?v=20260797"></script>
+<script src="/shared/scripts/estados.js?v=20260797"></script>
+<script src="/shared/scripts/finanzas.js?v=20260797"></script>
+<script src="/shared/scripts/salud.js?v=20260797"></script>
+<script src="/shared/scripts/tracker.js?v=20260797"></script>
+<script src="/shared/scripts/sesiones.js?v=20260797"></script>
+<script src="/shared/scripts/pipeline.js?v=20260797"></script>
+<script src="/shared/nav.js?v=20260797"></script>
+<script>
+(async function () {
+  const auth = await window.requireAdmin();
+  if (!auth) return;
+  window.__admin = auth.admin;
+
+  const leadId = window.utils.qs('lead');
+  if (!leadId) {
+    window.utils.toast('Falta lead', 'error');
+    setTimeout(() => location.href = 'index.html', 1200);
+    return;
+  }
+
+  // Admin policy permite leer cualquier lead
+  const { data: lead, error } = await window.db
+    .from('leads')
+    .select('*')
+    .eq('id', leadId)
+    .maybeSingle();
+  if (error || !lead) {
+    window.utils.toast('Cliente no encontrado', 'error');
+    setTimeout(() => location.href = 'index.html', 1200);
+    return;
+  }
+
+  // Exponer lead INMEDIATAMENTE para que los handlers globales (event
+  // delegation del script de abajo) lo puedan leer. Si alguna línea más
+  // adelante en este IIFE falla, los botones siguen funcionando.
+  window.__clienteActual = lead;
+
+  // Productos del cliente (vía admin policy)
+  const { data: productos } = await window.db
+    .from('productos')
+    .select('*')
+    .eq('lead_id', leadId)
+    .neq('estado', 'archivado')
+    .order('created_at', { ascending: true });
+
+  document.getElementById('cliente-nombre').textContent = lead.nombre || lead.email;
+  document.title = `${lead.nombre || lead.email} · Vista admin · Neurohackers`;
+
+  // ====== Tabs ======
+  const tabs = {
+    hub: document.getElementById('tab-hub'),
+    estado: document.getElementById('tab-estado'),
+    salud: document.getElementById('tab-salud'),
+    tracker: document.getElementById('tab-tracker'),
+    crm: document.getElementById('tab-crm'),
+    bitacora: document.getElementById('tab-bitacora'),
+    perfil: document.getElementById('tab-perfil'),
+    marca: document.getElementById('tab-marca'),
+    regenesis: document.getElementById('tab-regenesis'),
+    datos: document.getElementById('tab-datos'),
+    asignaciones: document.getElementById('tab-asignaciones'),
+    historial: document.getElementById('tab-historial'),
+  };
+  // Filtrar entradas null por si alguna section fue removida del DOM:
+  // sin esto, Object.values(tabs).forEach(x => x.classList...) crashea con TypeError
+  // y rompe el click handler de TODOS los tabs.
+  Object.keys(tabs).forEach(k => { if (!tabs[k]) delete tabs[k]; });
+  document.querySelectorAll('[data-tab]').forEach(t => {
+    t.addEventListener('click', (e) => {
+      e.preventDefault();
+      const which = t.dataset.tab;
+      Object.values(tabs).forEach(x => x.classList.add('hidden'));
+      tabs[which].classList.remove('hidden');
+      document.querySelectorAll('[data-tab]').forEach(x => x.classList.remove('active'));
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      t.classList.add('active');
+      // Lazy load contenido por tab
+      if (which === 'estado') cargarEstado();
+      if (which === 'salud') cargarSalud();
+      if (which === 'tracker') cargarTracker();
+      if (which === 'crm') cargarCRM();
+      if (which === 'bitacora') cargarBitacora();
+      if (which === 'asignaciones') cargarAsignaciones();
+      if (which === 'historial') cargarHistorial();
+      if (which === 'regenesis') cargarRegenesis();
+    });
+  });
+  document.querySelector('[data-tab="hub"]').classList.add('active');
+
+  // ====== Hub ======
+  const nombre = (lead.nombre || lead.email.split('@')[0]).split(' ')[0];
+  document.getElementById('hub-eyebrow').textContent = `${lead.email.toUpperCase()} · DÍA DE PROGRAMA`;
+  document.getElementById('hub-saludo').textContent = `${nombre}, hoy hay esto.`;
+
+  const auditadosCount = (productos || []).filter(p => p.salud_score !== null).length;
+  if (!productos || productos.length === 0) {
+    document.getElementById('hub-intro').textContent = 'Aún no tiene productos. Sin esto no podemos generar tareas ni contenido específico. Bloqueante del onboarding.';
+  } else if (auditadosCount < productos.length) {
+    document.getElementById('hub-intro').textContent = `Tiene ${productos.length} producto(s) registrado(s), ${productos.length - auditadosCount} sin diagnosticar.`;
+  } else {
+    document.getElementById('hub-intro').textContent = `Catálogo completo y diagnosticado.`;
+  }
+
+  document.getElementById('kpi-productos').textContent = (productos || []).length;
+  document.getElementById('kpi-salud').textContent = auditadosCount
+    ? Math.round(productos.filter(p=>p.salud_score!==null).reduce((s,p)=>s+p.salud_score,0)/auditadosCount) + '%'
+    : '-';
+  document.getElementById('kpi-tema').textContent = lead.tema_actual_orden ? 'Tema ' + lead.tema_actual_orden : (lead.estado === 'pagado_calentamiento' ? 'Calentamiento' : '-');
+
+  if (lead.fecha_inicio_programa) {
+    const dias = Math.floor((new Date() - new Date(lead.fecha_inicio_programa)) / 86400000);
+    document.getElementById('kpi-dias').textContent = dias + ' d';
+  } else {
+    document.getElementById('kpi-dias').textContent = '-';
+  }
+
+  // Acciones simuladas (mismo algoritmo que el hub real)
+  const cont = document.getElementById('acciones-cliente');
+  if (!productos || productos.length === 0) {
+    cont.innerHTML = `
+      <div class="action">
+        <div class="action-num">1</div>
+        <div class="action-body">
+          <h3 class="action-title">Agregar su primer producto o servicio</h3>
+          <p class="action-detail">El sistema le pide esto como bloqueante. Si lleva muchos días sin hacerlo, conviene contactarlo.</p>
+          <span class="action-meta"><span>BLOQUEANTE</span></span>
+        </div>
+      </div>`;
+  } else {
+    const noAuditado = productos.find(p => p.salud_score === null);
+    if (noAuditado) {
+      cont.innerHTML += `
+        <div class="action">
+          <div class="action-num">1</div>
+          <div class="action-body">
+            <h3 class="action-title">Diagnosticar "${window.utils.escapeHtml(noAuditado.nombre)}"</h3>
+            <p class="action-detail">Producto sin diagnóstico. Al diagnosticarlo dejaríamos 3 tareas concretas para mejorarlo.</p>
+            <span class="action-meta"><span>PRODUCTO · ${window.utils.escapeHtml(window.utils.tipoLabel(noAuditado.tipo))}</span></span>
+          </div>
+        </div>`;
+    }
+    const conTareas = productos.find(p => p.auditoria_tareas?.tareas?.length);
+    if (conTareas) {
+      const t = conTareas.auditoria_tareas.tareas.find(x => x.prioridad === 'alta') || conTareas.auditoria_tareas.tareas[0];
+      cont.innerHTML += `
+        <div class="action">
+          <div class="action-num">${cont.children.length + 1}</div>
+          <div class="action-body">
+            <h3 class="action-title">${window.utils.escapeHtml(t.titulo)}</h3>
+            <p class="action-detail">${window.utils.escapeHtml(t.detalle)}</p>
+            <span class="action-meta">
+              <span>PRODUCTO · ${window.utils.escapeHtml(conTareas.nombre)}</span>
+              <span class="action-meta-dot"></span>
+              <span>${(t.prioridad || 'media').toUpperCase()}</span>
+            </span>
+          </div>
+        </div>`;
+    }
+    if (lead.tema_actual_orden) {
+      cont.innerHTML += `
+        <div class="action">
+          <div class="action-num">${cont.children.length + 1}</div>
+          <div class="action-body">
+            <h3 class="action-title">Su pregunta de hoy en Re-Génesis</h3>
+            <p class="action-detail">Continúa el trabajo emocional. Tema actual: ${lead.tema_actual_orden}.</p>
+            <span class="action-meta"><span>RE-GÉNESIS</span></span>
+          </div>
+        </div>`;
+    }
+    if (cont.children.length === 0) {
+      cont.innerHTML = `<p class="text-muted" style="padding: var(--space-6); text-align:center;">El cliente está al día. No tendría acciones pendientes hoy.</p>`;
+    }
+  }
+
+  // ====== Marca y Oferta ======
+  const prodLista = document.getElementById('productos-lista');
+  if (!productos || productos.length === 0) {
+    prodLista.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">◈</div>
+        <h3 class="empty-title">El cliente no ha registrado productos</h3>
+        <p class="empty-detail">La plataforma no puede ayudarlo hasta que tenga al menos uno.</p>
+      </div>`;
+  } else {
+    prodLista.innerHTML = productos.map(p => {
+      const tareasCount = p.auditoria_tareas?.tareas?.length || 0;
+      return `
+        <div class="producto" style="cursor: default;">
+          <div class="producto-icon">${window.utils.iconoTipo(p.tipo)}</div>
+          <div class="producto-body">
+            <h3 class="producto-title">${window.utils.escapeHtml(p.nombre)}</h3>
+            <div class="producto-tipo">${window.utils.escapeHtml(window.utils.tipoLabel(p.tipo))}${p.precio ? ' · ' + window.utils.formatMoney(p.precio, p.moneda) : ''}</div>
+            ${p.descripcion ? `<p class="producto-resumen">${window.utils.escapeHtml(p.descripcion.slice(0,200))}${p.descripcion.length>200?'...':''}</p>` : ''}
+            ${p.auditoria_diagnostico ? `
+              <div class="ia-block" style="margin-top: var(--space-3);">
+                <div class="ia-block-head"><span class="ia-block-tag">◌ DIAGNÓSTICO · ${p.salud_score}/100</span></div>
+                <p style="font-size: var(--text-sm); line-height: 1.6;">${window.utils.escapeHtml(p.auditoria_diagnostico)}</p>
+              </div>` : ''}
+            <div class="producto-stats">
+              <span class="producto-stat"><span class="producto-stat-num">${p.salud_score ?? '-'}${p.salud_score !== null ? '%' : ''}</span> SALUD</span>
+              <span class="producto-stat"><span class="producto-stat-num">${tareasCount}</span> TAREAS</span>
+              <span class="producto-stat"><span class="producto-stat-num">${p.posts_generados || 0}</span> POSTS</span>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // ====== Datos (ficha operativa) ======
+  const cur = (v) => v === null || v === undefined || v === '' ? '<span class="text-muted">(vacío)</span>' : window.utils.escapeHtml(String(v));
+  const fechaCur = (v) => v ? new Date(v).toLocaleDateString('es-ES', { day:'numeric', month:'long', year:'numeric' }) : cur(null);
+
+  document.getElementById('datos-grid').innerHTML = `
+    <div class="card">
+      <span class="eyebrow">CONTACTO</span>
+      <table style="width: 100%; font-size: var(--text-sm); line-height: 1.8;">
+        <tr><td class="text-muted">Email</td><td><strong>${cur(lead.email)}</strong></td></tr>
+        <tr><td class="text-muted">Nombre</td><td>${cur(lead.nombre)}</td></tr>
+        <tr><td class="text-muted">Teléfono</td><td>${cur(lead.telefono)}</td></tr>
+        <tr><td class="text-muted">País</td><td>${cur(lead.pais)}</td></tr>
+        <tr><td class="text-muted">GHL Contact</td><td><code style="font-size: var(--text-xs);">${cur(lead.ghl_contact_id)}</code></td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <span class="eyebrow">PROGRAMA</span>
+      <table style="width: 100%; font-size: var(--text-sm); line-height: 1.8;">
+        <tr><td class="text-muted">Estado</td><td><strong>${cur(lead.estado)}</strong></td></tr>
+        <tr><td class="text-muted">Modalidad</td><td>${cur(lead.modalidad)}</td></tr>
+        <tr><td class="text-muted">Cuotas</td><td>${cur(lead.cuotas_elegidas)}</td></tr>
+        <tr><td class="text-muted">Fecha pago</td><td>${fechaCur(lead.fecha_pago)}</td></tr>
+        <tr><td class="text-muted">Inicio programa</td><td>${fechaCur(lead.fecha_inicio_programa)}</td></tr>
+        <tr><td class="text-muted">Fin estimado</td><td>${fechaCur(lead.fecha_fin_estimada)}</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <span class="eyebrow">RE-GÉNESIS</span>
+      <table style="width: 100%; font-size: var(--text-sm); line-height: 1.8;">
+        <tr><td class="text-muted">Tema actual</td><td><strong>${lead.tema_actual_orden ? 'Tema ' + lead.tema_actual_orden : cur(null)}</strong></td></tr>
+        <tr><td class="text-muted">Semana actual</td><td>${cur(lead.semana_actual)}</td></tr>
+        <tr><td class="text-muted">Personaje</td><td>${cur(lead.personaje_nombre)}</td></tr>
+        <tr><td class="text-muted">Testimonio mitad</td><td>${lead.testimonio_mitad_dado ? '✓ Dado' : 'Pendiente'}</td></tr>
+        <tr><td class="text-muted">Testimonio final</td><td>${lead.testimonio_final_dado ? '✓ Dado' : 'Pendiente'}</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <span class="eyebrow">CONTRATOS</span>
+      <table style="width: 100%; font-size: var(--text-sm); line-height: 1.8;">
+        <tr><td class="text-muted">Servicio</td><td>${lead.contrato_servicio_firmado_at ? '✓ ' + fechaCur(lead.contrato_servicio_firmado_at) : 'Pendiente'}</td></tr>
+        <tr><td class="text-muted">Waiver</td><td>${lead.contrato_waiver_firmado_at ? '✓ ' + fechaCur(lead.contrato_waiver_firmado_at) : 'Pendiente'}</td></tr>
+        <tr><td class="text-muted">Media release</td><td>${lead.contrato_media_firmado_at ? '✓ ' + fechaCur(lead.contrato_media_firmado_at) : 'Pendiente'}</td></tr>
+      </table>
+    </div>`;
+
+  // ====== TAB PERFIL COMPLETO ======
+  const [esencia, negocio, diagnostico] = await Promise.all([
+    window.db.from('cliente_esencia').select('*').eq('lead_id', leadId).maybeSingle().then(r => r.data),
+    window.db.from('cliente_negocio').select('*').eq('lead_id', leadId).maybeSingle().then(r => r.data),
+    window.db.from('cliente_diagnostico').select('*').eq('lead_id', leadId).maybeSingle().then(r => r.data),
+  ]);
+
+  // Scores (mismo cálculo que perfil.js, simplificado)
+  function fillScore(obj, fields) {
+    if (!obj) return 0;
+    let n = 0;
+    for (const f of fields) {
+      const v = obj[f];
+      if (v === null || v === undefined || v === '') continue;
+      if (Array.isArray(v) && !v.length) continue;
+      if (typeof v === 'object' && !Array.isArray(v) && !Object.keys(v || {}).length) continue;
+      n++;
+    }
+    return Math.round((n / fields.length) * 100);
+  }
+  const NEG_FIELDS = ['modelo_negocio','nombre_negocio','anos_experiencia','sitio_web','redes_sociales',
+    'ingreso_ultimo_mes_usd','meta_facturacion_6m_usd','modelo_pricing','horas_trabajo_semana',
+    'pct_tiempo_marketing_ventas','pct_tiempo_servicio','clientes_activos','equipo_size',
+    'canales_trafico_activos','competidores_principales','ventaja_injusta','tiene_casos_exito',
+    'objetivos_principales','problemas_principales','intentos_si_funcionaron','intentos_no_funcionaron'];
+  const DIAG_FIELDS = ['como_se_describe','referentes_admira','como_se_siente_hoy','como_quiere_sentirse',
+    'como_le_gusta_que_lo_coacheen','como_toma_decisiones','ama_en_un_programa','odia_en_un_programa',
+    'como_descubrio_neurohackers','tiempo_decision_pago','resistencia_antes_de_pagar','epifania_por_que_pago',
+    'por_que_eligio_neurohackers','codigos_corruptos_actuales','miedo_principal_al_escalar',
+    'techo_financiero_trauma','protocolos_soberania_actuales','vision_negocio','el_por_que',
+    'una_cosa_si_exito','tres_objetivos_proximos','por_que_quieres_esto'];
+  const DATOS_FIELDS = ['nombre','telefono','pais','ciudad','fecha_nacimiento','documento_identidad',
+    'direccion_personal','zona_horaria','instagram_handle','persona_confianza'];
+
+  const sDatos = fillScore(lead, DATOS_FIELDS);
+  const sEsencia = esencia?.completitud_score || 0;
+  const sNegocio = fillScore(negocio, NEG_FIELDS);
+  const sDiag = fillScore(diagnostico, DIAG_FIELDS);
+  const sGlobal = Math.round((sDatos + sEsencia + sNegocio + sDiag) / 4);
+
+  document.getElementById('perf-global').textContent = sGlobal + '%';
+  document.getElementById('perf-datos').textContent = sDatos + '%';
+  document.getElementById('perf-esencia').textContent = sEsencia + '%';
+  document.getElementById('perf-negocio').textContent = sNegocio + '%';
+  document.getElementById('perf-diag').textContent = sDiag + '%';
+  document.getElementById('meta-esencia').textContent = sEsencia + '% COMPLETO';
+  document.getElementById('meta-negocio').textContent = sNegocio + '% COMPLETO';
+  document.getElementById('meta-diag').textContent = sDiag + '% COMPLETO';
+
+  if (sGlobal === 0) document.getElementById('perfil-empty').classList.remove('hidden');
+
+  // Helper para renderizar campo readonly
+  const cell = (label, val, eyebrow) => {
+    const valor = val === null || val === undefined || val === '' || (Array.isArray(val) && !val.length)
+      ? '<span class="text-muted" style="font-style: italic;">(vacío)</span>'
+      : Array.isArray(val) ? val.map(v => `<span class="badge badge-accent" style="margin: 2px;">${window.utils.escapeHtml(String(v))}</span>`).join(' ')
+      : `<div style="font-size: var(--text-sm); line-height: 1.6; white-space: pre-wrap;">${window.utils.escapeHtml(String(val))}</div>`;
+    return `<div class="card">${eyebrow ? `<span class="eyebrow">${eyebrow}</span>` : ''}<div style="font-weight: 600; font-size: var(--text-sm); margin: 4px 0 var(--space-2);">${label}</div>${valor}</div>`;
+  };
+
+  // ESENCIA
+  document.getElementById('grid-esencia').innerHTML = !esencia
+    ? `<div class="card text-muted" style="grid-column: 1/-1;">Sin esencia capturada todavía.</div>`
+    : [
+        cell('Propósito', esencia.proposito, 'IDENTIDAD'),
+        cell('Promesa al mundo', esencia.mision_promesa, 'IDENTIDAD'),
+        cell('Historia', esencia.historia_personal, 'IDENTIDAD'),
+        cell('Diferenciador', esencia.diferenciador, 'IDENTIDAD'),
+        cell('Valores', esencia.valores, 'IDENTIDAD'),
+        cell('Cliente ideal (marca)', esencia.icp_marca, 'AUDIENCIA'),
+        cell('Problema principal', esencia.problema_principal, 'AUDIENCIA'),
+        cell('Estilo de voz', esencia.tono_estilo, 'VOZ'),
+        cell('Descripción de voz', esencia.tono_voz, 'VOZ'),
+        cell('Palabras SÍ usa', esencia.palabras_si, 'VOZ'),
+        cell('Palabras NO usa', esencia.palabras_no, 'VOZ'),
+        cell('Referencias', esencia.referencias, 'INSPIRACIÓN'),
+        cell('Canales', esencia.canales_principales, 'INSPIRACIÓN'),
+      ].join('');
+
+  // NEGOCIO
+  document.getElementById('grid-negocio').innerHTML = !negocio
+    ? `<div class="card text-muted" style="grid-column: 1/-1;">Sin info de negocio todavía.</div>`
+    : [
+        cell('Modelo de negocio', negocio.modelo_negocio, 'MODELO'),
+        cell('Nombre del negocio', negocio.nombre_negocio, 'MODELO'),
+        cell('Tipo de entidad', negocio.tipo_entidad, 'MODELO'),
+        cell('Años haciéndolo', negocio.anos_experiencia, 'MODELO'),
+        cell('Sitio web', negocio.sitio_web, 'MODELO'),
+        cell('Redes sociales', negocio.redes_sociales, 'MODELO'),
+        cell('Modelo de pricing', negocio.modelo_pricing, 'MODELO'),
+        cell('Ingreso último mes (USD)', negocio.ingreso_ultimo_mes_usd ? '$' + Number(negocio.ingreso_ultimo_mes_usd).toLocaleString() : null, 'FINANZAS'),
+        cell('Promedio 3m (USD)', negocio.ingreso_promedio_3m_usd ? '$' + Number(negocio.ingreso_promedio_3m_usd).toLocaleString() : null, 'FINANZAS'),
+        cell('Ingreso 12 meses (USD)', negocio.ingreso_12m_usd ? '$' + Number(negocio.ingreso_12m_usd).toLocaleString() : null, 'FINANZAS'),
+        cell('Meta 6 meses (USD)', negocio.meta_facturacion_6m_usd ? '$' + Number(negocio.meta_facturacion_6m_usd).toLocaleString() : null, 'FINANZAS'),
+        cell('Valor promedio cliente', negocio.valor_promedio_compra_usd ? '$' + Number(negocio.valor_promedio_compra_usd).toLocaleString() : null, 'FINANZAS'),
+        cell('LTV cliente', negocio.ltv_cliente_usd ? '$' + Number(negocio.ltv_cliente_usd).toLocaleString() : null, 'FINANZAS'),
+        cell('CAC', negocio.cac_costo_adquisicion_usd ? '$' + Number(negocio.cac_costo_adquisicion_usd).toLocaleString() : null, 'FINANZAS'),
+        cell('Deuda actual', negocio.deuda_actual_usd ? '$' + Number(negocio.deuda_actual_usd).toLocaleString() : null, 'FINANZAS'),
+        cell('Horas/semana', negocio.horas_trabajo_semana, 'TIEMPO'),
+        cell('% Marketing y ventas', negocio.pct_tiempo_marketing_ventas !== null ? negocio.pct_tiempo_marketing_ventas + '%' : null, 'TIEMPO'),
+        cell('% Servicio', negocio.pct_tiempo_servicio !== null ? negocio.pct_tiempo_servicio + '%' : null, 'TIEMPO'),
+        cell('% Operaciones', negocio.pct_tiempo_operaciones !== null ? negocio.pct_tiempo_operaciones + '%' : null, 'TIEMPO'),
+        cell('% Estrategia', negocio.pct_tiempo_estrategia !== null ? negocio.pct_tiempo_estrategia + '%' : null, 'TIEMPO'),
+        cell('Clientes activos', negocio.clientes_activos, 'TRACCIÓN'),
+        cell('Prospectos/mes', negocio.prospectos_mes, 'TRACCIÓN'),
+        cell('Conversión estimada', negocio.conversion_estimada_pct !== null ? negocio.conversion_estimada_pct + '%' : null, 'TRACCIÓN'),
+        cell('Tamaño de equipo', negocio.equipo_size, 'EQUIPO'),
+        cell('Próxima contratación', negocio.proxima_contratacion, 'EQUIPO'),
+        cell('Herramienta de gestión', negocio.herramienta_gestion, 'OPERACIÓN'),
+        cell('Usa CRM', negocio.usa_crm === null ? null : (negocio.usa_crm ? 'Sí' : 'No'), 'OPERACIÓN'),
+        cell('Nombre del CRM', negocio.nombre_crm, 'OPERACIÓN'),
+        cell('Tiene casos de éxito', negocio.tiene_casos_exito === null ? null : (negocio.tiene_casos_exito ? 'Sí' : 'No'), 'PRUEBA SOCIAL'),
+        cell('Testimonios recolectados', negocio.tiene_testimonios_recolectados === null ? null : (negocio.tiene_testimonios_recolectados ? 'Sí' : 'No'), 'PRUEBA SOCIAL'),
+        cell('Canales de tráfico', negocio.canales_trafico_activos, 'CANALES'),
+        cell('Competidores', negocio.competidores_principales, 'COMPETENCIA'),
+        cell('Ventaja injusta', negocio.ventaja_injusta, 'COMPETENCIA'),
+        cell('Objetivos próximos', negocio.objetivos_principales, 'ESTRATEGIA'),
+        cell('Problemas principales', negocio.problemas_principales, 'ESTRATEGIA'),
+        cell('Mayor oportunidad', negocio.mayor_oportunidad_no_explotada, 'ESTRATEGIA'),
+        cell('Decisiones de un nuevo CEO', negocio.decisiones_un_nuevo_ceo, 'ESTRATEGIA'),
+        cell('Lo que SÍ funcionó', negocio.intentos_si_funcionaron, 'HISTORIAL'),
+        cell('Lo que NO funcionó', negocio.intentos_no_funcionaron, 'HISTORIAL'),
+        cell('Formaciones previas', negocio.formaciones_previas, 'HISTORIAL'),
+      ].join('');
+
+  // DIAGNÓSTICO (lista vertical, más legible para preguntas largas)
+  document.getElementById('grid-diag').innerHTML = !diagnostico
+    ? `<div class="card text-muted">Sin diagnóstico capturado todavía. Conversación 1:1 puede ser el camino.</div>`
+    : [
+        ['Cómo se describe', diagnostico.como_se_describe, 'IDENTIDAD'],
+        ['A quién admira / sigue', diagnostico.referentes_admira, 'IDENTIDAD'],
+        ['Familia cercana', diagnostico.familia_cercana, 'CONTEXTO'],
+        ['Cómo se siente hoy', diagnostico.como_se_siente_hoy, 'EMOCIONAL'],
+        ['Cómo quiere sentirse', diagnostico.como_quiere_sentirse, 'EMOCIONAL'],
+        ['Cómo le gusta que lo coacheen', diagnostico.como_le_gusta_que_lo_coacheen, 'COACHING'],
+        ['Cómo toma decisiones', diagnostico.como_toma_decisiones, 'COACHING'],
+        ['Qué AMA en un programa', diagnostico.ama_en_un_programa, 'COACHING'],
+        ['Qué ODIA en un programa', diagnostico.odia_en_un_programa, 'COACHING'],
+        ['Cómo descubrió Neurohackers', diagnostico.como_descubrio_neurohackers, 'ENTRADA'],
+        ['Habló antes de pagar con', diagnostico.hablo_antes_de_pagar_con, 'ENTRADA'],
+        ['Investigaciones previas', diagnostico.investigaciones_previas, 'ENTRADA'],
+        ['Tiempo en decidirse a pagar', diagnostico.tiempo_decision_pago, 'ENTRADA'],
+        ['Resistencia antes de pagar', diagnostico.resistencia_antes_de_pagar, 'ENTRADA'],
+        ['Epifanía pre-pago', diagnostico.epifania_por_que_pago, 'ENTRADA'],
+        ['Por qué eligió Neurohackers', diagnostico.por_que_eligio_neurohackers, 'ENTRADA'],
+        ['Esperaba que incluyera', diagnostico.esperaba_que_incluyera, 'ENTRADA'],
+        ['Códigos corruptos detectados', diagnostico.codigos_corruptos_actuales, 'NEURO'],
+        ['Miedo principal al escalar', diagnostico.miedo_principal_al_escalar, 'NEURO'],
+        ['Techo financiero / trauma', diagnostico.techo_financiero_trauma, 'NEURO'],
+        ['Protocolos de soberanía celular', diagnostico.protocolos_soberania_actuales, 'NEURO'],
+        ['Visión de negocio', diagnostico.vision_negocio, 'VISIÓN'],
+        ['Su "por qué"', diagnostico.el_por_que, 'VISIÓN'],
+        ['Una cosa si éxito', diagnostico.una_cosa_si_exito, 'VISIÓN'],
+        ['3 objetivos próximos', diagnostico.tres_objetivos_proximos, 'VISIÓN'],
+        ['Por qué quiere esto realmente', diagnostico.por_que_quieres_esto, 'VISIÓN'],
+        ['Objetivos personales y negocio', diagnostico.objetivos_personales_negocio, 'VISIÓN'],
+        ['Prioriza filtros de proyectos', diagnostico.prioriza_filtros_proyectos === null ? null : (diagnostico.prioriza_filtros_proyectos ? 'Sí' : 'No'), 'OPERACIÓN'],
+        ['Objetivos trimestre atados a plan', diagnostico.objetivos_trimestre_atados_a_plan === null ? null : (diagnostico.objetivos_trimestre_atados_a_plan ? 'Sí' : 'No'), 'OPERACIÓN'],
+        ['Revisa semanal qué delegar', diagnostico.revisa_semanal_que_delegar === null ? null : (diagnostico.revisa_semanal_que_delegar ? 'Sí' : 'No'), 'OPERACIÓN'],
+        ['Trabaja productividad del equipo', diagnostico.trabaja_productividad_equipo === null ? null : (diagnostico.trabaja_productividad_equipo ? 'Sí' : 'No'), 'OPERACIÓN'],
+        ['Tiene agenda de reuniones', diagnostico.tiene_agenda_reuniones === null ? null : (diagnostico.tiene_agenda_reuniones ? 'Sí' : 'No'), 'OPERACIÓN'],
+      ].map(([label, val, eb]) => `
+        <div class="card" style="margin-bottom: var(--space-3);">
+          <span class="eyebrow eyebrow-accent">${eb} · ${label}</span>
+          ${val === null || val === undefined || val === '' || (Array.isArray(val) && !val.length)
+            ? '<p class="text-muted mt-2" style="font-style: italic;">(sin respuesta)</p>'
+            : Array.isArray(val)
+              ? `<div class="mt-2">${val.map(v => `<span class="badge badge-accent" style="margin: 2px;">${window.utils.escapeHtml(String(v))}</span>`).join(' ')}</div>`
+              : `<p class="mt-2" style="font-size: var(--text-sm); line-height: 1.65; white-space: pre-wrap;">${window.utils.escapeHtml(String(val))}</p>`}
+        </div>
+      `).join('');
+
+  // Botón sincronizar GHL
+  document.getElementById('btn-sync-ghl').addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    if (!confirm(`Importar datos del form GHL del closer para ${lead.nombre || lead.email}?\n\nNo sobrescribe lo que el cliente ya llenó (a menos que confirmes).`)) return;
+
+    btn.disabled = true;
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner"></span> Sincronizando...';
+    try {
+      const session = (await window.db.auth.getSession()).data.session;
+      const res = await fetch(window.NEURO_CONFIG.SUPABASE_URL + '/functions/v1/sync-ghl-perfil', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': window.NEURO_CONFIG.SUPABASE_ANON_KEY,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ lead_id: leadId }),
+      });
+      const body = await res.json();
+      if (!body.ok) throw new Error(body.error || 'Error desconocido');
+      const sinc = body.sincronizados || [];
+      const camps = body.campos_disponibles_ghl || {};
+      const signals = Object.values(camps).filter(v => v).length;
+      if (sinc.length === 0 && signals === 0) {
+        window.utils.toast('Este cliente no tiene datos en el form GHL del closer.', 'warning', 5000);
+      } else if (sinc.length === 0) {
+        window.utils.toast(`Hay ${signals} campos en GHL pero ya estaban llenos en plataforma.`, 'info', 5000);
+      } else {
+        window.utils.toast(`${sinc.length} campos sincronizados. Recargando...`, 'success');
+        setTimeout(() => location.reload(), 1200);
+      }
+    } catch (err) {
+      console.error(err);
+      window.utils.toast('Error: ' + err.message, 'error', 5000);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = orig;
+    }
+  });
+
+  // ============================================================
+  // EXPORT del perfil completo (JSON / CSV / TXT)
+  // ============================================================
+  function buildExportData() {
+    return {
+      cliente: {
+        id: lead.id,
+        email: lead.email,
+        nombre: lead.nombre,
+        telefono: lead.telefono,
+        pais: lead.pais,
+        ciudad: lead.ciudad,
+        fecha_nacimiento: lead.fecha_nacimiento,
+        documento_identidad: lead.documento_identidad,
+        direccion_personal: lead.direccion_personal,
+        zona_horaria: lead.zona_horaria,
+        instagram_handle: lead.instagram_handle,
+        pais_nacimiento: lead.pais_nacimiento,
+        persona_confianza: lead.persona_confianza,
+      },
+      programa: {
+        estado: lead.estado,
+        modalidad: lead.modalidad,
+        cuotas_elegidas: lead.cuotas_elegidas,
+        fecha_pago: lead.fecha_pago,
+        fecha_inicio_programa: lead.fecha_inicio_programa,
+        fecha_fin_estimada: lead.fecha_fin_estimada,
+        tema_actual_orden: lead.tema_actual_orden,
+        semana_actual: lead.semana_actual,
+      },
+      esencia: esencia || null,
+      negocio: negocio || null,
+      diagnostico: diagnostico || null,
+      productos: (productos || []).map(p => ({
+        nombre: p.nombre, tipo: p.tipo, precio: p.precio, moneda: p.moneda,
+        descripcion: p.descripcion, promesa: p.promesa, icp: p.icp,
+        entregables: p.entregables, siguiente_escalon: p.siguiente_escalon,
+        salud_score: p.salud_score, auditoria_diagnostico: p.auditoria_diagnostico,
+        auditoria_tareas: p.auditoria_tareas, estado: p.estado,
+      })),
+      exportado_at: new Date().toISOString(),
+      // window.__admin (seteado por el gate) y no `yo`: `yo` se declara más
+      // abajo con const y un click temprano al export lanzaba ReferenceError.
+      exportado_por: window.__admin?.email || 'admin',
+    };
+  }
+
+  function slugClient() {
+    return (lead.nombre || lead.email.split('@')[0])
+      .toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  }
+
+  function downloadBlob(content, filename, mime) {
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 100);
+  }
+
+  function flattenForCsv(data) {
+    const rows = [['seccion','campo','valor']];
+    const push = (sec, obj) => {
+      if (!obj) return;
+      Object.entries(obj).forEach(([k, v]) => {
+        if (v === null || v === undefined) return;
+        let val;
+        if (Array.isArray(v)) val = v.join(' | ');
+        else if (typeof v === 'object') val = JSON.stringify(v);
+        else val = String(v);
+        rows.push([sec, k, val]);
+      });
+    };
+    push('cliente', data.cliente);
+    push('programa', data.programa);
+    push('esencia', data.esencia);
+    push('negocio', data.negocio);
+    push('diagnostico', data.diagnostico);
+    (data.productos || []).forEach((p, i) => push(`producto_${i+1}`, p));
+    return rows.map(r => r.map(c => {
+      const s = String(c).replace(/"/g, '""');
+      return /[",\n]/.test(s) ? `"${s}"` : s;
+    }).join(',')).join('\n');
+  }
+
+  function formatTxt(data) {
+    let out = `# Perfil completo · ${data.cliente.nombre || data.cliente.email}\n`;
+    out += `Exportado: ${data.exportado_at}\nPor: ${data.exportado_por}\n\n`;
+    const seccion = (titulo, obj) => {
+      if (!obj) return `\n## ${titulo}\n(sin datos)\n`;
+      let s = `\n## ${titulo}\n`;
+      Object.entries(obj).forEach(([k, v]) => {
+        if (v === null || v === undefined || v === '') return;
+        let val = Array.isArray(v) ? v.join(', ')
+                : typeof v === 'object' ? JSON.stringify(v, null, 2)
+                : String(v);
+        s += `- ${k}: ${val}\n`;
+      });
+      return s;
+    };
+    out += seccion('Cliente', data.cliente);
+    out += seccion('Programa', data.programa);
+    out += seccion('Esencia (voz y marca)', data.esencia);
+    out += seccion('Negocio (estado real)', data.negocio);
+    out += seccion('Diagnóstico Neurohackers', data.diagnostico);
+    out += '\n## Productos\n';
+    (data.productos || []).forEach((p, i) => {
+      out += `\n### ${i+1}. ${p.nombre}\n`;
+      Object.entries(p).forEach(([k, v]) => {
+        if (v === null || v === undefined || v === '') return;
+        let val = Array.isArray(v) ? v.join(', ')
+                : typeof v === 'object' ? JSON.stringify(v)
+                : String(v);
+        out += `- ${k}: ${val}\n`;
+      });
+    });
+    return out;
+  }
+
+  document.getElementById('btn-export-json').addEventListener('click', () => {
+    const data = buildExportData();
+    downloadBlob(JSON.stringify(data, null, 2), `perfil-${slugClient()}-${new Date().toISOString().slice(0,10)}.json`, 'application/json');
+    window.utils.toast('JSON exportado', 'success');
+  });
+  document.getElementById('btn-export-csv').addEventListener('click', () => {
+    const data = buildExportData();
+    downloadBlob(flattenForCsv(data), `perfil-${slugClient()}-${new Date().toISOString().slice(0,10)}.csv`, 'text/csv;charset=utf-8');
+    window.utils.toast('CSV exportado', 'success');
+  });
+  document.getElementById('btn-export-txt').addEventListener('click', () => {
+    const data = buildExportData();
+    downloadBlob(formatTxt(data), `perfil-${slugClient()}-${new Date().toISOString().slice(0,10)}.txt`, 'text/plain;charset=utf-8');
+    window.utils.toast('Texto exportado', 'success');
+  });
+
+  // ============================================================
+  // TAB: ASIGNACIONES (solo admin puede asignar/quitar)
+  // ============================================================
+  const yo = await window.equipoApi.miRol();
+  const soyAdminFull = yo?.rol === 'admin';
+  if (soyAdminFull) document.getElementById('btn-asignar-nuevo').style.display = 'inline-flex';
+
+  async function cargarAsignaciones() {
+    const cont = document.getElementById('asignaciones-lista');
+    cont.innerHTML = '<p class="text-muted">Cargando equipo...</p>';
+    try {
+      const asignaciones = await window.equipoApi.asignacionesDelLead(leadId);
+      if (asignaciones.length === 0) {
+        cont.innerHTML = `
+          <div class="empty">
+            <div class="empty-icon">○</div>
+            <h3 class="empty-title">Nadie del equipo está asignado a este cliente</h3>
+            <p class="empty-detail">Sin asignaciones, solo los admin pueden ver y modificar a este cliente. Asigna un closer, un mentor o quien corresponda.</p>
+          </div>`;
+        return;
+      }
+      cont.innerHTML = asignaciones.map(a => {
+        const u = a.usuario_admin || {};
+        const r = a.rol_funcional || {};
+        const por = a.asignado_por_user?.nombre || a.asignado_por_user?.email || '?';
+        return `
+          <div style="display: flex; align-items: center; gap: var(--space-4); padding: var(--space-4) var(--space-5); background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); margin-bottom: var(--space-3);">
+            <div style="width: 36px; height: 36px; border-radius: var(--radius-md); background: ${r.color || '#86868B'}; color: #FFF; display: grid; place-items: center; font-size: 16px; font-weight: 700;">${r.icono || '◇'}</div>
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-weight: 600; font-size: var(--text-sm);">${window.utils.escapeHtml(u.nombre || u.email || '?')}</div>
+              <div style="font-size: var(--text-xs); color: var(--text-muted);">${window.utils.escapeHtml(r.nombre || '?')}  ·  ${window.utils.escapeHtml(u.email || '')}</div>
+              <div style="font-size: 10px; color: var(--text-faint); margin-top: 2px;">Asignado el ${new Date(a.asignado_at).toLocaleDateString('es-ES')} por ${window.utils.escapeHtml(por)}</div>
+              ${a.notas ? `<div style="font-size: var(--text-xs); margin-top: 6px; font-style: italic;">"${window.utils.escapeHtml(a.notas)}"</div>` : ''}
+            </div>
+            ${soyAdminFull ? `<button class="btn btn-ghost btn-sm" data-del-asig="${a.id}" style="color: var(--error);">Quitar</button>` : ''}
+          </div>
+        `;
+      }).join('');
+      cont.querySelectorAll('[data-del-asig]').forEach(b => b.addEventListener('click', async () => {
+        if (!confirm('¿Quitar esta asignación? El miembro perderá acceso a este cliente.')) return;
+        try {
+          await window.equipoApi.eliminarAsignacion(b.dataset.delAsig);
+          window.utils.toast('Asignación eliminada', 'success');
+          await cargarAsignaciones();
+        } catch (e) { window.utils.toast('Error: ' + e.message, 'error'); }
+      }));
+    } catch (e) {
+      cont.innerHTML = `<p style="color: var(--error);">Error: ${window.utils.escapeHtml(e.message)}</p>`;
+    }
+  }
+
+  document.getElementById('btn-asignar-nuevo').addEventListener('click', async () => {
+    const [miembros, roles] = await Promise.all([
+      window.equipoApi.listarMiembros(),
+      window.equipoApi.listarRolesFuncionales(),
+    ]);
+    const miembrosActivos = miembros.filter(m => m.activo && m.rol !== 'admin');
+    if (miembrosActivos.length === 0) {
+      alert('Aún no hay moderadores ni lectores en el equipo. Crea uno primero desde "Equipo".');
+      return;
+    }
+    if (roles.length === 0) {
+      alert('No hay roles funcionales activos. Crea uno desde "Equipo".');
+      return;
+    }
+    abrirModalAsignar(miembrosActivos, roles);
+  });
+
+  function abrirModalAsignar(miembros, roles) {
+    let html = `
+      <div class="modal-backdrop show" id="modal-asignar" style="display: grid;">
+        <div class="modal">
+          <div class="modal-head">
+            <span class="modal-title">Asignar miembro al cliente</span>
+            <button class="modal-close" id="ma-close">✕</button>
+          </div>
+          <div class="modal-body">
+            <div class="field">
+              <label class="field-label">Miembro del equipo</label>
+              <select class="field-input" id="ma-miembro">
+                ${miembros.map(m => `<option value="${m.id}">${window.utils.escapeHtml(m.nombre || m.email)} · ${m.rol}</option>`).join('')}
+              </select>
+            </div>
+            <div class="field">
+              <label class="field-label">Rol funcional</label>
+              <select class="field-input" id="ma-rol">
+                ${roles.map(r => `<option value="${r.id}">${window.utils.escapeHtml(r.nombre)}</option>`).join('')}
+              </select>
+            </div>
+            <div class="field">
+              <label class="field-label">Notas (opcional)</label>
+              <textarea class="field-input field-textarea" id="ma-notas" placeholder="Contexto: cuándo empezó a trabajar con este cliente, foco específico..."></textarea>
+            </div>
+          </div>
+          <div class="modal-foot">
+            <button class="btn btn-ghost" id="ma-cancel">Cancelar</button>
+            <button class="btn btn-accent" id="ma-save">Asignar</button>
+          </div>
+        </div>
+      </div>`;
+    const wrap = document.createElement('div');
+    wrap.innerHTML = html;
+    document.body.appendChild(wrap.firstElementChild);
+
+    function cerrar() {
+      document.getElementById('modal-asignar')?.remove();
+    }
+    document.getElementById('ma-close').addEventListener('click', cerrar);
+    document.getElementById('ma-cancel').addEventListener('click', cerrar);
+
+    document.getElementById('ma-save').addEventListener('click', async () => {
+      try {
+        await window.equipoApi.crearAsignacion({
+          lead_id: leadId,
+          usuario_admin_id: document.getElementById('ma-miembro').value,
+          rol_funcional_id: document.getElementById('ma-rol').value,
+          asignado_por: yo.id,
+          notas: document.getElementById('ma-notas').value.trim() || null,
+        });
+        window.utils.toast('Asignación creada', 'success');
+        cerrar();
+        await cargarAsignaciones();
+      } catch (e) {
+        console.error(e);
+        window.utils.toast('Error: ' + (e.message || e), 'error');
+      }
+    });
+  }
+
+  // ============================================================
+  // TAB: BITÁCORA (notas del equipo, tabla cliente_notas via notasApi)
+  // ============================================================
+  let bitaInited = false;
+  async function cargarBitacora() {
+    const lista = document.getElementById('bita-lista');
+    const count = document.getElementById('bita-count');
+    const hint = document.getElementById('bita-autor-hint');
+    if (!bitaInited) {
+      bitaInited = true;
+      // El admin actual sale del gate (window.__admin). Si no existe, mostrar email genérico.
+      const a = window.__admin;
+      hint.textContent = a ? `Firmará: ${a.nombre || a.email}` : '';
+      document.getElementById('bita-btn-publicar').addEventListener('click', publicarNota);
+      // Atajo Ctrl/Cmd + Enter para publicar desde el textarea
+      document.getElementById('bita-contenido').addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); publicarNota(); }
+      });
+      // Delegación de clicks para eliminar/togglear pin
+      lista.addEventListener('click', async (e) => {
+        const btnDel = e.target.closest('[data-bita-del]');
+        const btnPin = e.target.closest('[data-bita-pin]');
+        if (btnDel) {
+          const id = btnDel.dataset.bitaDel;
+          if (!confirm('¿Eliminar esta nota? Acción irreversible.')) return;
+          try { await window.notasApi.eliminar(id); await refrescarBitacora(); window.utils.toast('Nota eliminada', 'success'); }
+          catch (err) { window.utils.toast('Error: ' + err.message, 'error'); }
+        }
+        if (btnPin) {
+          const id = btnPin.dataset.bitaPin;
+          const pinned = btnPin.dataset.pinned === 'true';
+          try { await window.notasApi.actualizar(id, { pinned: !pinned }); await refrescarBitacora(); }
+          catch (err) { window.utils.toast('Error: ' + err.message, 'error'); }
+        }
+      });
+    }
+    await refrescarBitacora();
+  }
+
+  async function refrescarBitacora() {
+    const lista = document.getElementById('bita-lista');
+    const count = document.getElementById('bita-count');
+    lista.innerHTML = '<p class="text-muted">Cargando notas...</p>';
+    try {
+      const notas = await window.notasApi.listar(leadId);
+      count.textContent = notas.length === 0 ? '0 notas' : (notas.length === 1 ? '1 nota' : `${notas.length} notas`);
+      if (notas.length === 0) {
+        lista.innerHTML = `
+          <div class="empty">
+            <div class="empty-icon">○</div>
+            <h3 class="empty-title">Aún no hay notas</h3>
+            <p class="empty-detail">Sé el primero en dejar contexto para el resto del equipo.</p>
+          </div>`;
+        return;
+      }
+      lista.innerHTML = notas.map(n => {
+        const tipo = n.tipo || 'general';
+        const icono = window.notasApi.iconoTipo(tipo);
+        const color = window.notasApi.colorTipo(tipo);
+        const autor = n.autor?.nombre || n.autor?.email || 'desconocido';
+        const fecha = new Date(n.created_at).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' });
+        const editado = n.updated_at && n.updated_at !== n.created_at
+          ? ` · editado ${new Date(n.updated_at).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })}` : '';
+        return `
+          <div class="card" style="margin-bottom: var(--space-3); border-left: 3px solid ${color}; ${n.pinned ? 'background: var(--accent-soft); border-color: var(--accent);' : ''}">
+            <div style="display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-2); flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; gap: var(--space-2);">
+                <span style="font-size: 14px; color: ${color};" title="${tipo}">${icono}</span>
+                <span style="font-weight: 600; font-size: var(--text-sm);">${window.utils.escapeHtml(autor)}</span>
+                <span class="text-muted" style="font-size: var(--text-xs);">${fecha}${editado}</span>
+                ${n.pinned ? '<span class="badge badge-accent" style="font-size: 10px;">FIJADA</span>' : ''}
+              </div>
+              <div style="display: flex; gap: var(--space-1);">
+                <button class="btn btn-ghost btn-sm" data-bita-pin="${n.id}" data-pinned="${!!n.pinned}" title="${n.pinned ? 'Desfijar' : 'Fijar arriba'}">${n.pinned ? '◇' : '◆'}</button>
+                <button class="btn btn-ghost btn-sm" data-bita-del="${n.id}" title="Eliminar" style="color: var(--error);">×</button>
+              </div>
+            </div>
+            <div style="white-space: pre-wrap; font-size: var(--text-sm); line-height: 1.5;">${window.utils.escapeHtml(n.contenido)}</div>
+          </div>`;
+      }).join('');
+    } catch (e) {
+      lista.innerHTML = `<p style="color: var(--error);">Error: ${window.utils.escapeHtml(e.message)}</p>`;
+    }
+  }
+
+  async function publicarNota() {
+    const contenidoEl = document.getElementById('bita-contenido');
+    const tipoEl = document.getElementById('bita-tipo');
+    const pinnedEl = document.getElementById('bita-pinned');
+    const btn = document.getElementById('bita-btn-publicar');
+    const contenido = contenidoEl.value.trim();
+    if (!contenido) { window.utils.toast('Escribe algo antes de publicar', 'warning'); return; }
+    btn.disabled = true;
+    try {
+      await window.notasApi.crear({
+        lead_id: leadId,
+        contenido,
+        tipo: tipoEl.value,
+        pinned: pinnedEl.checked,
+      });
+      contenidoEl.value = '';
+      pinnedEl.checked = false;
+      tipoEl.value = 'general';
+      window.utils.toast('Nota publicada', 'success');
+      await refrescarBitacora();
+    } catch (e) {
+      window.utils.toast('Error: ' + e.message, 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // ============================================================
+  // TAB: HISTORIAL
+  // ============================================================
+  async function cargarHistorial() {
+    const cont = document.getElementById('historial-lista');
+    cont.innerHTML = '<p class="text-muted">Cargando historial...</p>';
+    try {
+      const cambios = await window.equipoApi.historialDelLead(leadId, 60);
+      if (cambios.length === 0) {
+        cont.innerHTML = `
+          <div class="empty">
+            <div class="empty-icon">○</div>
+            <h3 class="empty-title">Sin cambios registrados</h3>
+            <p class="empty-detail">Cualquier modificación que tú o el equipo haga a partir de ahora quedará aquí.</p>
+          </div>`;
+        return;
+      }
+      cont.innerHTML = cambios.map(c => {
+        const diff = window.equipoApi.extraerDiff(c);
+        const autor = c.modificado_por_user?.nombre || c.modificado_por_email || 'desconocido';
+        const fecha = new Date(c.modificado_at).toLocaleString('es-ES', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+        const diffHtml = diff.slice(0, 6).map(d => {
+          const ant = d.anterior === null || d.anterior === undefined ? '<em>vacío</em>' : `<code>${window.utils.escapeHtml(JSON.stringify(d.anterior).slice(0, 80))}</code>`;
+          const nv = d.nuevo === null || d.nuevo === undefined ? '<em>vacío</em>' : `<code>${window.utils.escapeHtml(JSON.stringify(d.nuevo).slice(0, 80))}</code>`;
+          return `<div style="font-size: var(--text-xs); margin: 4px 0;"><strong>${window.utils.escapeHtml(d.campo)}:</strong> ${ant} → ${nv}</div>`;
+        }).join('');
+        const masDiffs = diff.length > 6 ? `<div style="font-size: 10px; color: var(--text-faint);">... y ${diff.length - 6} cambios más</div>` : '';
+        return `
+          <div style="padding: var(--space-4) var(--space-5); background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); margin-bottom: var(--space-3);">
+            <div style="display: flex; align-items: baseline; gap: var(--space-3); margin-bottom: var(--space-2);">
+              <span class="badge ${c.accion === 'INSERT' ? 'badge-success' : c.accion === 'DELETE' ? 'badge-warning' : 'badge-accent'}">${c.accion}</span>
+              <span style="font-weight: 600; font-size: var(--text-sm);">${c.tabla}</span>
+              <span style="font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-muted); margin-left: auto;">${fecha}</span>
+            </div>
+            <div style="font-size: var(--text-xs); color: var(--text-muted); margin-bottom: var(--space-2);">por <strong>${window.utils.escapeHtml(autor)}</strong></div>
+            ${diffHtml || '<div class="text-muted" style="font-size: var(--text-xs);">(sin diff visible)</div>'}
+            ${masDiffs}
+          </div>`;
+      }).join('');
+    } catch (e) {
+      cont.innerHTML = `<p style="color: var(--error);">Error: ${window.utils.escapeHtml(e.message)}</p>`;
+    }
+  }
+
+  // ============================================================
+  // TAB CRM (fase 1: vehículo, arquetipo, enlaces, fechas, churn)
+  // ============================================================
+  let crmCohortes = [];
+  let crmArquetipo = null;
+  let crmEnlaces = [];
+
+  let crmFinanzas = null;
+  let crmPagos = [];
+
+  async function cargarCRM() {
+    try {
+      [crmCohortes, crmArquetipo, crmEnlaces, crmFinanzas, crmPagos] = await Promise.all([
+        window.crmApi.listarCohortes(false),
+        window.crmApi.obtenerArquetipo(leadId),
+        window.crmApi.listarEnlaces(leadId),
+        window.finanzasApi.obtenerFinanzas(leadId),
+        window.finanzasApi.listarPagos(leadId),
+      ]);
+      pintarCRMTodo();
+    } catch (e) {
+      console.error('Error cargando CRM:', e);
+      window.utils.toast('Error CRM: ' + e.message, 'error');
+    }
+  }
+
+  function pintarCRMTodo() {
+    pintarCRMFechas();
+    pintarCRMNegocio();
+    pintarCRMArquetipo();
+    pintarCRMEnlaces();
+    pintarCRMFinanzas();
+    pintarCRMChurn();
+  }
+
+  function pintarCRMFechas() {
+    const hoy = new Date();
+    const activacion = lead.fecha_activacion_programa;
+    const fin = lead.fecha_fin_contractual;
+
+    // KPI Activación
+    document.getElementById('crm-kpi-activacion').textContent = activacion
+      ? window.crmApi.formatFecha(activacion)
+      : (lead.fecha_pago ? 'Pendiente' : '-');
+
+    // KPI Fin contractual
+    document.getElementById('crm-kpi-fin').textContent = fin
+      ? window.crmApi.formatFecha(fin) : '-';
+
+    // KPI Días restantes
+    let diasRestantes = '-';
+    if (fin) {
+      const finDate = new Date(fin);
+      const d = Math.ceil((finDate - hoy) / 86400000);
+      diasRestantes = d >= 0 ? `${d} días` : `+${Math.abs(d)} d vencido`;
+    } else if (activacion && lead.duracion_contractual_dias) {
+      // Calcular en vivo si no está seteado fin_contractual
+      const fin2 = new Date(activacion);
+      fin2.setDate(fin2.getDate() + Number(lead.duracion_contractual_dias));
+      const d = Math.ceil((fin2 - hoy) / 86400000);
+      diasRestantes = d >= 0 ? `${d} días` : `+${Math.abs(d)} d vencido`;
+    }
+    document.getElementById('crm-kpi-dias-restantes').textContent = diasRestantes;
+    document.getElementById('crm-kpi-sesiones').textContent = lead.sesiones_realizadas || 0;
+
+    // Detalle
+    const cohorte = crmCohortes.find(c => c.id === lead.cohorte_id);
+    document.getElementById('v-cohorte').textContent = cohorte?.nombre || '-';
+    document.getElementById('v-duracion_contractual_dias').textContent = lead.duracion_contractual_dias
+      ? `${lead.duracion_contractual_dias} días` : '70 días (default)';
+    document.getElementById('v-fecha_pago').textContent = lead.fecha_pago
+      ? window.crmApi.formatFecha(lead.fecha_pago) : '-';
+    document.getElementById('v-fecha_activacion_programa').textContent = activacion
+      ? window.crmApi.formatFecha(activacion)
+      : (lead.fecha_pago ? '(Edita para activar)' : '-');
+    document.getElementById('v-fecha_fin_contractual').textContent = fin
+      ? window.crmApi.formatFecha(fin) : '-';
+
+    // Días transcurridos
+    let diasTrans = '-';
+    if (activacion) {
+      const desde = new Date(activacion);
+      const d = Math.floor((hoy - desde) / 86400000);
+      diasTrans = d >= 0 ? `${d} días` : '-';
+    }
+    document.getElementById('v-dias-transcurridos').textContent = diasTrans;
+
+    document.getElementById('v-monto_total_programa_usd').textContent = window.crmApi.formatMoney(lead.monto_total_programa_usd);
+    document.getElementById('v-launched_at').textContent = window.crmApi.formatFecha(lead.launched_at);
+    document.getElementById('v-primera_venta_at').textContent = window.crmApi.formatFecha(lead.primera_venta_at);
+    document.getElementById('v-caso_exito_at').textContent = lead.caso_exito_at
+      ? window.crmApi.formatFecha(lead.caso_exito_at) + ' ⭐' : '-';
+  }
+
+  function pintarCRMNegocio() {
+    document.getElementById('v-vehiculo_negocio').textContent = lead.vehiculo_negocio || '-';
+    document.getElementById('v-nicho_mercado').textContent = lead.nicho_mercado || '-';
+    document.getElementById('v-promesa_transformacion').textContent = lead.promesa_transformacion || '-';
+    document.getElementById('v-precio_oferta_principal_usd').textContent = window.crmApi.formatMoney(lead.precio_oferta_principal_usd);
+    document.getElementById('v-ltv_oferta_principal_usd').textContent = window.crmApi.formatMoney(lead.ltv_oferta_principal_usd);
+  }
+
+  function pintarCRMArquetipo() {
+    const wrap = document.getElementById('arquetipo-badge-wrap');
+    if (!crmArquetipo) {
+      wrap.innerHTML = '<span class="badge">SIN CLASIFICAR</span>';
+      document.getElementById('v-sub_arquetipo').textContent = '-';
+      document.getElementById('v-razon_arquetipo').textContent = '-';
+      document.getElementById('v-determinado_por').textContent = '-';
+      return;
+    }
+    const meta = window.crmApi.ARQUETIPOS.find(a => a.slug === crmArquetipo.arquetipo) || {};
+    const color = window.crmApi.arquetipoColor(crmArquetipo.arquetipo);
+    wrap.innerHTML = `
+      <div style="display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); background: ${color}; color: #FFF; border-radius: var(--radius-full); font-family: var(--font-mono); font-size: var(--text-xs); font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">
+        ${meta.label || crmArquetipo.arquetipo}
+      </div>
+      <p class="text-muted" style="font-size: var(--text-xs); margin-top: 6px; line-height: 1.55;">${window.utils.escapeHtml(meta.desc || '')}</p>`;
+    document.getElementById('v-sub_arquetipo').textContent = crmArquetipo.sub_arquetipo || '-';
+    document.getElementById('v-razon_arquetipo').textContent = crmArquetipo.razon || '-';
+    const det = crmArquetipo.determinado_por_user;
+    document.getElementById('v-determinado_por').textContent = det
+      ? `${det.nombre || det.email} · ${window.crmApi.formatFecha(crmArquetipo.determinado_at)}`
+      : '-';
+  }
+
+  function pintarCRMEnlaces() {
+    const cont = document.getElementById('enlaces-lista');
+    if (crmEnlaces.length === 0) {
+      cont.innerHTML = '<p class="text-muted" style="font-size: var(--text-sm);">Sin enlaces todavía. Agrega VSL, grabación de la llamada de cierre, contrato, Drive, etc.</p>';
+      return;
+    }
+    cont.innerHTML = crmEnlaces.map(e => `
+      <div style="display: grid; grid-template-columns: 120px 1fr auto; gap: var(--space-3); padding: var(--space-3); background: var(--surface-2); border-radius: var(--radius-sm); align-items: center;">
+        <div style="font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--accent-deeper); text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">${window.utils.escapeHtml(e.tipo)}</div>
+        <div style="min-width: 0;">
+          ${e.etiqueta ? `<div style="font-weight: 600; font-size: var(--text-sm); margin-bottom: 2px;">${window.utils.escapeHtml(e.etiqueta)}</div>` : ''}
+          <a href="${window.utils.escapeHtml(e.url)}" target="_blank" rel="noopener" style="font-size: var(--text-xs); color: var(--accent-deeper); word-break: break-all;">${window.utils.escapeHtml(e.url.slice(0, 80))}${e.url.length > 80 ? '...' : ''}</a>
+          ${e.notas ? `<div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: 2px;">${window.utils.escapeHtml(e.notas)}</div>` : ''}
+        </div>
+        <button class="btn btn-ghost btn-sm" data-del-enlace="${e.id}" style="color: var(--error);">✕</button>
+      </div>
+    `).join('');
+    cont.querySelectorAll('[data-del-enlace]').forEach(b => b.addEventListener('click', async () => {
+      if (!confirm('¿Eliminar este enlace?')) return;
+      try {
+        await window.crmApi.eliminarEnlace(b.dataset.delEnlace);
+        crmEnlaces = await window.crmApi.listarEnlaces(leadId);
+        pintarCRMEnlaces();
+        window.utils.toast('Enlace eliminado', 'success');
+      } catch (e) { window.utils.toast('Error: ' + e.message, 'error'); }
+    }));
+  }
+
+  function pintarCRMFinanzas() {
+    const empty = document.getElementById('fin-empty');
+    const presente = document.getElementById('fin-presente');
+    const meta = document.getElementById('fin-meta');
+
+    if (!crmFinanzas) {
+      empty.classList.remove('hidden');
+      presente.classList.add('hidden');
+      meta.textContent = 'SIN CALENDARIO';
+      return;
+    }
+    empty.classList.add('hidden');
+    presente.classList.remove('hidden');
+
+    // Sumas
+    const total = Number(crmFinanzas.monto_total_usd || 0);
+    const pagado = crmPagos.filter(p => p.estado === 'pagado').reduce((s, p) => s + Number(p.monto_usd), 0);
+    const pendiente = crmPagos.filter(p => ['pendiente','atrasado'].includes(p.estado)).reduce((s, p) => s + Number(p.monto_usd), 0);
+    const pct = total > 0 ? Math.round(100 * pagado / total) : 0;
+
+    document.getElementById('fin-total').textContent = window.finanzasApi.formatMoney(total);
+    document.getElementById('fin-pagado').textContent = window.finanzasApi.formatMoney(pagado);
+    document.getElementById('fin-pendiente').textContent = window.finanzasApi.formatMoney(pendiente);
+    document.getElementById('fin-progreso').textContent = pct + '%';
+    meta.textContent = pct + '% PAGADO';
+
+    // Snapshot
+    document.getElementById('fin-modalidad').textContent = crmFinanzas.modalidad || '-';
+    document.getElementById('fin-cuotas').textContent = crmFinanzas.cuotas_pactadas || '-';
+    document.getElementById('fin-monto-cuota').textContent = window.finanzasApi.formatMoney(crmFinanzas.monto_cuota_usd);
+    document.getElementById('fin-frecuencia').textContent = crmFinanzas.frecuencia_dias ? crmFinanzas.frecuencia_dias + ' días' : '-';
+    document.getElementById('fin-closer').textContent = crmFinanzas.closer?.nombre || crmFinanzas.closer?.email || '-';
+    document.getElementById('fin-metodo').textContent = crmFinanzas.metodo_pago_preferido || '-';
+    document.getElementById('fin-snapshot-creado').textContent = crmFinanzas.created_at
+      ? 'Creado ' + window.finanzasApi.formatFecha(crmFinanzas.created_at) : '-';
+
+    // Tabla pagos
+    pintarTablaPagos();
+  }
+
+  function pintarTablaPagos() {
+    const cont = document.getElementById('fin-tabla-pagos');
+    if (crmPagos.length === 0) {
+      cont.innerHTML = '<p class="text-muted">Sin pagos registrados.</p>';
+      return;
+    }
+    cont.innerHTML = '<div style="display: grid; gap: 4px;">' + crmPagos.map(p => {
+      const accionable = ['pendiente','atrasado'].includes(p.estado);
+      const tipoSafe = p.tipo || 'otro';
+      const tipoLabel = tipoSafe === 'cuota' && p.numero_cuota
+        ? `Cuota ${p.numero_cuota}`
+        : (tipoSafe[0].toUpperCase() + tipoSafe.slice(1));
+      return `
+        <div style="display: grid; grid-template-columns: 100px 1fr 110px 120px auto; gap: var(--space-3); padding: var(--space-3); background: var(--surface-2); border-radius: var(--radius-sm); align-items: center;">
+          <div>
+            <div style="font-weight: 600; font-size: var(--text-sm);">${tipoLabel}</div>
+            <div style="font-size: var(--text-xs); color: var(--text-muted); font-family: var(--font-mono);">${window.finanzasApi.formatMoney(p.monto_usd)}</div>
+          </div>
+          <div style="font-size: var(--text-xs); color: var(--text-muted);">
+            ${p.fecha_programada ? 'Prog: ' + window.finanzasApi.formatFecha(p.fecha_programada) : ''}
+            ${p.fecha_pagado_at ? '<br>Pagado: ' + window.finanzasApi.formatFecha(p.fecha_pagado_at) : ''}
+            ${p.metodo_pago ? '<br>vía ' + window.utils.escapeHtml(p.metodo_pago) : ''}
+            ${p.referencia_externa ? '<br>ref: ' + window.utils.escapeHtml(p.referencia_externa) : ''}
+          </div>
+          <div>${window.finanzasApi.badgeEstado(p.estado)}</div>
+          <div style="font-size: var(--text-xs); color: var(--text-muted);">${window.utils.escapeHtml(p.registrado_por_user?.nombre || '')}</div>
+          <div>
+            ${accionable ? `<button class="btn btn-accent btn-sm" data-marcar-pagado="${p.id}" data-monto="${p.monto_usd}">✓ Pagar</button>` : ''}
+          </div>
+        </div>`;
+    }).join('') + '</div>';
+    cont.querySelectorAll('[data-marcar-pagado]').forEach(b => b.addEventListener('click', () => abrirModalMarcarPago(b.dataset.marcarPagado, b.dataset.monto)));
+  }
+
+  // ----- Modal crear calendario -----
+  document.getElementById('btn-crear-finanzas').addEventListener('click', async () => {
+    // Llenar selects
+    const selMod = document.getElementById('ff-modalidad');
+    selMod.innerHTML = window.finanzasApi.MODALIDADES.map(m => `<option value="${m.slug}">${m.label}</option>`).join('');
+    const selMet = document.getElementById('ff-metodo');
+    selMet.innerHTML = '<option value="">(no especificado)</option>' + window.finanzasApi.METODOS_PAGO.map(m => `<option value="${m}">${m}</option>`).join('');
+    // Cargar closers (admins activos)
+    const { data: closers } = await window.db.from('usuarios_admin').select('id,nombre,email').eq('activo', true);
+    const selCloser = document.getElementById('ff-closer');
+    selCloser.innerHTML = '<option value="">(no especificado)</option>' +
+      (closers || []).map(c => `<option value="${c.id}">${window.utils.escapeHtml(c.nombre || c.email)}</option>`).join('');
+    // Default fecha primer pago: hoy
+    document.getElementById('ff-fecha-primer').value = new Date().toISOString().slice(0, 10);
+    document.getElementById('ff-monto-total').value = lead.monto_total_programa_usd || '';
+    document.getElementById('ff-n-cuotas').value = 1;
+    document.getElementById('ff-frecuencia').value = 30;
+    document.getElementById('ff-notas').value = '';
+    actualizarPreviewFinanzas();
+    const m = document.getElementById('modal-finanzas');
+    m.classList.remove('hidden');
+    requestAnimationFrame(() => m.classList.add('show'));
+  });
+
+  function actualizarPreviewFinanzas() {
+    const total = Number(document.getElementById('ff-monto-total').value) || 0;
+    const n = Number(document.getElementById('ff-n-cuotas').value) || 1;
+    const fec = document.getElementById('ff-fecha-primer').value;
+    const freq = Number(document.getElementById('ff-frecuencia').value) || 30;
+    const cuota = total > 0 && n > 0 ? Math.round(total / n) : 0;
+    const preview = document.getElementById('ff-preview');
+    const txt = document.getElementById('ff-preview-text');
+    if (total > 0 && fec) {
+      preview.style.display = 'block';
+      txt.textContent = `${n} pago(s) de ~${window.finanzasApi.formatMoney(cuota)}, desde ${window.finanzasApi.formatFecha(fec)} cada ${freq} días. Total: ${window.finanzasApi.formatMoney(total)}.`;
+    } else {
+      preview.style.display = 'none';
+    }
+  }
+  // Guard: listeners sobre document sobreviven a las visitas Turbo; sin esto
+  // cada navegación apila 4 listeners más.
+  if (!window.__ffPreviewWired) {
+    window.__ffPreviewWired = true;
+    window.__ffPreviewFn = () => {};
+    ['ff-monto-total','ff-n-cuotas','ff-fecha-primer','ff-frecuencia'].forEach(id => {
+      document.addEventListener('input', (e) => { if (e.target?.id === id) window.__ffPreviewFn(); });
+    });
+  }
+  window.__ffPreviewFn = actualizarPreviewFinanzas;
+
+  document.querySelectorAll('[data-close-finanzas]').forEach(b => b.addEventListener('click', () => {
+    const m = document.getElementById('modal-finanzas');
+    m.classList.remove('show'); setTimeout(() => m.classList.add('hidden'), 200);
+  }));
+
+  document.getElementById('btn-confirmar-finanzas').addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    const monto = Number(document.getElementById('ff-monto-total').value);
+    const n = Number(document.getElementById('ff-n-cuotas').value);
+    const fecha = document.getElementById('ff-fecha-primer').value;
+    if (!monto || !n || !fecha) { window.utils.toast('Completa monto, cuotas y fecha', 'error'); return; }
+
+    btn.disabled = true;
+    const orig = btn.textContent;
+    btn.textContent = 'Creando...';
+    try {
+      await window.finanzasApi.crearCalendarioCuotas({
+        lead_id: leadId,
+        monto_total: monto,
+        n_cuotas: n,
+        fecha_primer_pago: fecha,
+        frecuencia_dias: Number(document.getElementById('ff-frecuencia').value) || 30,
+        modalidad: document.getElementById('ff-modalidad').value || null,
+        closer_id: document.getElementById('ff-closer').value || null,
+        metodo: document.getElementById('ff-metodo').value || null,
+        notas: document.getElementById('ff-notas').value.trim() || null,
+      });
+      window.utils.toast('Calendario creado', 'success');
+      const m = document.getElementById('modal-finanzas');
+      m.classList.remove('show'); setTimeout(() => m.classList.add('hidden'), 200);
+      // Recargar
+      [crmFinanzas, crmPagos] = await Promise.all([
+        window.finanzasApi.obtenerFinanzas(leadId),
+        window.finanzasApi.listarPagos(leadId),
+      ]);
+      pintarCRMFinanzas();
+    } catch (err) {
+      console.error(err);
+      window.utils.toast('Error: ' + err.message, 'error', 6000);
+    } finally {
+      btn.disabled = false; btn.textContent = orig;
+    }
+  });
+
+  // ----- Modal marcar pagado -----
+  let pagoMarcandoId = null;
+  function abrirModalMarcarPago(pagoId, monto) {
+    pagoMarcandoId = pagoId;
+    const pago = crmPagos.find(p => p.id === pagoId);
+    document.getElementById('mp-pago-info').innerHTML = pago
+      ? `<strong>${pago.tipo === 'cuota' ? 'Cuota ' + pago.numero_cuota : pago.tipo}</strong> · ${window.finanzasApi.formatMoney(pago.monto_usd)} ${pago.fecha_programada ? '· programado para ' + window.finanzasApi.formatFecha(pago.fecha_programada) : ''}`
+      : '';
+    document.getElementById('mp-fecha').value = new Date().toISOString().slice(0, 10);
+    document.getElementById('mp-metodo').innerHTML =
+      '<option value="">(no especificado)</option>' +
+      window.finanzasApi.METODOS_PAGO.map(m => `<option value="${m}">${m}</option>`).join('');
+    document.getElementById('mp-referencia').value = '';
+    document.getElementById('mp-notas').value = '';
+    const m = document.getElementById('modal-marcar-pago');
+    m.classList.remove('hidden');
+    requestAnimationFrame(() => m.classList.add('show'));
+  }
+  document.querySelectorAll('[data-close-pagar]').forEach(b => b.addEventListener('click', () => {
+    const m = document.getElementById('modal-marcar-pago');
+    m.classList.remove('show'); setTimeout(() => m.classList.add('hidden'), 200);
+  }));
+
+  document.getElementById('btn-confirmar-pago').addEventListener('click', async (e) => {
+    if (!pagoMarcandoId) return;
+    const btn = e.currentTarget;
+    btn.disabled = true;
+    const orig = btn.textContent;
+    btn.textContent = 'Marcando...';
+    try {
+      const fecha = document.getElementById('mp-fecha').value;
+      await window.finanzasApi.marcarPagado({
+        pago_id: pagoMarcandoId,
+        fecha_pagado: fecha ? new Date(fecha).toISOString() : null,
+        metodo: document.getElementById('mp-metodo').value || null,
+        referencia: document.getElementById('mp-referencia').value.trim() || null,
+        notas: document.getElementById('mp-notas').value.trim() || null,
+      });
+      window.utils.toast('Pago marcado', 'success');
+      const m = document.getElementById('modal-marcar-pago');
+      m.classList.remove('show'); setTimeout(() => m.classList.add('hidden'), 200);
+      crmPagos = await window.finanzasApi.listarPagos(leadId);
+      pintarCRMFinanzas();
+    } catch (err) {
+      window.utils.toast('Error: ' + err.message, 'error', 6000);
+    } finally {
+      btn.disabled = false; btn.textContent = orig;
+    }
+  });
+
+  // ----- Sync GHL → pagos -----
+  async function syncGhlPagosDeEsteLead(btn) {
+    if (!confirm('Sincronizar pagos desde GHL para este cliente?\n\nImporta transacciones nuevas. Las ya importadas no se duplican.')) return;
+    const orig = btn?.innerHTML;
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Sincronizando...'; }
+    try {
+      const r = await window.finanzasApi.syncDesdeGHL({ lead_id: leadId });
+      const ins = r.pagos_insertados || 0;
+      const ya = r.pagos_ya_existentes || 0;
+      const err = r.errores || 0;
+      let msg = `${ins} pago${ins === 1 ? '' : 's'} importado${ins === 1 ? '' : 's'}`;
+      if (ya > 0) msg += `, ${ya} ya existían`;
+      if (err > 0) msg += `, ${err} error${err === 1 ? '' : 'es'}`;
+      window.utils.toast(msg, ins > 0 ? 'success' : 'info', 5000);
+      [crmFinanzas, crmPagos] = await Promise.all([
+        window.finanzasApi.obtenerFinanzas(leadId),
+        window.finanzasApi.listarPagos(leadId),
+      ]);
+      pintarCRMFinanzas();
+    } catch (err) {
+      console.error(err);
+      window.utils.toast('Error sync GHL: ' + err.message, 'error', 6000);
+    } finally {
+      if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+    }
+  }
+  document.getElementById('btn-sync-ghl-empty').addEventListener('click', (e) => syncGhlPagosDeEsteLead(e.currentTarget));
+  document.getElementById('btn-sync-ghl-presente').addEventListener('click', (e) => syncGhlPagosDeEsteLead(e.currentTarget));
+
+  // ----- Agregar upsell/ajuste -----
+  document.getElementById('btn-agregar-upsell').addEventListener('click', async () => {
+    const tipo = prompt('Tipo (upsell / extension / ajuste):', 'upsell');
+    if (!tipo) return;
+    const montoStr = prompt('Monto (USD):');
+    const monto = Number(montoStr);
+    if (!monto || monto <= 0) { window.utils.toast('Monto inválido', 'error'); return; }
+    const fechaProg = prompt('Fecha programada (YYYY-MM-DD, vacío = sin fecha):');
+    const estado = confirm('¿Ya está pagado? OK = pagado, Cancelar = pendiente') ? 'pagado' : 'pendiente';
+    try {
+      await window.finanzasApi.agregarPago({
+        lead_id: leadId,
+        tipo,
+        monto_usd: monto,
+        fecha_programada: fechaProg || null,
+        estado,
+      });
+      window.utils.toast('Pago agregado', 'success');
+      crmPagos = await window.finanzasApi.listarPagos(leadId);
+      pintarCRMFinanzas();
+    } catch (err) { window.utils.toast('Error: ' + err.message, 'error'); }
+  });
+
+  function pintarCRMChurn() {
+    if (!lead.churn_at) {
+      document.getElementById('crm-churn-block').classList.add('hidden');
+      return;
+    }
+    document.getElementById('crm-churn-block').classList.remove('hidden');
+    document.getElementById('v-churn_at').textContent = window.crmApi.formatFecha(lead.churn_at);
+    document.getElementById('v-churn_categoria').textContent = lead.churn_categoria || '-';
+    document.getElementById('v-churn_motivo').textContent = lead.churn_motivo || '-';
+  }
+
+  // ----- Form: NEGOCIO -----
+  document.getElementById('btn-crm-edit-negocio').addEventListener('click', () => {
+    const f = document.getElementById('crm-form-negocio');
+    const v = document.getElementById('crm-view-negocio');
+    f.classList.remove('hidden'); v.classList.add('hidden');
+    // Llenar select vehiculo
+    const sel = document.getElementById('f-vehiculo_negocio');
+    sel.innerHTML = '<option value="">(no definido)</option>' +
+      window.crmApi.VEHICULOS_SUGERIDOS.map(v => `<option value="${v}" ${lead.vehiculo_negocio === v ? 'selected' : ''}>${v}</option>`).join('');
+    document.getElementById('f-nicho_mercado').value = lead.nicho_mercado || '';
+    document.getElementById('f-promesa_transformacion').value = lead.promesa_transformacion || '';
+    document.getElementById('f-precio_oferta_principal_usd').value = lead.precio_oferta_principal_usd || '';
+    document.getElementById('f-ltv_oferta_principal_usd').value = lead.ltv_oferta_principal_usd || '';
+  });
+  document.getElementById('btn-crm-cancel-negocio').addEventListener('click', () => {
+    document.getElementById('crm-form-negocio').classList.add('hidden');
+    document.getElementById('crm-view-negocio').classList.remove('hidden');
+  });
+  document.getElementById('crm-form-negocio').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+      const upd = await window.crmApi.actualizarDatosCRM(leadId, {
+        vehiculo_negocio: document.getElementById('f-vehiculo_negocio').value || null,
+        nicho_mercado: document.getElementById('f-nicho_mercado').value || null,
+        promesa_transformacion: document.getElementById('f-promesa_transformacion').value || null,
+        precio_oferta_principal_usd: document.getElementById('f-precio_oferta_principal_usd').value || null,
+        ltv_oferta_principal_usd: document.getElementById('f-ltv_oferta_principal_usd').value || null,
+      });
+      Object.assign(lead, upd);
+      pintarCRMNegocio();
+      document.getElementById('crm-form-negocio').classList.add('hidden');
+      document.getElementById('crm-view-negocio').classList.remove('hidden');
+      window.utils.toast('Negocio actualizado', 'success');
+    } catch (err) { window.utils.toast('Error: ' + err.message, 'error'); }
+  });
+
+  // ----- Form: ARQUETIPO -----
+  document.getElementById('btn-crm-edit-arquetipo').addEventListener('click', () => {
+    document.getElementById('crm-form-arquetipo').classList.remove('hidden');
+    document.getElementById('crm-view-arquetipo').classList.add('hidden');
+    const sel = document.getElementById('f-arquetipo');
+    sel.innerHTML = window.crmApi.ARQUETIPOS.map(a =>
+      `<option value="${a.slug}" data-desc="${window.utils.escapeHtml(a.desc)}" ${crmArquetipo?.arquetipo === a.slug ? 'selected' : ''}>${a.label}</option>`
+    ).join('');
+    const updateDesc = () => {
+      const opt = sel.options[sel.selectedIndex];
+      document.getElementById('f-arquetipo-desc').textContent = opt?.dataset.desc || '';
+    };
+    sel.onchange = updateDesc; updateDesc();
+    document.getElementById('f-sub_arquetipo').value = crmArquetipo?.sub_arquetipo || '';
+    document.getElementById('f-razon_arquetipo').value = crmArquetipo?.razon || '';
+  });
+  document.getElementById('btn-crm-cancel-arquetipo').addEventListener('click', () => {
+    document.getElementById('crm-form-arquetipo').classList.add('hidden');
+    document.getElementById('crm-view-arquetipo').classList.remove('hidden');
+  });
+  document.getElementById('crm-form-arquetipo').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+      crmArquetipo = await window.crmApi.upsertArquetipo(leadId, {
+        arquetipo: document.getElementById('f-arquetipo').value,
+        sub_arquetipo: document.getElementById('f-sub_arquetipo').value,
+        razon: document.getElementById('f-razon_arquetipo').value,
+      });
+      pintarCRMArquetipo();
+      document.getElementById('crm-form-arquetipo').classList.add('hidden');
+      document.getElementById('crm-view-arquetipo').classList.remove('hidden');
+      window.utils.toast('Arquetipo guardado', 'success');
+    } catch (err) { window.utils.toast('Error: ' + err.message, 'error'); }
+  });
+
+  // ----- Form: FECHAS -----
+  document.getElementById('btn-crm-edit-fechas').addEventListener('click', () => {
+    document.getElementById('crm-form-fechas').classList.remove('hidden');
+    document.getElementById('crm-view-fechas').classList.add('hidden');
+    const sel = document.getElementById('f-cohorte_id');
+    sel.innerHTML = '<option value="">(sin cohorte)</option>' +
+      crmCohortes.map(c => `<option value="${c.id}" ${lead.cohorte_id === c.id ? 'selected' : ''}>${window.utils.escapeHtml(c.nombre)}</option>`).join('');
+    document.getElementById('f-duracion_contractual_dias').value = lead.duracion_contractual_dias || 70;
+    document.getElementById('f-fecha_activacion_programa').value = lead.fecha_activacion_programa || '';
+    document.getElementById('f-monto_total_programa_usd').value = lead.monto_total_programa_usd || '';
+    document.getElementById('f-launched_at').value = (lead.launched_at || '').slice(0, 10);
+    document.getElementById('f-primera_venta_at').value = (lead.primera_venta_at || '').slice(0, 10);
+  });
+  document.getElementById('btn-crm-cancel-fechas').addEventListener('click', () => {
+    document.getElementById('crm-form-fechas').classList.add('hidden');
+    document.getElementById('crm-view-fechas').classList.remove('hidden');
+  });
+  document.getElementById('crm-form-fechas').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+      const upd = await window.crmApi.actualizarDatosCRM(leadId, {
+        cohorte_id: document.getElementById('f-cohorte_id').value || null,
+        duracion_contractual_dias: document.getElementById('f-duracion_contractual_dias').value || null,
+        fecha_activacion_programa: document.getElementById('f-fecha_activacion_programa').value || null,
+        monto_total_programa_usd: document.getElementById('f-monto_total_programa_usd').value || null,
+        launched_at: document.getElementById('f-launched_at').value ? new Date(document.getElementById('f-launched_at').value).toISOString() : null,
+        primera_venta_at: document.getElementById('f-primera_venta_at').value ? new Date(document.getElementById('f-primera_venta_at').value).toISOString() : null,
+      });
+      Object.assign(lead, upd);
+      pintarCRMFechas();
+      document.getElementById('crm-form-fechas').classList.add('hidden');
+      document.getElementById('crm-view-fechas').classList.remove('hidden');
+      window.utils.toast('Fechas actualizadas', 'success');
+    } catch (err) { window.utils.toast('Error: ' + err.message, 'error'); }
+  });
+
+  // ----- ENLACES: agregar -----
+  document.getElementById('btn-add-enlace').addEventListener('click', async () => {
+    const tipoSugerido = window.crmApi.TIPOS_ENLACE_SUGERIDOS.map(t => t.label).join('\n');
+    const tipo = prompt(`Tipo del enlace (ej. ${window.crmApi.TIPOS_ENLACE_SUGERIDOS.map(t => t.slug).join(', ')}):`, 'vsl');
+    if (!tipo) return;
+    const url = prompt('URL completa (https://...):');
+    if (!url) return;
+    const etiqueta = prompt('Etiqueta (opcional, ej. "Sales letter v3"):') || null;
+    try {
+      await window.crmApi.crearEnlace({ lead_id: leadId, tipo, url, etiqueta });
+      crmEnlaces = await window.crmApi.listarEnlaces(leadId);
+      pintarCRMEnlaces();
+      window.utils.toast('Enlace agregado', 'success');
+    } catch (err) { window.utils.toast('Error: ' + err.message, 'error'); }
+  });
+
+  // ============================================================
+  // TAB ESTADO (fase 2: estado vigente, transiciones, etiquetas, timeline)
+  // ============================================================
+  let estadoVigente = null;
+  let historialEstados = [];
+  let etiquetasCatalogo = [];
+  let etiquetasAplicadas = [];
+  let transicionesPermitidas = [];
+
+  async function cargarEstado() {
+    try {
+      [estadoVigente, historialEstados, etiquetasCatalogo, etiquetasAplicadas] = await Promise.all([
+        window.estadosApi.obtenerEstadoVigente(leadId),
+        window.estadosApi.obtenerHistorial(leadId),
+        window.estadosApi.listarEtiquetasCatalogo(true),
+        window.estadosApi.etiquetasDeLead(leadId),
+      ]);
+      const estadoActual = estadoVigente?.estado || 'onboarding_pendiente';
+      transicionesPermitidas = await window.estadosApi.listarTransicionesDesde(estadoActual);
+      pintarEstadoTodo();
+    } catch (e) {
+      console.error('Error tab estado:', e);
+      window.utils.toast('Error cargando estado: ' + e.message, 'error');
+    }
+  }
+
+  function pintarEstadoTodo() {
+    pintarEstadoVigente();
+    pintarTransiciones();
+    pintarEtiquetas();
+    pintarTimeline();
+  }
+
+  function pintarEstadoVigente() {
+    const actual = estadoVigente?.estado || 'onboarding_pendiente';
+    document.getElementById('estado-badge-grande').innerHTML = window.estadosApi.badgeEstado(actual);
+    document.getElementById('estado-desde').textContent = estadoVigente?.desde
+      ? 'desde ' + new Date(estadoVigente.desde).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
+      : '-';
+    document.getElementById('estado-motivo').textContent = estadoVigente?.motivo || '(sin motivo registrado)';
+    const por = estadoVigente?.cambiado_por_user;
+    document.getElementById('estado-cambiado-por').textContent = por
+      ? 'Cambiado por ' + (por.nombre || por.email)
+      : '';
+  }
+
+  function pintarTransiciones() {
+    const cont = document.getElementById('estado-transiciones');
+    if (transicionesPermitidas.length === 0) {
+      cont.innerHTML = '<p class="text-muted" style="font-size: var(--text-sm);">No hay transiciones disponibles desde este estado para tu rol.</p>';
+      return;
+    }
+    cont.innerHTML = transicionesPermitidas.map(t => {
+      const c = window.estadosApi.color(t.estado_hacia);
+      return `
+        <button class="btn btn-secondary btn-sm" data-transicion="${t.estado_hacia}"
+                data-requiere-motivo="${t.requiere_motivo}" data-requiere-categoria="${t.requiere_categoria_churn}"
+                style="display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); text-align: left;">
+          <span style="display: inline-block; padding: 2px 10px; background: ${c.bg}; color: ${c.fg}; border-radius: var(--radius-full); font-size: var(--text-xs); font-weight: 600;">→ ${window.estadosApi.label(t.estado_hacia)}</span>
+          <span style="font-size: var(--text-xs); color: var(--text-muted); flex: 1; min-width: 0;">${window.utils.escapeHtml(t.descripcion || '')}</span>
+        </button>`;
+    }).join('');
+    cont.querySelectorAll('[data-transicion]').forEach(b => b.addEventListener('click', () => abrirModalTransicion(b.dataset)));
+  }
+
+  function abrirModalTransicion(data) {
+    const estadoHacia = data.transicion;
+    const reqMotivo = data.requiereMotivo === 'true';
+    const reqCategoria = data.requiereCategoria === 'true';
+
+    document.getElementById('modal-transicion-titulo').textContent = `Cambiar estado`;
+    const desdeActual = estadoVigente?.estado || 'onboarding_pendiente';
+    document.getElementById('modal-desde-badge').innerHTML = window.estadosApi.badgeEstado(desdeActual);
+    document.getElementById('modal-hacia-badge').innerHTML = window.estadosApi.badgeEstado(estadoHacia);
+    document.getElementById('modal-transicion-msg').textContent =
+      reqCategoria ? 'Este cambio implica salida del cliente. Selecciona categoría y motivo.'
+      : reqMotivo ? 'Esta transición requiere registrar un motivo breve.'
+      : '¿Confirmas el cambio de estado?';
+    document.getElementById('modal-motivo').value = '';
+    document.getElementById('modal-notas').value = '';
+    document.getElementById('modal-categoria').value = '';
+    document.getElementById('modal-motivo-field').style.display = reqMotivo || reqCategoria ? 'block' : 'none';
+    document.getElementById('modal-categoria-field').classList.toggle('hidden', !reqCategoria);
+
+    // Cargar razones churn dinámicas desde config
+    if (reqCategoria) {
+      window.crmApi.cargarConfig().then(cfg => {
+        const razones = cfg.razones_churn || [];
+        document.getElementById('modal-categoria').innerHTML =
+          '<option value="">Selecciona...</option>' +
+          razones.map(r => `<option value="${r}">${r.replace(/_/g, ' ')}</option>`).join('');
+      });
+    }
+
+    document.getElementById('btn-confirmar-transicion').dataset.hacia = estadoHacia;
+    document.getElementById('btn-confirmar-transicion').dataset.reqMotivo = String(reqMotivo);
+    document.getElementById('btn-confirmar-transicion').dataset.reqCategoria = String(reqCategoria);
+
+    const m = document.getElementById('modal-transicion');
+    m.classList.remove('hidden');
+    requestAnimationFrame(() => m.classList.add('show'));
+  }
+
+  function cerrarModalTransicion() {
+    const m = document.getElementById('modal-transicion');
+    m.classList.remove('show');
+    setTimeout(() => m.classList.add('hidden'), 200);
+  }
+
+  document.querySelectorAll('[data-close-transicion]').forEach(b => b.addEventListener('click', cerrarModalTransicion));
+
+  document.getElementById('btn-confirmar-transicion').addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    const hacia = btn.dataset.hacia;
+    const reqMotivo = btn.dataset.reqMotivo === 'true';
+    const reqCategoria = btn.dataset.reqCategoria === 'true';
+    const motivo = document.getElementById('modal-motivo').value.trim();
+    const categoria = document.getElementById('modal-categoria').value;
+    const notas = document.getElementById('modal-notas').value.trim();
+
+    if (reqMotivo && !motivo) { window.utils.toast('Motivo requerido', 'error'); return; }
+    if (reqCategoria && !categoria) { window.utils.toast('Categoría requerida', 'error'); return; }
+
+    btn.disabled = true;
+    const orig = btn.textContent;
+    btn.textContent = 'Aplicando...';
+    try {
+      await window.estadosApi.aplicarTransicion(leadId, hacia, {
+        motivo: motivo || null,
+        categoria_churn: categoria || null,
+        notas: notas || null,
+      });
+      window.utils.toast('Estado actualizado a "' + window.estadosApi.label(hacia) + '"', 'success');
+      cerrarModalTransicion();
+      // Recargar lead para reflejar side effects (churn_at, etc.)
+      const { data: leadActual } = await window.db.from('leads').select('*').eq('id', leadId).single();
+      Object.assign(lead, leadActual);
+      await cargarEstado();
+      // Si el CRM tab ya estaba cargado, refrescarlo también
+      if (typeof pintarCRMTodo === 'function') pintarCRMTodo();
+    } catch (err) {
+      console.error(err);
+      window.utils.toast('Error: ' + err.message, 'error', 6000);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = orig;
+    }
+  });
+
+  // ----- ETIQUETAS -----
+  function pintarEtiquetas() {
+    const cont = document.getElementById('etiquetas-aplicadas');
+    document.getElementById('etiquetas-count').textContent = etiquetasAplicadas.length + ' aplicadas';
+    if (etiquetasAplicadas.length === 0) {
+      cont.innerHTML = '<p class="text-muted" style="font-size: var(--text-sm); margin: 0;">Sin etiquetas aplicadas.</p>';
+    } else {
+      cont.innerHTML = etiquetasAplicadas.map(le => {
+        const et = le.etiqueta;
+        if (!et) return '';
+        return `
+          <span class="badge" style="background: ${et.color}1A; color: ${et.color}; border: 1px solid ${et.color}40; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px;">
+            ${et.icono || '◇'} ${window.utils.escapeHtml(et.nombre)}
+            ${et.visible_cliente ? '<span title="Visible al cliente" style="font-size: 10px; opacity: 0.7;">👁</span>' : ''}
+            <button data-remove-etiqueta="${et.id}" style="background: none; border: 0; cursor: pointer; color: ${et.color}; opacity: 0.6; font-size: 14px; padding: 0 2px;" title="Quitar">✕</button>
+          </span>`;
+      }).join('');
+      cont.querySelectorAll('[data-remove-etiqueta]').forEach(b => b.addEventListener('click', async () => {
+        try {
+          await window.estadosApi.quitarEtiqueta(leadId, b.dataset.removeEtiqueta);
+          etiquetasAplicadas = await window.estadosApi.etiquetasDeLead(leadId);
+          pintarEtiquetas();
+          window.utils.toast('Etiqueta quitada', 'success');
+        } catch (err) { window.utils.toast('Error: ' + err.message, 'error'); }
+      }));
+    }
+
+    // Select de catálogo (excluir ya aplicadas)
+    const aplicadasIds = new Set(etiquetasAplicadas.map(le => le.etiqueta_id));
+    const disponibles = etiquetasCatalogo.filter(e => !aplicadasIds.has(e.id));
+    const sel = document.getElementById('etiqueta-select');
+    sel.innerHTML = '<option value="">Seleccionar etiqueta para agregar...</option>' +
+      disponibles.map(e => `<option value="${e.id}">${e.icono || '◇'} ${window.utils.escapeHtml(e.nombre)} · ${e.categoria}</option>`).join('');
+  }
+
+  document.getElementById('btn-agregar-etiqueta').addEventListener('click', async () => {
+    const id = document.getElementById('etiqueta-select').value;
+    if (!id) { window.utils.toast('Selecciona una etiqueta', 'error'); return; }
+    try {
+      await window.estadosApi.aplicarEtiqueta(leadId, id);
+      etiquetasAplicadas = await window.estadosApi.etiquetasDeLead(leadId);
+      pintarEtiquetas();
+      window.utils.toast('Etiqueta aplicada', 'success');
+    } catch (err) { window.utils.toast('Error: ' + err.message, 'error'); }
+  });
+
+  function pintarTimeline() {
+    const cont = document.getElementById('estado-timeline');
+    document.getElementById('timeline-count').textContent = historialEstados.length + ' eventos';
+    if (historialEstados.length === 0) {
+      cont.innerHTML = '<p class="text-muted">Sin eventos todavía.</p>';
+      return;
+    }
+    cont.innerHTML = historialEstados.map((h, i) => {
+      const por = h.cambiado_por_user;
+      const cuando = new Date(h.cambiado_at).toLocaleString('es-ES', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      const desde = h.estado_desde ? `${window.estadosApi.badgeEstado(h.estado_desde)} →` : '';
+      const hacia = window.estadosApi.badgeEstado(h.estado_hacia);
+      return `
+        <div style="padding: var(--space-3) 0; ${i < historialEstados.length - 1 ? 'border-bottom: 1px solid var(--border-soft);' : ''} display: grid; grid-template-columns: 1fr auto; gap: var(--space-3); align-items: center;">
+          <div style="min-width: 0;">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px;">${desde} ${hacia}</div>
+            ${h.motivo ? `<div style="font-size: var(--text-sm); color: var(--text); margin-top: 4px;">${window.utils.escapeHtml(h.motivo)}</div>` : ''}
+            ${h.notas ? `<div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: 4px; font-style: italic;">${window.utils.escapeHtml(h.notas)}</div>` : ''}
+            <div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: 4px;">
+              ${por ? (por.nombre || por.email) : (h.origen === 'automatico' ? 'Automático' : 'Sistema')}
+              ${h.origen !== 'manual' ? ` · <em>${h.origen}</em>` : ''}
+            </div>
+          </div>
+          <div style="font-size: var(--text-xs); color: var(--text-muted); white-space: nowrap;">${cuando}</div>
+        </div>`;
+    }).join('');
+  }
+
+  // ============================================================
+  // TAB SALUD (fase 4: semáforos engagement + progreso)
+  // ============================================================
+  let saludData = null;
+
+  async function cargarSalud() {
+    try {
+      saludData = await window.saludApi.obtenerSemaforo(leadId);
+      if (!saludData) {
+        // Calcular si nunca se ha hecho
+        await window.saludApi.recalcularUno(leadId);
+        saludData = await window.saludApi.obtenerSemaforo(leadId);
+      }
+      pintarSalud();
+    } catch (e) {
+      console.error('Error salud:', e);
+      window.utils.toast('Error: ' + e.message, 'error');
+    }
+  }
+
+  function pintarSalud() {
+    if (!saludData) return;
+    const engMeta = window.saludApi.colorMeta(saludData.engagement_color);
+    const progMeta = window.saludApi.colorMeta(saludData.progreso_color);
+
+    document.getElementById('luz-engagement').innerHTML = window.saludApi.luzGrande(saludData.engagement_color);
+    document.getElementById('eng-color-label').textContent = engMeta.label;
+    document.getElementById('eng-color-label').style.color = engMeta.fg;
+    document.getElementById('eng-score').textContent = 'Score: ' + Math.round(saludData.engagement_score) + '/100';
+    document.getElementById('card-engagement').style.borderLeftColor = engMeta.dot;
+
+    document.getElementById('luz-progreso').innerHTML = window.saludApi.luzGrande(saludData.progreso_color);
+    document.getElementById('prog-color-label').textContent = progMeta.label;
+    document.getElementById('prog-color-label').style.color = progMeta.fg;
+    document.getElementById('prog-score').textContent = 'Score: ' + Math.round(saludData.progreso_score) + '/100';
+    document.getElementById('card-progreso').style.borderLeftColor = progMeta.dot;
+
+    // Normaliza razones: el formato declarativo nuevo (migración 100) guarda un OBJETO
+    // {razon, dias_sin_login, ...}, mientras que el legacy guarda un ARRAY de {señal, detalle, penaliza}.
+    function normalizarRazones(raw) {
+      if (!raw) return [];
+      if (Array.isArray(raw)) return raw;
+      if (typeof raw === 'object') {
+        // Si trae 'razon', es el formato declarativo nuevo: lo mostramos como una sola fila
+        if (raw.razon || raw.regla) {
+          const detallesExtra = Object.entries(raw)
+            .filter(([k]) => !['razon','regla','color','prioridad'].includes(k))
+            .map(([k,v]) => `${k}: ${v}`).join(' · ');
+          return [{
+            'señal': raw.regla || 'regla',
+            detalle: (raw.razon || '') + (detallesExtra ? ' (' + detallesExtra + ')' : ''),
+          }];
+        }
+        // Fallback: convertir cada clave:valor en una razón
+        return Object.entries(raw).map(([k,v]) => ({ 'señal': k, detalle: String(v) }));
+      }
+      return [];
+    }
+
+    document.getElementById('eng-razones').innerHTML = normalizarRazones(saludData.engagement_razones).map(r => `
+      <div style="display: flex; gap: var(--space-2); padding: 8px 0; border-bottom: 1px solid var(--border-soft); font-size: var(--text-sm);">
+        <span style="font-family: var(--font-mono); font-size: 10px; padding: 2px 6px; border-radius: var(--radius-full); background: var(--surface-2); color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">${window.utils.escapeHtml(r['señal'] || '?')}</span>
+        <span style="flex: 1;">${window.utils.escapeHtml(r.detalle || '')}</span>
+        ${r.penaliza ? `<span style="font-family: var(--font-mono); color: var(--error); font-size: var(--text-xs);">−${r.penaliza}</span>` : ''}
+      </div>
+    `).join('') || '<p class="text-muted" style="font-size: var(--text-sm);">Sin razones registradas.</p>';
+
+    document.getElementById('prog-razones').innerHTML = normalizarRazones(saludData.progreso_razones).map(r => `
+      <div style="display: flex; gap: var(--space-2); padding: 8px 0; border-bottom: 1px solid var(--border-soft); font-size: var(--text-sm);">
+        <span style="font-family: var(--font-mono); font-size: 10px; padding: 2px 6px; border-radius: var(--radius-full); background: var(--surface-2); color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">${window.utils.escapeHtml(r['señal'] || '?')}</span>
+        <span style="flex: 1;">${window.utils.escapeHtml(r.detalle || '')}</span>
+        ${r.penaliza ? `<span style="font-family: var(--font-mono); color: var(--error); font-size: var(--text-xs);">−${r.penaliza}</span>` : ''}
+      </div>
+    `).join('') || '<p class="text-muted" style="font-size: var(--text-sm);">Sin razones registradas.</p>';
+
+    // Banner override
+    const tieneOverride = saludData.override_engagement || saludData.override_progreso;
+    document.getElementById('override-banner').classList.toggle('hidden', !tieneOverride);
+    if (tieneOverride) {
+      const por = saludData.override_por_user;
+      const hasta = saludData.override_hasta ? new Date(saludData.override_hasta).toLocaleString('es-ES') : 'indefinido';
+      document.getElementById('override-detalle').textContent =
+        (saludData.override_motivo || '(sin motivo)') +
+        ' · vence: ' + hasta +
+        (por ? ' · por ' + (por.nombre || por.email) : '');
+    }
+  }
+
+  document.getElementById('btn-recalcular-salud').addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    btn.disabled = true; const orig = btn.textContent; btn.textContent = 'Calculando...';
+    try {
+      await window.saludApi.recalcularUno(leadId);
+      saludData = await window.saludApi.obtenerSemaforo(leadId);
+      pintarSalud();
+      window.utils.toast('Semáforos recalculados', 'success');
+    } catch (err) { window.utils.toast('Error: ' + err.message, 'error'); }
+    finally { btn.disabled = false; btn.textContent = orig; }
+  });
+
+  document.getElementById('btn-override-salud').addEventListener('click', () => {
+    document.getElementById('ov-engagement').value = saludData?.override_engagement || '';
+    document.getElementById('ov-progreso').value = saludData?.override_progreso || '';
+    document.getElementById('ov-motivo').value = saludData?.override_motivo || '';
+    document.getElementById('ov-hasta').value = saludData?.override_hasta
+      ? new Date(saludData.override_hasta).toISOString().slice(0, 16) : '';
+    const m = document.getElementById('modal-override');
+    m.classList.remove('hidden');
+    requestAnimationFrame(() => m.classList.add('show'));
+  });
+
+  document.querySelectorAll('[data-close-override]').forEach(b => b.addEventListener('click', () => {
+    const m = document.getElementById('modal-override');
+    m.classList.remove('show'); setTimeout(() => m.classList.add('hidden'), 200);
+  }));
+
+  document.getElementById('btn-confirmar-override').addEventListener('click', async (e) => {
+    const eng = document.getElementById('ov-engagement').value;
+    const prog = document.getElementById('ov-progreso').value;
+    const motivo = document.getElementById('ov-motivo').value.trim();
+    const hasta = document.getElementById('ov-hasta').value;
+    if (!eng && !prog) { window.utils.toast('Selecciona al menos un color', 'error'); return; }
+    if (!motivo) { window.utils.toast('Motivo requerido', 'error'); return; }
+    const btn = e.currentTarget; btn.disabled = true;
+    try {
+      await window.saludApi.setOverride({
+        lead_id: leadId,
+        engagement: eng || null,
+        progreso: prog || null,
+        motivo,
+        hasta: hasta ? new Date(hasta).toISOString() : null,
+      });
+      window.utils.toast('Override aplicado', 'success');
+      const m = document.getElementById('modal-override');
+      m.classList.remove('show'); setTimeout(() => m.classList.add('hidden'), 200);
+      saludData = await window.saludApi.obtenerSemaforo(leadId);
+      pintarSalud();
+    } catch (err) { window.utils.toast('Error: ' + err.message, 'error'); }
+    finally { btn.disabled = false; }
+  });
+
+  document.getElementById('btn-quitar-override').addEventListener('click', async () => {
+    if (!confirm('¿Quitar el override manual? Volverán los colores calculados.')) return;
+    try {
+      await window.saludApi.limpiarOverride(leadId);
+      saludData = await window.saludApi.obtenerSemaforo(leadId);
+      pintarSalud();
+      window.utils.toast('Override quitado', 'success');
+    } catch (err) { window.utils.toast('Error: ' + err.message, 'error'); }
+  });
+
+  // ============================================================
+  // TAB TRACKER (fase 5)
+  // ============================================================
+  async function cargarTracker() {
+    try {
+      const [kpiDefs, kpiAsigns, kpiRegistros, checkpointsPlantilla, checkpointsLead, tareas, facturacion, sesiones] = await Promise.all([
+        window.trackerApi.listarKpiDefiniciones(true),
+        window.trackerApi.listarKpiAsignaciones(leadId),
+        window.trackerApi.listarKpiDiario(leadId, {
+          desde: new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10),
+          hasta: new Date().toISOString().slice(0, 10),
+        }),
+        window.trackerApi.listarCheckpointsPlantilla(true),
+        window.trackerApi.listarCheckpointsLead(leadId),
+        window.trackerApi.listarTareas(leadId),
+        window.trackerApi.listarFacturacion(leadId),
+        window.sesionesApi.listar({ lead_id: leadId, limit: 20 }),
+      ]);
+      pintarTrackerKpis(kpiDefs, kpiAsigns, kpiRegistros);
+      pintarTrackerRoadmap(checkpointsPlantilla, checkpointsLead);
+      pintarTrackerTareas(tareas);
+      pintarTrackerFacturacion(facturacion);
+      pintarTrackerSesiones(sesiones);
+    } catch (e) {
+      console.error('Error tracker:', e);
+      window.utils.toast('Error: ' + e.message, 'error');
+    }
+  }
+
+  function pintarTrackerSesiones(sesiones) {
+    const cont = document.getElementById('tracker-sesiones-lista');
+    if (sesiones.length === 0) {
+      cont.innerHTML = '<p class="text-muted">Sin sesiones 1:1 registradas. <a href="sesiones.html">Registrar la primera →</a></p>';
+      return;
+    }
+    cont.innerHTML = sesiones.map(s => `
+      <a href="sesiones.html#${s.id}" style="display: grid; grid-template-columns: 50px 1fr auto auto; gap: var(--space-3); padding: var(--space-3) 0; border-bottom: 1px solid var(--border-soft); align-items: center; color: inherit; text-decoration: none;">
+        <div style="font-family: var(--font-mono); font-weight: 700; color: var(--accent-deeper); text-align: center;">#${s.numero_sesion || '?'}</div>
+        <div>
+          <div style="font-weight: 600; font-size: var(--text-sm);">${window.sesionesApi.formatFecha(s.fecha)} · ${s.modalidad}</div>
+          ${s.foco_accion ? `<div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: 2px;">🎯 ${window.utils.escapeHtml(s.foco_accion.slice(0, 120))}</div>` : ''}
+          <div style="font-size: var(--text-xs); color: var(--text-muted);">por ${s.mentor?.nombre || s.mentor?.email || '-'}</div>
+        </div>
+        <div>${window.sesionesApi.badgeQA(s.estado_qa)}</div>
+        <div style="color: var(--text-muted);">→</div>
+      </a>
+    `).join('');
+  }
+
+  function pintarTrackerKpis(defs, asigns, registros) {
+    const cont = document.getElementById('tracker-kpis-tabla');
+    document.getElementById('tracker-kpis-meta').textContent = `${defs.length} KPIs · ${registros.length} registros en 7d`;
+    if (defs.length === 0) {
+      cont.innerHTML = '<p class="text-muted">Sin KPIs configurados. <a href="tracker-config.html">Configurar →</a></p>';
+      return;
+    }
+    // Construir matriz: filas = KPIs, columnas = 7 últimos días
+    const fechas = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      fechas.push(d.toISOString().slice(0, 10));
+    }
+    let header = '<div style="display: grid; grid-template-columns: 200px repeat(7, 1fr) 80px; gap: 4px; padding: 4px 0; border-bottom: 1px solid var(--border); font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted);">';
+    header += '<div>KPI</div>';
+    fechas.forEach(f => {
+      const d = new Date(f);
+      header += `<div style="text-align: center;">${d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric' })}</div>`;
+    });
+    header += '<div style="text-align: right;">7d total</div></div>';
+
+    const filas = defs.map(k => {
+      let total = 0;
+      let cells = '';
+      fechas.forEach(f => {
+        const reg = registros.find(r => r.kpi_id === k.id && r.fecha === f);
+        const v = reg?.valor;
+        total += Number(v || 0);
+        cells += `<div style="text-align: center; padding: 4px; font-family: var(--font-mono); font-size: var(--text-xs); ${v ? '' : 'color: var(--text-faint);'}">${v ? window.trackerApi.formatValor(v, k) : '·'}</div>`;
+      });
+      return `
+        <div style="display: grid; grid-template-columns: 200px repeat(7, 1fr) 80px; gap: 4px; padding: 6px 0; border-bottom: 1px solid var(--border-soft); align-items: center;">
+          <div>
+            <div style="font-weight: 600; font-size: var(--text-sm);">${window.utils.escapeHtml(k.nombre)}</div>
+            <div style="font-family: var(--font-mono); font-size: 9px; color: var(--text-muted); text-transform: uppercase;">${k.tipo}</div>
+          </div>
+          ${cells}
+          <div style="text-align: right; font-weight: 600; font-family: var(--font-mono); font-size: var(--text-sm);">${window.trackerApi.formatValor(total, k)}</div>
+        </div>`;
+    }).join('');
+    cont.innerHTML = header + filas;
+  }
+
+  function pintarTrackerRoadmap(plantilla, mios) {
+    const cont = document.getElementById('tracker-roadmap-lista');
+    const miosById = {};
+    mios.forEach(m => miosById[m.checkpoint_id] = m);
+    const alcanzados = mios.filter(m => m.alcanzado_at).length;
+    document.getElementById('tracker-roadmap-meta').textContent = `${alcanzados} / ${plantilla.length} alcanzados`;
+    if (plantilla.length === 0) {
+      cont.innerHTML = '<p class="text-muted">Sin checkpoints configurados.</p>';
+      return;
+    }
+    cont.innerHTML = plantilla.map(c => {
+      const mio = miosById[c.id];
+      const alc = !!mio?.alcanzado_at;
+      return `
+        <div style="display: grid; grid-template-columns: 30px 1fr auto auto; gap: var(--space-3); padding: var(--space-3) 0; border-bottom: 1px solid var(--border-soft); align-items: center;">
+          <div style="width: 24px; height: 24px; border-radius: 50%; border: 2px solid ${alc ? 'var(--accent-dark)' : 'var(--border)'}; background: ${alc ? 'var(--accent)' : 'var(--surface)'}; color: ${alc ? '#1D1D1F' : 'var(--text-muted)'}; display: grid; place-items: center; font-weight: 700; font-size: 12px;">${alc ? '✓' : c.orden / 10}</div>
+          <div>
+            <div style="font-weight: 600; font-size: var(--text-sm);">${window.utils.escapeHtml(c.nombre)}</div>
+            <div style="font-size: var(--text-xs); color: var(--text-muted);">${window.utils.escapeHtml(c.descripcion || '')} ${alc ? '· Alcanzado ' + window.trackerApi.formatFecha(mio.alcanzado_at) : ''}</div>
+          </div>
+          <div style="font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); text-transform: uppercase;">${c.fase || ''}</div>
+          <button class="btn btn-ghost btn-sm" data-toggle-cp="${c.id}" data-alcanzado="${alc}">${alc ? 'Desmarcar' : '✓ Marcar'}</button>
+        </div>`;
+    }).join('');
+    cont.querySelectorAll('[data-toggle-cp]').forEach(b => b.addEventListener('click', async () => {
+      try {
+        if (b.dataset.alcanzado === 'true') {
+          await window.trackerApi.desmarcarCheckpoint(leadId, b.dataset.toggleCp);
+        } else {
+          await window.trackerApi.marcarCheckpoint({ lead_id: leadId, checkpoint_id: b.dataset.toggleCp });
+        }
+        cargarTracker();
+        window.utils.toast('Roadmap actualizado', 'success');
+      } catch (e) { window.utils.toast('Error: ' + e.message, 'error'); }
+    }));
+  }
+
+  function pintarTrackerTareas(tareas) {
+    const cont = document.getElementById('tracker-tareas-lista');
+    if (tareas.length === 0) {
+      cont.innerHTML = '<p class="text-muted">Sin tareas. Asigna la primera.</p>';
+      return;
+    }
+    cont.innerHTML = tareas.map(t => `
+      <div style="display: grid; grid-template-columns: 1fr auto auto auto; gap: var(--space-3); padding: var(--space-3) 0; border-bottom: 1px solid var(--border-soft); align-items: center;">
+        <div>
+          <div style="font-weight: 600; font-size: var(--text-sm);">${window.utils.escapeHtml(t.titulo)}</div>
+          ${t.detalle ? `<div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: 2px;">${window.utils.escapeHtml(t.detalle)}</div>` : ''}
+          <div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: 4px;">
+            ${t.fecha_limite ? '📅 ' + window.trackerApi.formatFecha(t.fecha_limite) : ''}
+            ${t.asignada_por_user ? ' · por ' + (t.asignada_por_user.nombre || t.asignada_por_user.email) : ''}
+            · <em>${t.origen}</em>
+          </div>
+        </div>
+        <div>${window.trackerApi.prioridadBadge(t.prioridad)}</div>
+        <div>${window.trackerApi.estadoTareaBadge(t.estado)}</div>
+        <button class="btn btn-ghost btn-sm" data-del-tarea="${t.id}" style="color: var(--error);">✕</button>
+      </div>`).join('');
+    cont.querySelectorAll('[data-del-tarea]').forEach(b => b.addEventListener('click', async () => {
+      if (!confirm('¿Eliminar tarea?')) return;
+      try {
+        await window.trackerApi.eliminarTarea(b.dataset.delTarea);
+        cargarTracker();
+        window.utils.toast('Tarea eliminada', 'success');
+      } catch (e) { window.utils.toast('Error: ' + e.message, 'error'); }
+    }));
+  }
+
+  function pintarTrackerFacturacion(meses) {
+    const cont = document.getElementById('tracker-fact-lista');
+    document.getElementById('tracker-fact-meta').textContent = `${meses.length} mes${meses.length === 1 ? '' : 'es'} registrados`;
+    if (meses.length === 0) {
+      cont.innerHTML = '<p class="text-muted">El cliente aún no ha registrado su facturación mensual.</p>';
+      return;
+    }
+    cont.innerHTML = meses.map(m => `
+      <div style="display: grid; grid-template-columns: 140px 1fr auto; gap: var(--space-3); padding: var(--space-3) 0; border-bottom: 1px solid var(--border-soft); align-items: center;">
+        <div style="font-family: var(--font-mono); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted);">${window.trackerApi.formatMes(m.mes)} ${m.es_snapshot_inicial ? '<br><span style="color: var(--accent-deeper); font-weight: 700;">PUNTO A</span>' : ''}</div>
+        <div>
+          <div style="font-weight: 600; font-size: var(--text-md);">${window.trackerApi.formatValor(m.ingreso_usd, { unidad: 'usd' })}</div>
+          <div style="font-size: var(--text-xs); color: var(--text-muted);">
+            ${m.clientes_nuevos > 0 ? m.clientes_nuevos + ' nuevos · ' : ''}${m.upsells > 0 ? m.upsells + ' upsells' : ''}
+          </div>
+        </div>
+        <div></div>
+      </div>`).join('');
+  }
+
+  document.getElementById('btn-add-tarea').addEventListener('click', () => {
+    document.getElementById('tar-titulo').value = '';
+    document.getElementById('tar-detalle').value = '';
+    document.getElementById('tar-prioridad').value = 'media';
+    document.getElementById('tar-esfuerzo').value = '';
+    document.getElementById('tar-fecha').value = '';
+    const m = document.getElementById('modal-tarea');
+    m.classList.remove('hidden');
+    requestAnimationFrame(() => m.classList.add('show'));
+  });
+  document.querySelectorAll('[data-close-tarea]').forEach(b => b.addEventListener('click', () => {
+    const m = document.getElementById('modal-tarea');
+    m.classList.remove('show'); setTimeout(() => m.classList.add('hidden'), 200);
+  }));
+  document.getElementById('btn-guardar-tarea').addEventListener('click', async (e) => {
+    const titulo = document.getElementById('tar-titulo').value;
+    if (!titulo.trim()) { window.utils.toast('Título requerido', 'error'); return; }
+    e.currentTarget.disabled = true;
+    try {
+      await window.trackerApi.crearTarea({
+        lead_id: leadId,
+        titulo,
+        detalle: document.getElementById('tar-detalle').value.trim() || null,
+        prioridad: document.getElementById('tar-prioridad').value,
+        esfuerzo_min: document.getElementById('tar-esfuerzo').value || null,
+        fecha_limite: document.getElementById('tar-fecha').value || null,
+      });
+      window.utils.toast('Tarea asignada', 'success');
+      const m = document.getElementById('modal-tarea');
+      m.classList.remove('show'); setTimeout(() => m.classList.add('hidden'), 200);
+      cargarTracker();
+    } catch (err) { window.utils.toast('Error: ' + err.message, 'error'); }
+    finally { e.currentTarget.disabled = false; }
+  });
+
+  // ====== Tab Re-Génesis: resumen completo del programa ======
+  let regenesisCargado = false;
+  async function cargarRegenesis() {
+    if (regenesisCargado) return;
+    const wrap = document.getElementById('regenesis-resumen');
+    if (!wrap) return;
+    wrap.innerHTML = '<div class="text-muted" style="padding:var(--space-6); text-align:center;">Cargando…</div>';
+
+    try {
+    // Traemos temas para el progreso + cliente (lead ya está cargado en `lead`).
+    const { data: temas } = await window.db.from('temas').select('id, nombre, orden').order('orden');
+    const temasRG = temas || [];
+    const tema = temasRG.find(t => t.orden === lead.tema_actual_orden);
+    const fmt = (d) => d ? new Date(d).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' }) : '—';
+    const fmtFecha = (d) => d ? new Date(d + 'T00:00:00').toLocaleDateString('es-CO') : '—';
+    const esc = (s) => window.utils.escapeHtml(s);
+
+    const contratos = [
+      { label: 'Contrato de Servicio', firma: lead.contrato_servicio_firmado_at },
+      { label: 'Waiver / Liability',   firma: lead.contrato_waiver_firmado_at },
+      { label: 'Media Release',        firma: lead.contrato_media_firmado_at },
+    ];
+    const firmados = contratos.filter(c => c.firma).length;
+    const completo = firmados === 3;
+
+    const contratoHTML = contratos.map(c => `
+      <div style="display:flex; gap:var(--space-3); align-items:flex-start; padding:var(--space-4); background: ${c.firma ? 'var(--accent-soft)' : 'var(--surface-3)'}; border-left: 3px solid ${c.firma ? 'var(--accent)' : 'var(--border)'}; border-radius: var(--radius-md); margin-bottom: var(--space-2);">
+        <span style="width:28px; height:28px; border-radius:50%; background: ${c.firma ? 'var(--accent)' : 'var(--border)'}; color:${c.firma ? '#1D1D1F' : 'var(--text-muted)'}; display:grid; place-items:center; font-weight:700; font-size:14px; flex-shrink:0;">${c.firma ? '✓' : '·'}</span>
+        <div style="flex:1; min-width:0;">
+          <div style="font-weight:600; font-size:14px;">${esc(c.label)}</div>
+          <div class="text-muted" style="font-size:12px; font-family:var(--font-mono);">${c.firma ? 'Firmado · ' + fmt(c.firma) : 'Sin firmar'}</div>
+        </div>
+      </div>`).join('');
+
+    const sinGHL = !lead.ghl_contact_id
+      ? `<div style="background: rgba(185,28,28,0.08); border:1px solid rgba(185,28,28,0.3); border-radius: var(--radius-md); padding: var(--space-3); font-size:13px; color: #B91C1C; margin-top: var(--space-2);">⚠ Sin <code style="font-family:var(--font-mono); background:rgba(0,0,0,0.05); padding:1px 6px; border-radius:4px;">ghl_contact_id</code>, no se puede generar link de bienvenida automático.</div>` : '';
+
+    wrap.innerHTML = `
+      <div class="grid grid-2" style="gap: var(--space-6);">
+        <div>
+          <div class="eyebrow" style="margin-bottom: var(--space-3);">DATOS DEL CLIENTE</div>
+          <div class="field"><label class="field-label">Email</label><div style="font-size:14px;">${esc(lead.email || '—')}</div></div>
+          <div class="field"><label class="field-label">Teléfono</label><div style="font-size:14px;">${esc(lead.telefono || '—')}</div></div>
+          <div class="field"><label class="field-label">Cohorte</label><div style="font-size:14px;">${esc((lead.cohorte || '—').toUpperCase())}</div></div>
+          <div class="field"><label class="field-label">País / Ciudad</label><div style="font-size:14px;">${esc(lead.pais || '—')}${lead.ciudad ? ' · ' + esc(lead.ciudad) : ''}</div></div>
+          <div class="field"><label class="field-label">GHL Contact ID</label><div style="font-size:14px; font-family:var(--font-mono);">${esc(lead.ghl_contact_id || '—')}</div></div>
+        </div>
+        <div>
+          <div class="eyebrow" style="margin-bottom: var(--space-3);">PAGO Y MODALIDAD</div>
+          <div class="field"><label class="field-label">Fecha pago</label><div style="font-size:14px;">${fmt(lead.fecha_pago)}</div></div>
+          <div class="field"><label class="field-label">Precio pagado</label><div style="font-size:14px;">${lead.precio_pagado_usd ? '$' + Number(lead.precio_pagado_usd).toLocaleString('en-US') + ' USD' : '—'}</div></div>
+          <div class="field"><label class="field-label">Modalidad</label><div style="font-size:14px;"><span class="badge ${lead.modalidad ? 'badge-active' : ''}">${esc((lead.modalidad || 'sin definir').toUpperCase())}</span></div></div>
+          <div class="field"><label class="field-label">Cuotas elegidas</label><div style="font-size:14px;">${lead.cuotas_elegidas ? `<span class="badge badge-active">${esc(String(lead.cuotas_elegidas))} CUOTAS</span>` : '—'}</div></div>
+        </div>
+      </div>
+
+      <div style="margin-top: var(--space-8);">
+        <div style="display:flex; align-items:center; gap:var(--space-3); margin-bottom: var(--space-3);">
+          <span class="eyebrow">CONTRATOS</span>
+          <span class="badge ${completo ? 'badge-active' : ''}">${completo ? 'COMPLETO' : `${firmados}/3 FIRMADOS`}</span>
+        </div>
+        ${contratoHTML}
+        ${sinGHL}
+      </div>
+
+      <div style="margin-top: var(--space-8);">
+        <div class="eyebrow" style="margin-bottom: var(--space-3);">PROGRAMA</div>
+        <div class="grid grid-2" style="gap: var(--space-6);">
+          <div>
+            <div class="field"><label class="field-label">Estado</label><div style="font-size:14px;"><strong>${esc((lead.estado || '—').replace(/_/g,' ').toUpperCase())}</strong></div></div>
+            <div class="field"><label class="field-label">Posición actual</label><div style="font-size:14px;">${tema ? esc(tema.nombre) + ' · día ' + (lead.dia_actual_en_tema || '—') + '/7 (semana ' + (lead.semana_actual || '—') + '/10)' : 'No iniciado'}</div></div>
+          </div>
+          <div>
+            <div class="field"><label class="field-label">Inicio programa</label><div style="font-size:14px;">${fmtFecha(lead.fecha_inicio_programa)}</div></div>
+            <div class="field"><label class="field-label">Temas completados</label><div style="font-size:14px;">${(lead.temas_completados || []).length}/10</div></div>
+          </div>
+        </div>
+      </div>
+    `;
+    regenesisCargado = true;
+    } catch (e) {
+      console.error('[cliente.html] cargarRegenesis error:', e);
+      wrap.innerHTML = `<div style="padding:var(--space-6); text-align:center; color: var(--error);">Error cargando: ${(e.message || 'desconocido').replace(/</g,'&lt;')}</div>`;
+    }
+  }
+
+  // (lead ya fue expuesto a window.__clienteActual arriba, justo después de
+  // cargarlo, para que los handlers globales funcionen sin importar si algo
+  // más en este IIFE falla.)
+
+  // Setea texto de la barra superior según rol + esconde botones de acción
+  // si el usuario es 'lector'. Admin y moderador ven todo y pueden editar.
+  try {
+    const emailMio = auth.session?.user?.email;
+    if (emailMio) {
+      const { data: meRow } = await window.db.from('usuarios_admin')
+        .select('rol').eq('email', emailMio).maybeSingle();
+      const miRol = meRow?.rol || null;
+      const tag  = document.getElementById('impersonate-rol-tag');
+      const modo = document.getElementById('impersonate-modo-text');
+
+      if (miRol === 'admin') {
+        if (tag) tag.textContent = 'Vista admin';
+        if (modo) modo.textContent = ' Puedes editar datos y generar accesos.';
+      } else if (miRol === 'moderador') {
+        if (tag) tag.textContent = 'Vista moderador';
+        if (modo) modo.textContent = ' Puedes editar datos y generar accesos.';
+      } else {
+        // lector u otro rol no autorizado a editar
+        if (tag) tag.textContent = 'Vista lectura';
+        if (modo) modo.textContent = ' Solo lectura.';
+        ['btn-editar-cliente','btn-eliminar-cliente','btn-acceso-cliente','btn-reset-password']
+          .forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+      }
+    }
+  } catch (e) { console.warn('[cliente.html] no se pudo leer rol:', e); }
+
+  // Los handlers de btn-cerrar-modal, btn-copiar-link, btn-abrir-link viven
+  // ahora en el delegate global de abajo (un solo lugar para evitar dobles).
+
+  // Mostrar
+  document.getElementById('loading-state').classList.add('hidden');
+  tabs.hub.classList.remove('hidden');
+  document.getElementById('main').style.opacity = '1';
+})();
+</script>
+
+<!-- ============================================================
+     Handlers de las 6 acciones del cliente con event delegation.
+     Va EN UN SCRIPT APARTE para que NO dependa del flujo async del
+     IIFE de arriba: si algo allá falla con un await sin try/catch,
+     este script SIGUE bindeando los clicks. lead viene de
+     window.__clienteActual que el IIFE setea al cargar el lead.
+     ============================================================ -->
+<script>
+  (function () {
+    // Guard de idempotencia: Turbo re-ejecuta los <script> del body en cada
+    // visita. Sin esto, cada navegación admin/index ⇄ cliente.html apila otro
+    // listener sobre document y las acciones (eliminar, editar) se ejecutan
+    // N veces (N confirms, N updates).
+    if (window.__clienteDelegateWired) return;
+    window.__clienteDelegateWired = true;
+
+    function getLead() { return window.__clienteActual; }
+
+    // Selector ACOTADO a los 12 IDs que este script maneja. Antes era
+    // `button[id^="btn-"]` que capturaba CUALQUIER botón del CRM (pagos, tareas,
+    // transiciones de estado, etc.) y disparaba el delegate sin razón.
+    const IDS_ACCIONES = new Set([
+      'btn-editar-cliente','btn-ver-como-cliente','btn-ver-libro',
+      'btn-acceso-cliente','btn-reset-password','btn-eliminar-cliente',
+      'btn-ec-save','btn-ec-cancel','btn-ec-cerrar',
+      'btn-copiar-link','btn-abrir-link','btn-cerrar-modal',
+    ]);
+    const NECESITAN_LEAD = new Set([
+      'btn-editar-cliente','btn-ver-como-cliente','btn-ver-libro',
+      'btn-acceso-cliente','btn-reset-password','btn-eliminar-cliente',
+    ]);
+
+    document.addEventListener('click', async (e) => {
+      const target = e.target.closest('button[id]');
+      if (!target || !IDS_ACCIONES.has(target.id)) return;
+      const id = target.id;
+      const lead = getLead();
+      if (!lead && NECESITAN_LEAD.has(id)) {
+        console.warn('[cliente.html] lead aún no cargado, esperando...');
+        return;
+      }
+
+      if (id === 'btn-ver-como-cliente') {
+        // Abre el dashboard PRINCIPAL del cliente (Hoy de plataforma). Desde ahí,
+        // el sidebar deja navegar a Mi perfil, Mi DNA, P.A.C.T.O, Herramientas,
+        // Tracker y Re-Génesis sin perder la impersonación: requireAuth lee
+        // ?view_as= la primera vez y lo persiste en sessionStorage per-pestaña.
+        window.open(`/index.html?view_as=${encodeURIComponent(lead.id)}`, '_blank', 'noopener');
+      } else if (id === 'btn-ver-libro') {
+        // view_as (no lead_id): así reutiliza el helper resolverLeadConViewAs
+        // de client-app.js y respeta la impersonación al navegar internamente.
+        window.open(`/regenesis/libro.html?view_as=${encodeURIComponent(lead.id)}`, '_blank', 'noopener');
+      } else if (id === 'btn-editar-cliente') {
+        document.getElementById('ec-titulo-nombre').textContent = lead.nombre || lead.email;
+        document.getElementById('ec-nombre').value    = lead.nombre || '';
+        document.getElementById('ec-email').value     = lead.email || '';
+        document.getElementById('ec-telefono').value  = lead.telefono || '';
+        document.getElementById('ec-pais').value      = lead.pais || '';
+        document.getElementById('ec-ciudad').value    = lead.ciudad || '';
+        document.getElementById('ec-modalidad').value = lead.modalidad || '';
+        // Patrón modal de plataforma: quitar hidden + agregar show en next frame
+        // para que la transición opacity 0→1 y translateY funcione.
+        const m = document.getElementById('editar-cliente-modal');
+        m.classList.remove('hidden');
+        requestAnimationFrame(() => m.classList.add('show'));
+      } else if (id === 'btn-ec-cancel' || id === 'btn-ec-cerrar') {
+        const m = document.getElementById('editar-cliente-modal');
+        m.classList.remove('show');
+        setTimeout(() => m.classList.add('hidden'), 200);
+      } else if (id === 'btn-ec-save') {
+        document.getElementById('editar-cliente-form').requestSubmit();
+      } else if (id === 'btn-acceso-cliente') {
+        await generarLinkAccesoGlobal('magiclink', lead);
+      } else if (id === 'btn-reset-password') {
+        await generarPasswordTemporal(lead);
+      } else if (id === 'btn-cerrar-modal') {
+        // acceso-modal usa display:flex inline (no es modal-backdrop).
+        const m = document.getElementById('acceso-modal');
+        m.style.display = 'none';
+        m.classList.add('hidden');
+      } else if (id === 'btn-copiar-link') {
+        const linkArea = document.getElementById('acceso-modal-link');
+        try {
+          await navigator.clipboard.writeText(linkArea.value);
+          target.textContent = 'Copiado ✓';
+          setTimeout(() => { target.textContent = 'Copiar link'; }, 1500);
+        } catch (_) {
+          linkArea.select();
+          document.execCommand('copy');
+        }
+      } else if (id === 'btn-abrir-link') {
+        const href = target.dataset.href;
+        if (href) window.open(href, '_blank', 'noopener');
+      } else if (id === 'btn-eliminar-cliente') {
+        const nombre = lead.nombre || lead.email || lead.id;
+        const ok = window.confirm(
+          `¿Eliminar a ${nombre}?\n\n` +
+          `Borra: reflexiones, análisis IA, interacciones, notificaciones, ` +
+          `testimonios, logros, cuenta de la plataforma y el registro del lead.\n\n` +
+          `Se conserva el webhook_log histórico y un snapshot en cliente_eliminado_log.\n\n` +
+          `NO se puede deshacer.`
+        );
+        if (!ok) return;
+        target.disabled = true;
+        const original = target.textContent;
+        target.textContent = 'Eliminando…';
+        try {
+          const { error } = await window.db.rpc('eliminar_cliente_completo', { p_lead_id: lead.id });
+          if (error) throw error;
+          window.utils?.toast(`${nombre} eliminado`, 'success');
+          setTimeout(() => { window.location.href = '/admin/index.html'; }, 800);
+        } catch (err) {
+          console.error('eliminar_cliente_completo error:', err);
+          window.utils?.toast('No se pudo eliminar: ' + (err.message || 'error'), 'error');
+          target.disabled = false;
+          target.textContent = original;
+        }
+      }
+    });
+
+    // Submit del form de editar (también se dispara por requestSubmit() del btn-ec-save).
+    document.addEventListener('submit', async (e) => {
+      if (e.target.id !== 'editar-cliente-form') return;
+      e.preventDefault();
+      const lead = getLead();
+      if (!lead) return;
+      const saveBtn = document.getElementById('btn-ec-save');
+      saveBtn.disabled = true;
+      const original = saveBtn.textContent;
+      saveBtn.textContent = 'Guardando…';
+      try {
+        const updates = {
+          nombre:    document.getElementById('ec-nombre').value.trim() || null,
+          telefono:  document.getElementById('ec-telefono').value.trim() || null,
+          pais:      document.getElementById('ec-pais').value.trim() || null,
+          ciudad:    document.getElementById('ec-ciudad').value.trim() || null,
+          modalidad: document.getElementById('ec-modalidad').value || null,
+        };
+        const { data, error } = await window.db
+          .from('leads').update(updates).eq('id', lead.id).select().single();
+        if (error) throw error;
+        Object.assign(lead, data);
+        const nombreEl = document.getElementById('cliente-nombre');
+        if (nombreEl) nombreEl.textContent = lead.nombre || lead.email;
+        window.utils?.toast('Datos actualizados', 'success');
+        const m = document.getElementById('editar-cliente-modal');
+        m.classList.remove('show');
+        setTimeout(() => m.classList.add('hidden'), 200);
+      } catch (err) {
+        console.error('editar cliente error:', err);
+        window.utils?.toast('No se pudo guardar: ' + (err.message || 'error'), 'error');
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = original;
+      }
+    });
+
+    // Generar magic link / recovery
+    async function generarLinkAccesoGlobal(action, lead) {
+      const modal = document.getElementById('acceso-modal');
+      const titulo = document.getElementById('acceso-modal-titulo');
+      const detalle = document.getElementById('acceso-modal-detalle');
+      const linkArea = document.getElementById('acceso-modal-link');
+      const btnAbrir = document.getElementById('btn-abrir-link');
+
+      titulo.textContent = action === 'magiclink' ? 'Generando magic link…' : 'Generando reset de password…';
+      detalle.textContent = '';
+      linkArea.value = '';
+      btnAbrir.dataset.href = '';
+      // Quitar .hidden (display:none !important) ANTES de mostrar.
+      modal.classList.remove('hidden');
+      modal.style.display = 'flex';
+
+      try {
+        const { data: { session: s } } = await window.db.auth.getSession();
+        if (!s) throw new Error('No hay sesión activa. Refresca la página.');
+        // redirect_to explícito a plataforma. Sin esto, Supabase usa el
+        // Site URL configurado (que apunta al sitio legacy neurohackers.cloud).
+        const res = await fetch(`${window.NEURO_CONFIG.SUPABASE_URL}/functions/v1/admin-acceso-cliente`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${s.access_token}` },
+          body: JSON.stringify({
+            lead_id: lead.id,
+            action,
+            redirect_to: 'https://plataforma.neurohackers.cloud/',
+          }),
+        });
+        const body = await res.json();
+        console.log('[admin-acceso-cliente]', { status: res.status, body });
+        if (!res.ok || !body.ok) throw new Error(body?.error || `HTTP ${res.status}`);
+
+        titulo.textContent = action === 'magiclink'
+          ? `Magic link para ${body.lead_nombre || body.lead_email}`
+          : `Reset password para ${body.lead_nombre || body.lead_email}`;
+        detalle.textContent = body.mensaje;
+        linkArea.value = body.action_link;
+        btnAbrir.dataset.href = body.action_link;
+      } catch (e) {
+        titulo.textContent = 'Error generando link';
+        detalle.innerHTML = `<span style="color:#B91C1C;">${(e.message || '').replace(/</g, '&lt;')}</span>`;
+      }
+    }
+
+    // Generar password temporal — admin pleno, marca password_temporal=true
+    // en metadata para forzar cambio en próximo login. Reusa el modal de
+    // acceso pero muestra la password copiable en vez de un link.
+    async function generarPasswordTemporal(lead) {
+      const modal = document.getElementById('acceso-modal');
+      const titulo = document.getElementById('acceso-modal-titulo');
+      const detalle = document.getElementById('acceso-modal-detalle');
+      const linkArea = document.getElementById('acceso-modal-link');
+      const btnAbrir = document.getElementById('btn-abrir-link');
+      const btnCopiar = document.getElementById('btn-copiar-link');
+
+      titulo.textContent = 'Generando password temporal…';
+      detalle.textContent = '';
+      linkArea.value = '';
+      btnAbrir.dataset.href = '';
+      modal.classList.remove('hidden');
+      modal.style.display = 'flex';
+
+      try {
+        const { data: { session: s } } = await window.db.auth.getSession();
+        if (!s) throw new Error('No hay sesión activa. Refresca la página.');
+        const res = await fetch(`${window.NEURO_CONFIG.SUPABASE_URL}/functions/v1/admin-resetear-password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${s.access_token}` },
+          body: JSON.stringify({ email: lead.email }),
+        });
+        const body = await res.json();
+        if (!res.ok || !body.ok) throw new Error(body?.detail || body?.error || `HTTP ${res.status}`);
+
+        titulo.textContent = `Password temporal para ${body.nombre || lead.nombre || lead.email}`;
+        detalle.innerHTML = `Comparte estos datos al cliente por WhatsApp. La próxima vez que entre, el sistema le pedirá cambiarla por una propia.<br><br>
+          <strong>URL:</strong> ${body.url_login}<br>
+          <strong>Email:</strong> ${body.email}<br>
+          <strong>Password:</strong> <span style="font-family:var(--font-mono,monospace);">${body.password}</span>`;
+        linkArea.value = `URL: ${body.url_login}\nEmail: ${body.email}\nPassword temporal: ${body.password}`;
+        btnAbrir.dataset.href = body.url_login;
+        // Reaprovecho el botón de copiar (copia el contenido del textarea)
+      } catch (e) {
+        titulo.textContent = 'Error generando password temporal';
+        detalle.innerHTML = `<span style="color:#B91C1C;">${(e.message || '').replace(/</g, '&lt;')}</span>`;
+      }
+    }
+  })();
+</script>
+
+
+</body>
+</html>

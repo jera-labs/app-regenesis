@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Curso · Academia · Neurohackers</title>
+  <script src="/shared/turbo.min.js?v=20260797"></script>
+  <link rel="stylesheet" href="/shared/styles.css?v=20260797">
+  <style>
+    .curso-layout { display: grid; grid-template-columns: 1fr 320px; gap: var(--space-5); align-items: start; }
+    .video-wrap { background: #000; border-radius: var(--radius-md); overflow: hidden; aspect-ratio: 16/9; }
+    .video-wrap video { width: 100%; height: 100%; display: block; background: #000; }
+    .video-empty { width:100%; height:100%; display:grid; place-items:center; color:#888; font-size: var(--text-sm); }
+    .lec-title { font-size: var(--text-lg); font-weight: 600; margin: var(--space-4) 0 var(--space-2); }
+    .lec-desc { color: var(--text-muted); font-size: var(--text-sm); }
+    .lec-progress { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: var(--space-3); }
+    .lec-list { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); overflow: hidden; }
+    .lec-item { display: grid; grid-template-columns: 28px 1fr auto; gap: var(--space-2); align-items: center; padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--border-soft); cursor: pointer; transition: background 150ms; }
+    .lec-item:last-child { border-bottom: none; }
+    .lec-item:hover { background: var(--surface-2); }
+    .lec-item.activa { background: linear-gradient(135deg, rgba(212,175,55,0.08), transparent); }
+    .lec-dot { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border); display: grid; place-items: center; font-size: 12px; background: var(--surface); }
+    .lec-item.completa .lec-dot { background: linear-gradient(135deg, var(--accent-bright), var(--accent-dark)); border-color: var(--accent-dark); color: #1D1D1F; font-weight: 700; }
+    .lec-nombre { font-size: var(--text-sm); font-weight: 500; }
+    .lec-pct { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-muted); }
+    .recursos a { display: inline-block; margin: 4px 8px 0 0; font-size: var(--text-sm); }
+    @media (max-width: 968px) { .curso-layout { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<div data-nav data-active="academia" data-base="../../"></div>
+
+<main class="container" id="main" style="opacity:0; transition: opacity 200ms;">
+  <a href="/modules/academia/index.html" class="back-link" data-turbo="false" style="font-size: var(--text-sm); color: var(--text-muted);">← Todos los cursos</a>
+  <h1 class="greeting-lg" id="curso-nombre" style="margin: var(--space-2) 0 var(--space-5);">Curso</h1>
+
+  <div class="curso-layout">
+    <div>
+      <div class="video-wrap" id="video-wrap">
+        <div class="video-empty">Selecciona una lección para empezar.</div>
+      </div>
+      <div class="lec-title" id="lec-title"></div>
+      <div class="lec-desc" id="lec-desc"></div>
+      <div class="recursos" id="lec-recursos"></div>
+      <div class="lec-progress" id="lec-progress"></div>
+    </div>
+    <div class="lec-list" id="lec-list"></div>
+  </div>
+</main>
+
+<script src="/shared/scripts/config.js?v=20260797"></script>
+<script src="/shared/scripts/supabase-client.js?v=20260797"></script>
+<script src="/shared/scripts/cache.js?v=20260797"></script>
+<script src="/shared/scripts/utils.js?v=20260797"></script>
+<script src="/shared/scripts/auth.js?v=20260797"></script>
+<script src="/shared/scripts/event-tracker.js?v=20260797"></script>
+<script src="/shared/scripts/academia.js?v=20260797"></script>
+<script src="/shared/nav.js?v=20260797"></script>
+<script>
+(async function () {
+  const esc = (s) => (window.utils?.escapeHtml ? window.utils.escapeHtml(s) : String(s ?? ''));
+  const { session, lead } = (await window.requireAuth()) || {};
+  if (!session) return;
+  if (!lead) { document.getElementById('main').style.opacity = '1'; return; }
+
+  const slug = new URLSearchParams(location.search).get('c');
+  const wrap = document.getElementById('video-wrap');
+  const listEl = document.getElementById('lec-list');
+  let currentPlayer = null;          // handle de attachPlayer (para detach)
+  let progresoMap = {};              // leccion_id -> fila de progreso
+
+  function fmtPct(p) { return Math.round(p || 0) + '%'; }
+
+  function pintarLista(lecciones, activaId) {
+    listEl.innerHTML = lecciones.map((l) => {
+      const pr = progresoMap[l.id];
+      const completa = pr && pr.completado_at;
+      const pct = pr ? pr.pct_visto : 0;
+      return `
+        <div class="lec-item ${completa ? 'completa' : ''} ${l.id === activaId ? 'activa' : ''}" data-lec="${l.id}">
+          <div class="lec-dot">${completa ? '✓' : ''}</div>
+          <div class="lec-nombre">${esc(l.nombre)}</div>
+          <div class="lec-pct">${pct ? fmtPct(pct) : ''}</div>
+        </div>`;
+    }).join('');
+  }
+
+  async function abrirLeccion(leccion, lecciones) {
+    // limpia el player anterior (cierra su segmento + flush)
+    if (currentPlayer) { try { currentPlayer.detach(); } catch (_) {} currentPlayer = null; }
+
+    document.getElementById('lec-title').textContent = leccion.nombre || '';
+    document.getElementById('lec-desc').textContent = leccion.descripcion || '';
+    const recEl = document.getElementById('lec-recursos');
+    const recursos = Array.isArray(leccion.recursos_jsonb) ? leccion.recursos_jsonb : [];
+    recEl.innerHTML = recursos.map(r => `<a href="${esc(r.url)}" target="_blank" rel="noopener">↗ ${esc(r.label || r.url)}</a>`).join('');
+
+    pintarLista(lecciones, leccion.id);
+
+    if (!leccion.video_path) {
+      wrap.innerHTML = '<div class="video-empty">Esta lección aún no tiene video.</div>';
+      document.getElementById('lec-progress').textContent = '';
+      return;
+    }
+
+    let url = '';
+    try { url = await window.academiaApi.signedVideoUrl(leccion.video_path); } catch (_) {}
+    if (!url) { wrap.innerHTML = '<div class="video-empty">No se pudo cargar el video.</div>'; return; }
+
+    wrap.innerHTML = '';
+    const video = document.createElement('video');
+    video.controls = true; video.playsInline = true; video.preload = 'metadata'; video.src = url;
+    wrap.appendChild(video);
+
+    const pr = progresoMap[leccion.id];
+    const progEl = document.getElementById('lec-progress');
+    const pintarProg = (row) => {
+      if (row) progresoMap[leccion.id] = row;
+      const p = progresoMap[leccion.id];
+      progEl.textContent = p ? (`Visto ${fmtPct(p.pct_visto)}` + (p.completado_at ? ' · Completada ✓' : '')) : '';
+      // refresca el % en la lista sin recargar todo
+      const item = listEl.querySelector(`[data-lec="${leccion.id}"] .lec-pct`);
+      if (item && p) item.textContent = fmtPct(p.pct_visto);
+      if (p && p.completado_at) listEl.querySelector(`[data-lec="${leccion.id}"]`)?.classList.add('completa');
+    };
+    pintarProg(pr);
+
+    currentPlayer = window.academiaApi.attachPlayer(video, leccion, lead.id, {
+      ultimoSegundo: pr ? pr.ultimo_segundo : 0,
+      onUpdate: pintarProg,
+    });
+  }
+
+  try {
+    const curso = await window.academiaApi.obtenerCurso(slug);
+    if (!curso) { document.getElementById('curso-nombre').textContent = 'Curso no encontrado'; document.getElementById('main').style.opacity = '1'; return; }
+    document.getElementById('curso-nombre').textContent = curso.nombre;
+    document.title = curso.nombre + ' · Academia';
+
+    const lecciones = await window.academiaApi.listarLecciones(curso.id);
+    const progreso = await window.academiaApi.progresoDelLead(lead.id);
+    progreso.forEach(p => { progresoMap[p.leccion_id] = p; });
+
+    pintarLista(lecciones, null);
+    listEl.addEventListener('click', (e) => {
+      const item = e.target.closest('[data-lec]');
+      if (!item) return;
+      const lec = lecciones.find(l => l.id === item.dataset.lec);
+      if (lec) abrirLeccion(lec, lecciones);
+    });
+
+    // Abrir automáticamente la primera no completada (o la primera).
+    if (lecciones.length) {
+      const siguiente = lecciones.find(l => !(progresoMap[l.id] && progresoMap[l.id].completado_at)) || lecciones[0];
+      await abrirLeccion(siguiente, lecciones);
+    } else {
+      wrap.innerHTML = '<div class="video-empty">Este curso aún no tiene lecciones.</div>';
+    }
+  } catch (e) {
+    console.warn('[academia] curso', e?.message || e);
+    document.getElementById('curso-nombre').textContent = 'No se pudo cargar el curso';
+  }
+
+  document.getElementById('main').style.opacity = '1';
+})();
+</script>
+</body>
+</html>

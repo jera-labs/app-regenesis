@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Live Lucky · CRM todo-en-uno para tu negocio | Neurohackers</title>
+<meta name="description" content="El CRM todo-en-uno de Neurohackers: pipelines, automatizaciones, agenda, WhatsApp y embudos en un solo lugar. 60 días gratis." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#F5F5F7; --surface:#FFFFFF; --surface-2:#FAFAFA; --surface-3:#F2F2F4;
+    --border:#D2D2D7; --border-soft:#E5E5EA; --text:#1D1D1F; --text-muted:#86868B;
+    --accent:#D4AF37; --accent-soft:#F5E9B8; --accent-bright:#E5C147; --accent-dark:#B8941F;
+    --radius-sm:8px; --radius:14px; --radius-lg:20px; --radius-xl:28px;
+    --shadow:0 1px 3px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.05);
+    --shadow-hover:0 2px 6px rgba(0,0,0,.06),0 16px 40px rgba(0,0,0,.08);
+    --ease:cubic-bezier(.4,0,.2,1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:'Geist',-apple-system,system-ui,sans-serif;background:var(--bg);color:var(--text);
+    line-height:1.5;-webkit-font-smoothing:antialiased}
+  .mono{font-family:'Geist Mono',monospace;text-transform:uppercase;letter-spacing:.08em}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+  a{color:inherit;text-decoration:none}
+
+  /* nav */
+  header{position:sticky;top:0;z-index:50;background:rgba(245,245,247,.8);
+    backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid var(--border-soft)}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:60px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:17px}
+  .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent)}
+  .nav-cta{font-size:14px;font-weight:600;padding:9px 18px;border-radius:980px;
+    background:var(--text);color:#fff;transition:transform .2s var(--ease),background .2s var(--ease)}
+  .nav-cta:hover{transform:translateY(-1px)}
+
+  /* hero */
+  .hero{text-align:center;padding:90px 0 70px}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:500;
+    color:var(--accent-dark);background:var(--accent-soft);padding:6px 14px;border-radius:980px;margin-bottom:24px}
+  .eyebrow .pulse{width:7px;height:7px;border-radius:50%;background:var(--accent);
+    box-shadow:0 0 0 0 rgba(212,175,55,.6);animation:pulse 2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(212,175,55,.5)}70%{box-shadow:0 0 0 8px rgba(212,175,55,0)}100%{box-shadow:0 0 0 0 rgba(212,175,55,0)}}
+  h1{font-size:clamp(34px,6vw,60px);font-weight:700;letter-spacing:-.03em;line-height:1.05;margin-bottom:20px}
+  h1 .accent{color:var(--accent-dark)}
+  .sub{font-size:clamp(17px,2.4vw,21px);color:var(--text-muted);max-width:620px;margin:0 auto 36px}
+  .cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:9px;font-size:16px;font-weight:600;
+    padding:15px 30px;border-radius:980px;border:none;cursor:pointer;transition:transform .2s var(--ease),box-shadow .2s var(--ease)}
+  .btn-primary{background:var(--accent);color:#1D1D1F;box-shadow:0 6px 18px rgba(212,175,55,.35)}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(212,175,55,.45)}
+  .btn-ghost{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+  .btn-ghost:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+  .hero-note{margin-top:18px;font-size:13px;color:var(--text-muted)}
+
+  /* logos / trust strip */
+  .strip{padding:8px 0 60px;text-align:center}
+  .strip .mono{font-size:11px;color:var(--text-muted);margin-bottom:18px}
+  .pills{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .pill{font-size:13px;color:var(--text);background:var(--surface);border:1px solid var(--border-soft);
+    padding:8px 16px;border-radius:980px}
+
+  /* section */
+  section{padding:64px 0}
+  .sec-head{text-align:center;max-width:640px;margin:0 auto 48px}
+  .sec-head .mono{font-size:12px;color:var(--accent-dark);margin-bottom:14px}
+  h2{font-size:clamp(26px,4vw,40px);font-weight:700;letter-spacing:-.02em;line-height:1.1;margin-bottom:14px}
+  .sec-head p{font-size:17px;color:var(--text-muted)}
+
+  /* features grid */
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .card{background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--radius-lg);
+    padding:28px;transition:transform .25s var(--ease),box-shadow .25s var(--ease)}
+  .card:hover{transform:translateY(-3px);box-shadow:var(--shadow-hover)}
+  .card .ico{width:44px;height:44px;border-radius:12px;background:var(--accent-soft);color:var(--accent-dark);
+    display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:18px}
+  .card h3{font-size:18px;font-weight:600;margin-bottom:8px}
+  .card p{font-size:14.5px;color:var(--text-muted)}
+
+  /* pricing */
+  .pricing{background:var(--surface-3)}
+  .price-wrap{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;max-width:760px;margin:0 auto}
+  .price{background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--radius-xl);
+    padding:36px 32px;position:relative}
+  .price.featured{border:2px solid var(--accent);box-shadow:0 12px 40px rgba(212,175,55,.18)}
+  .price .tag{position:absolute;top:-13px;left:50%;transform:translateX(-50%);
+    background:var(--accent);color:#1D1D1F;font-size:11px;font-weight:600;padding:5px 14px;border-radius:980px}
+  .price .plan{font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:10px}
+  .price .amount{font-size:46px;font-weight:700;letter-spacing:-.02em;line-height:1}
+  .price .amount span{font-size:16px;font-weight:500;color:var(--text-muted)}
+  .price .save{display:inline-block;margin-top:10px;font-size:13px;color:var(--accent-dark);
+    background:var(--accent-soft);padding:4px 12px;border-radius:980px}
+  .price ul{list-style:none;margin:24px 0 28px}
+  .price li{display:flex;gap:10px;align-items:flex-start;font-size:14.5px;padding:7px 0;color:var(--text)}
+  .price li .ck{color:var(--accent-dark);font-weight:700;flex-shrink:0}
+  .price .btn{width:100%;justify-content:center}
+
+  /* how */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;counter-reset:s}
+  .step{text-align:center;padding:8px}
+  .step .num{counter-increment:s;width:46px;height:46px;border-radius:50%;border:2px solid var(--accent);
+    color:var(--accent-dark);font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+  .step .num::before{content:counter(s)}
+  .step h3{font-size:17px;font-weight:600;margin-bottom:6px}
+  .step p{font-size:14px;color:var(--text-muted)}
+
+  /* cta band */
+  .band{background:var(--text);color:#fff;border-radius:var(--radius-xl);padding:56px 40px;text-align:center}
+  .band h2{color:#fff}
+  .band p{color:rgba(255,255,255,.7);font-size:17px;max-width:520px;margin:0 auto 28px}
+
+  footer{padding:48px 0;border-top:1px solid var(--border-soft);text-align:center;color:var(--text-muted);font-size:13px}
+  footer a{color:var(--text);font-weight:500}
+
+  @media(max-width:860px){.grid,.steps{grid-template-columns:1fr 1fr}.price-wrap{grid-template-columns:1fr;max-width:420px}}
+  @media(max-width:560px){.grid,.steps{grid-template-columns:1fr}.hero{padding:64px 0 48px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap nav">
+    <div class="brand"><span class="dot"></span> Live Lucky <span style="color:var(--text-muted);font-weight:400;font-size:14px">por Neurohackers</span></div>
+    <a href="#precios" class="nav-cta" data-signup>Empezar gratis</a>
+  </div>
+</header>
+
+<main>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap">
+      <div class="eyebrow"><span class="pulse"></span> 60 días gratis · cancela cuando quieras</div>
+      <h1>Tu negocio<br>en <span class="accent">un solo lugar</span></h1>
+      <p class="sub">Live Lucky es el CRM todo-en-uno de Neurohackers: contactos, pipelines, automatizaciones, agenda, WhatsApp y embudos. Deja de pagar 6 herramientas sueltas.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" data-signup>Empezar mi prueba de 60 días →</a>
+        <a class="btn btn-ghost" href="#como">Ver cómo funciona</a>
+      </div>
+      <div class="hero-note">Tu cuenta se crea sola al registrarte. En minutos ya estás adentro.</div>
+    </div>
+  </section>
+
+  <!-- TRUST -->
+  <div class="strip">
+    <div class="wrap">
+      <div class="mono">Reemplaza a</div>
+      <div class="pills">
+        <span class="pill">CRM + contactos</span>
+        <span class="pill">Email & WhatsApp</span>
+        <span class="pill">Agenda online</span>
+        <span class="pill">Embudos y páginas</span>
+        <span class="pill">Automatizaciones</span>
+        <span class="pill">Pipelines de venta</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <section id="features">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="mono">Todo incluido</div>
+        <h2>Las herramientas que tu negocio necesita, ya conectadas</h2>
+        <p>Sin integraciones frágiles ni suscripciones dispersas. Todo habla entre sí desde el primer día.</p>
+      </div>
+      <div class="grid">
+        <div class="card"><div class="ico">◈</div><h3>CRM y contactos</h3><p>Toda tu base en un lugar, con etiquetas, segmentos y el historial completo de cada cliente.</p></div>
+        <div class="card"><div class="ico">◧</div><h3>Pipelines de venta</h3><p>Arrastra y suelta tus oportunidades por etapa. Sabes exactamente dónde está cada trato.</p></div>
+        <div class="card"><div class="ico">◐</div><h3>Automatizaciones</h3><p>Seguimientos, recordatorios y mensajes que se disparan solos. Vende mientras duermes.</p></div>
+        <div class="card"><div class="ico">∼</div><h3>WhatsApp y Email</h3><p>Conversa con tus clientes desde un solo buzón, con plantillas y respuestas guardadas.</p></div>
+        <div class="card"><div class="ico">▣</div><h3>Agenda y citas</h3><p>Tu calendario de reservas online, con recordatorios automáticos para reducir ausencias.</p></div>
+        <div class="card"><div class="ico">▦</div><h3>Embudos y páginas</h3><p>Crea landings, formularios y embudos de venta sin saber de código.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW -->
+  <section id="como">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="mono">Así de simple</div>
+        <h2>De registrarte a vender, en minutos</h2>
+      </div>
+      <div class="steps">
+        <div class="step"><div class="num"></div><h3>Te registras</h3><p>Eliges tu plan y creas tu cuenta. El sistema la provisiona solo, al instante.</p></div>
+        <div class="step"><div class="num"></div><h3>Configuras</h3><p>Conectas tu WhatsApp, importas contactos y eliges tus automatizaciones.</p></div>
+        <div class="step"><div class="num"></div><h3>Vendes</h3><p>Tu negocio corre en piloto: seguimientos, citas y cierres, todo en un panel.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="precios" class="pricing">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="mono">Precios claros</div>
+        <h2>Un precio. Todas las herramientas.</h2>
+        <p>60 días de prueba gratis. Cancela cuando quieras.</p>
+      </div>
+      <div class="price-wrap">
+        <div class="price">
+          <div class="plan">MENSUAL</div>
+          <div class="amount">$70 <span>/ mes</span></div>
+          <ul>
+            <li><span class="ck">✓</span> Todas las funciones incluidas</li>
+            <li><span class="ck">✓</span> Usuarios y contactos sin límite práctico</li>
+            <li><span class="ck">✓</span> WhatsApp, email, agenda y embudos</li>
+            <li><span class="ck">✓</span> Soporte del equipo Neurohackers</li>
+          </ul>
+          <a class="btn btn-ghost" data-signup data-plan="monthly">Empezar gratis</a>
+        </div>
+        <div class="price featured">
+          <div class="tag">AHORRA 2 MESES</div>
+          <div class="plan">ANUAL</div>
+          <div class="amount">$700 <span>/ año</span></div>
+          <div class="save">Equivale a $58/mes</div>
+          <ul>
+            <li><span class="ck">✓</span> Todo lo del plan mensual</li>
+            <li><span class="ck">✓</span> Dos meses gratis al pagar al año</li>
+            <li><span class="ck">✓</span> Prioridad en soporte</li>
+            <li><span class="ck">✓</span> Acceso anticipado a nuevas funciones</li>
+          </ul>
+          <a class="btn btn-primary" data-signup data-plan="annual">Empezar mi prueba de 60 días</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA BAND -->
+  <section>
+    <div class="wrap">
+      <div class="band">
+        <h2>Empieza hoy. Cancela cuando quieras.</h2>
+        <p>60 días para probarlo todo. Si no es para ti, no pagas nada.</p>
+        <a class="btn btn-primary" data-signup>Crear mi cuenta →</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    Live Lucky · CRM por <a href="https://neurohackers.cloud">Neurohackers</a><br>
+    <span style="font-size:12px">¿Dudas? Escríbenos por WhatsApp y te ayudamos a empezar.</span>
+  </div>
+</footer>
+
+<script>
+  // ============================================================
+  // Enlaces de venta del plan SaaS "Live Lucky".
+  // Estos Stripe Payment Links SÍ provisionan: crean la sub-cuenta (vía
+  // webhook de Stripe) y mandan el correo de activación.
+  // Enlaces de pago FastPayDirect (reutilizables, 60 días de prueba gratis).
+  // La redirección post-pago a /gracias.html se configura en el payment link
+  // (FastPayDirect/GHL -> el link -> After payment -> Redirect to website).
+  // mensual -> MONTHLY, anual -> ANNUAL.
+  // ============================================================
+  var MONTHLY_URL = "https://link.fastpaydirect.com/payment-link/6a32199503b17c94f5716af1";
+  var ANNUAL_URL  = "https://link.fastpaydirect.com/payment-link/6a32063703b17c94f5716ac9";
+  document.querySelectorAll('[data-signup]').forEach(function(a){
+    var plan = a.getAttribute('data-plan');
+    var url = plan === 'monthly' ? MONTHLY_URL : (plan === 'annual' ? ANNUAL_URL : '');
+    if (url) { a.setAttribute('href', url); a.setAttribute('target','_blank'); a.setAttribute('rel','noopener'); }
+    else { a.setAttribute('href', '#precios'); }
+  });
+</script>
+</body>
+</html>

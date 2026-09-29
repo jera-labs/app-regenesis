@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Integraciones · Neurohackers</title>
+  <script src="/shared/turbo.min.js?v=20260640"></script>
+  <link rel="stylesheet" href="/shared/styles.css?v=20260640">
+  <style>
+    .provider-card { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); padding: var(--space-6); margin-bottom: var(--space-4); }
+    .provider-card h3 { margin: 0 0 var(--space-2); font-size: var(--text-lg); }
+    .provider-card .lead { font-size: var(--text-sm); color: var(--text-muted); margin-bottom: var(--space-4); line-height: 1.55; }
+    .id-input { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.3px; }
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: var(--space-3) 0; border-top: 1px solid var(--border-soft); }
+    .toggle-row .lbl { font-weight: 600; font-size: var(--text-sm); }
+    .toggle-row .sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .estado-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: var(--font-mono); font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
+      padding: 4px 10px; border-radius: 999px;
+      margin-bottom: var(--space-3);
+    }
+    .estado-pill.ok { background: #D1FAE5; color: #065F46; }
+    .estado-pill.pendiente { background: #FEF3C7; color: #92400E; }
+    .admin-banner { background: #1D1D1F; color: white; padding: 10px 14px; border-radius: 6px; font-size: 13px; margin-bottom: var(--space-4); display: flex; align-items: center; gap: 8px; }
+    .admin-banner code { background: rgba(255,255,255,0.12); padding: 2px 6px; border-radius: 4px; }
+    .field-locked { background: var(--surface-2); color: var(--text-muted); cursor: not-allowed; }
+    .actions-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: var(--space-4); }
+  </style>
+</head>
+<body>
+
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<div data-nav data-active="integraciones" data-base="../../"></div>
+
+<main class="container" id="main" style="max-width: 760px;">
+
+  <div class="crumb">
+    <a href="../../index.html">Hoy</a><span>·</span><span>Integraciones</span>
+  </div>
+
+  <section style="margin-bottom: var(--space-6);">
+    <span class="eyebrow">CONEXIONES EXTERNAS</span>
+    <h1 class="greeting-lg">Integraciones.</h1>
+    <p class="lead">Las herramientas externas conectadas a tu cuenta Neurohackers. Tu DNA de plataforma se sincroniza automáticamente con estas integraciones para que generes contenido personalizado sin tener que llenar la misma info dos veces.</p>
+  </section>
+
+  <div id="admin-slot"></div>
+
+  <!-- ============ GoHighLevel Social Planner ============ -->
+  <div class="provider-card">
+    <div style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-2);">
+      <h3 style="margin: 0;">GoHighLevel Social Planner</h3>
+      <span class="estado-pill pendiente" id="estado-ghl">Cargando…</span>
+    </div>
+    <p class="lead">Aquí vive tu calendario editorial y el AI que genera publicaciones. La plataforma Neurohackers le manda tu DNA (voz, ICP, valores, productos) para que Content AI te genere posts realmente alineados a tu marca.</p>
+
+    <div class="field">
+      <label class="field-label">Sub-account ID</label>
+      <input type="text" class="field-input id-input" id="ghl-sub-id" placeholder="(pendiente — el equipo lo configurará)">
+      <div class="field-hint" id="ghl-sub-id-hint">El equipo de Neurohackers crea tu sub-account en GHL y pega aquí su ID.</div>
+    </div>
+
+    <div class="field">
+      <label class="field-label">URL del dashboard</label>
+      <input type="url" class="field-input" id="ghl-sub-url" placeholder="https://app.neurohackers.cloud/v2/location/...">
+      <div class="field-hint">El link directo a tu panel de GHL (whitelabel del equipo).</div>
+    </div>
+
+    <div class="actions-row">
+      <button class="btn btn-accent" id="btn-sync" disabled>Sincronizar mi DNA</button>
+      <a class="btn btn-secondary" id="btn-abrir" target="_blank" rel="noopener" style="display: none;">Abrir Social Planner →</a>
+      <span id="btn-save-wrap" style="display: none;">
+        <button class="btn btn-secondary" id="btn-save-admin">Guardar cambios (admin)</button>
+      </span>
+    </div>
+
+    <div id="sync-status" style="margin-top: var(--space-3); font-size: 12px; color: var(--text-muted);"></div>
+  </div>
+
+  <p style="font-size: 12px; color: var(--text-muted); margin-top: var(--space-6); line-height: 1.6;">
+    <strong>Privacidad:</strong> el ID y la URL de tu sub-account los gestiona el equipo de Neurohackers cuando crea tu cuenta GHL. Si necesitas cambiarlos, contacta al equipo.
+    <br><br>
+    <strong>Próximas integraciones:</strong> Skool (foro), Google Calendar (sesiones), Stripe (pagos).
+  </p>
+
+  <div id="brand-board-helper" style="display: none; margin-top: var(--space-6); padding: var(--space-5); background: var(--surface-3); border-radius: var(--radius-md); border: 1px solid var(--border-soft);">
+    <h4 style="margin: 0 0 var(--space-2); font-size: var(--text-sm);">Brand Board (pegado manual)</h4>
+    <p style="font-size: 12px; color: var(--text-muted); margin: 0 0 var(--space-3);">
+      Estos campos llenan el Brand Board que alimenta a Content AI en GHL. La API pública de GHL no permite escribirlos automáticamente, así que el equipo los pega en Settings → Brand Board.
+    </p>
+    <textarea id="brand-board-json" readonly style="width: 100%; min-height: 220px; font-family: var(--font-mono); font-size: 11px; padding: var(--space-3); border-radius: var(--radius-sm); border: 1px solid var(--border-soft); background: var(--surface);"></textarea>
+    <button class="btn btn-secondary" id="btn-copiar-brand" style="margin-top: var(--space-2);">Copiar al portapapeles</button>
+  </div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/shared/scripts/config.js?v=20260640"></script>
+<script src="/shared/scripts/supabase-client.js?v=20260640"></script>
+<script src="/shared/scripts/utils.js?v=20260640"></script>
+<script src="/shared/scripts/auth.js?v=20260640"></script>
+<script src="/shared/nav.js?v=20260640"></script>
+<script>
+(async function () {
+  const { session, lead } = await window.requireAuth() || {};
+  if (!session) return;
+
+  const $ = (id) => document.getElementById(id);
+
+  // Detectar si el usuario es admin
+  let esAdminFull = false;
+  try {
+    const { data: a } = await window.db.from('usuarios_admin')
+      .select('rol').eq('email', session.user.email).eq('activo', true).maybeSingle();
+    esAdminFull = a?.rol === 'admin';
+  } catch (_) {}
+
+  // Cargar datos GHL del lead
+  const { data: row } = await window.db.from('leads')
+    .select('ghl_sub_location_id, ghl_sub_location_url, ghl_brand_synced_at')
+    .eq('id', lead.id).maybeSingle();
+
+  const subId  = row?.ghl_sub_location_id;
+  const subUrl = row?.ghl_sub_location_url;
+  const lastSync = row?.ghl_brand_synced_at;
+
+  $('ghl-sub-id').value  = subId || '';
+  $('ghl-sub-url').value = subUrl || '';
+
+  // Cliente: campos en read-only. Admin puede editar.
+  if (!esAdminFull) {
+    ['ghl-sub-id', 'ghl-sub-url'].forEach(id => {
+      const el = $(id);
+      el.readOnly = true;
+      el.classList.add('field-locked');
+      el.title = 'Solo el equipo de Neurohackers puede editar este campo.';
+    });
+  } else {
+    $('admin-slot').innerHTML = `
+      <div class="admin-banner">
+        <span style="background: var(--accent); padding: 2px 8px; border-radius: 4px; font-family: var(--font-mono); font-size: 11px;">ADMIN</span>
+        <span>Editando integración de: <strong>${window.utils.escapeHtml(lead.nombre || lead.email)}</strong></span>
+      </div>`;
+    $('btn-save-wrap').style.display = '';
+  }
+
+  // Estado del pill
+  const pill = $('estado-ghl');
+  if (subId && subUrl) {
+    pill.textContent = 'Conectado ✓';
+    pill.className = 'estado-pill ok';
+    $('btn-sync').disabled = false;
+    $('btn-abrir').href = subUrl;
+    $('btn-abrir').style.display = '';
+  } else {
+    pill.textContent = 'Pendiente';
+    pill.className = 'estado-pill pendiente';
+    $('btn-sync').disabled = true;
+    $('btn-sync').title = 'Necesitas tener tu sub-account de GHL conectada antes de sincronizar';
+  }
+
+  // Última sincronización
+  if (lastSync) {
+    const f = new Date(lastSync).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    $('sync-status').textContent = `Última sincronización: ${f}`;
+  } else if (subId) {
+    $('sync-status').textContent = 'Aún no has sincronizado tu DNA con GHL. Haz click en "Sincronizar mi DNA" para enviarlo al Brand Panel.';
+  }
+
+  // Botón sync
+  $('btn-sync').addEventListener('click', async () => {
+    const btn = $('btn-sync');
+    btn.disabled = true; btn.textContent = 'Sincronizando…';
+    $('sync-status').textContent = 'Enviando tu DNA a GoHighLevel…';
+    try {
+      const { data: { session: s } } = await window.db.auth.getSession();
+      const res = await fetch(`${window.NEURO_CONFIG.SUPABASE_URL}/functions/v1/sync-dna-to-ghl-brand-panel`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${s.access_token}` },
+        body: JSON.stringify({ lead_id: lead.id }),
+      });
+      const body = await res.json();
+      // Para diagnosis siempre logueamos el body completo
+      console.log('[sync-dna-to-ghl]', { status: res.status, body });
+
+      if (!res.ok) throw new Error(body?.error || `HTTP ${res.status}`);
+      if (!body.ok) throw new Error(body.error || body.mensaje || 'Sincronización rechazada por GHL');
+
+      window.utils.toast(body.mensaje || 'DNA sincronizado a GHL', 'success');
+      $('sync-status').innerHTML = `
+        <strong>${window.utils.escapeHtml(body.mensaje || 'Sincronizado')}</strong><br>
+        Sub-account: <code>${window.utils.escapeHtml(body.sub_location_name || body.sub_location_id)}</code> ·
+        Campos enviados: ${(body.business_profile?.campos_enviados || []).join(', ') || '—'}
+      `;
+      // Mostrar payload del Brand Board para pegado manual (Frank lo lleva a Settings > Brand Board)
+      if (body.payload_brand_board && esAdminFull) {
+        document.getElementById('brand-board-helper').style.display = '';
+        document.getElementById('brand-board-json').value = JSON.stringify(body.payload_brand_board, null, 2);
+      }
+      // No reload automatico: el admin puede querer copiar el brand board
+    } catch (e) {
+      window.utils.toast('Error: ' + e.message, 'error');
+      $('sync-status').innerHTML = `<span style="color: #B91C1C;">${window.utils.escapeHtml(e.message)}</span> · Revisa la consola del navegador para ver el detalle del response.`;
+      btn.disabled = false; btn.textContent = 'Sincronizar mi DNA';
+    }
+  });
+
+  // Botón copiar Brand Board (modo admin)
+  const btnCopiar = document.getElementById('btn-copiar-brand');
+  if (btnCopiar) {
+    btnCopiar.addEventListener('click', async () => {
+      const txt = document.getElementById('brand-board-json').value;
+      try {
+        await navigator.clipboard.writeText(txt);
+        btnCopiar.textContent = 'Copiado ✓';
+        setTimeout(() => { btnCopiar.textContent = 'Copiar al portapapeles'; }, 1500);
+      } catch (_) {
+        document.getElementById('brand-board-json').select();
+        document.execCommand('copy');
+        btnCopiar.textContent = 'Copiado (fallback)';
+      }
+    });
+  }
+
+  // Botón guardar (solo admin)
+  if (esAdminFull) {
+    $('btn-save-admin').addEventListener('click', async () => {
+      const btn = $('btn-save-admin');
+      btn.disabled = true; btn.textContent = 'Guardando…';
+      try {
+        const nuevoId  = $('ghl-sub-id').value.trim() || null;
+        const nuevoUrl = $('ghl-sub-url').value.trim() || null;
+        const { error } = await window.db.from('leads')
+          .update({ ghl_sub_location_id: nuevoId, ghl_sub_location_url: nuevoUrl })
+          .eq('id', lead.id);
+        if (error) throw error;
+        window.utils.toast('Integración GHL guardada', 'success');
+        setTimeout(() => window.location.reload(), 700);
+      } catch (e) {
+        window.utils.toast('Error: ' + e.message, 'error');
+        btn.disabled = false; btn.textContent = 'Guardar cambios (admin)';
+      }
+    });
+  }
+})();
+</script>
+
+</body>
+</html>

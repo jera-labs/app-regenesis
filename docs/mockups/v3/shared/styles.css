@@ -1,0 +1,611 @@
+/* ============================================================
+   NEUROHACKERS PLATFORM v3 — "Coach del día"
+   Filosofía: el cliente entra y ve QUÉ hacer hoy.
+   Cero saturación. Cero módulos en la cara.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap');
+
+:root {
+  /* Backgrounds */
+  --bg: #FAFAFA;
+  --surface: #FFFFFF;
+  --surface-2: #F5F5F7;
+  --surface-3: #EFEFF1;
+
+  /* Borders */
+  --border: #D2D2D7;
+  --border-soft: #E8E8ED;
+
+  /* Text */
+  --text: #1D1D1F;
+  --text-muted: #6E6E73;
+  --text-faint: #A1A1A6;
+
+  /* Accent dorado */
+  --accent: #D4AF37;
+  --accent-soft: #F5E9B8;
+  --accent-bright: #E5C147;
+  --accent-dark: #B8941F;
+  --accent-deeper: #8E6F12;
+  --accent-glow: rgba(212, 175, 55, 0.18);
+  --accent-soft-bg: rgba(212, 175, 55, 0.08);
+
+  /* Estados */
+  --success: #248A3D;
+  --success-soft: #E8F5EC;
+  --error: #D70015;
+  --warning: #B25000;
+  --warning-soft: #FDF3E7;
+
+  /* Sombras (muy sutiles) */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+
+  /* Espaciado */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+
+  /* Radios */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --radius-full: 980px;
+
+  /* Transiciones */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Tipografía */
+  --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+  --font-mono: 'Geist Mono', 'SF Mono', Menlo, monospace;
+
+  /* Type scale */
+  --text-3xs: 10px;
+  --text-2xs: 11px;
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-md: 15px;
+  --text-lg: 17px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 30px;
+  --text-4xl: 36px;
+  --text-5xl: 44px;
+}
+
+/* ============================================================
+   RESET + BASE
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+body {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--bg);
+  min-height: 100vh;
+}
+a { color: inherit; text-decoration: none; }
+button { font: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
+input, textarea, select { font: inherit; color: inherit; }
+ul, ol { list-style: none; }
+::selection { background: var(--accent-glow); color: var(--text); }
+
+/* ============================================================
+   HEADER ULTRA-MINIMAL
+   ============================================================ */
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(250, 250, 250, 0.85);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid var(--border-soft);
+}
+.app-header-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: var(--space-3) var(--space-5);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 600;
+  font-size: var(--text-md);
+  letter-spacing: -0.015em;
+}
+.brand-logo {
+  width: 26px; height: 26px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--accent-bright), var(--accent-dark));
+  color: #1D1D1F;
+  display: grid; place-items: center;
+  font-weight: 700;
+  font-size: 12px;
+}
+.header-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.header-mas {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  transition: var(--transition-fast);
+}
+.header-mas:hover { background: var(--surface-2); color: var(--text); }
+.header-mas.active { background: var(--surface-2); color: var(--text); font-weight: 600; }
+.user-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px 4px 4px;
+  background: var(--surface-2);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+.user-avatar {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-bright), var(--accent-dark));
+  color: #1D1D1F;
+  display: grid; place-items: center;
+  font-weight: 700;
+  font-size: 10px;
+}
+
+/* ============================================================
+   CONTAINER
+   ============================================================ */
+
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--space-12) var(--space-5) var(--space-16);
+}
+.container-wide {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: var(--space-10) var(--space-5);
+}
+
+/* ============================================================
+   TYPOGRAPHY
+   ============================================================ */
+
+.eyebrow {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--text-3xs);
+  letter-spacing: 1.8px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: var(--space-4);
+}
+.eyebrow-accent { color: var(--accent-deeper); }
+
+h1.greeting {
+  font-size: var(--text-3xl);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  margin-bottom: var(--space-2);
+}
+
+.phase-line {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin-bottom: var(--space-10);
+}
+.phase-line strong { color: var(--text); font-weight: 600; }
+.phase-line .dot { color: var(--text-faint); }
+
+.section-h {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-soft);
+}
+.section-h-title {
+  font-size: var(--text-md);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.section-h-meta {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: 1.2px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+/* ============================================================
+   ACTION CARD (LA PIEZA CLAVE DEL v3)
+   ============================================================ */
+
+.action {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-5);
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-3);
+  transition: var(--transition-fast);
+}
+.action:hover { border-color: var(--border); }
+.action.done { opacity: 0.55; background: var(--surface-2); }
+.action.done .action-title { text-decoration: line-through; }
+
+.action-num {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  display: grid; place-items: center;
+  font-weight: 600;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  align-self: start;
+  margin-top: 2px;
+}
+.action.done .action-num {
+  background: linear-gradient(135deg, var(--accent-bright), var(--accent-dark));
+  color: #1D1D1F;
+}
+
+.action-body { min-width: 0; }
+.action-title {
+  font-size: var(--text-md);
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
+}
+.action-detail {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  line-height: 1.55;
+  margin-bottom: var(--space-3);
+}
+.action-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+.action-meta-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--text-faint); }
+
+.action-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
+  align-self: start;
+  margin-top: 2px;
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 9px 16px;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  transition: var(--transition-fast);
+  cursor: pointer;
+  white-space: nowrap;
+  letter-spacing: -0.005em;
+}
+.btn-primary {
+  background: var(--text);
+  color: #FFF;
+}
+.btn-primary:hover { background: #000; }
+.btn-secondary {
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border-soft);
+}
+.btn-secondary:hover { background: var(--surface-3); border-color: var(--border); }
+.btn-ghost {
+  color: var(--text-muted);
+  background: transparent;
+}
+.btn-ghost:hover { background: var(--surface-2); color: var(--text); }
+.btn-accent {
+  background: linear-gradient(135deg, var(--accent-bright), var(--accent-dark));
+  color: #1D1D1F;
+  box-shadow: var(--shadow-sm);
+}
+.btn-accent:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.btn-ia {
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  color: var(--accent-deeper);
+}
+.btn-ia:hover { background: var(--accent-soft-bg); }
+.btn-sm { padding: 6px 12px; font-size: var(--text-xs); }
+.btn-lg { padding: 12px 20px; font-size: var(--text-md); }
+.btn-xl { padding: 14px 28px; font-size: var(--text-md); border-radius: var(--radius-lg); }
+
+/* ============================================================
+   PROGRESS COMPACT
+   ============================================================ */
+
+.progress-strip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-8);
+}
+.progress-strip-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.progress-strip-num {
+  font-size: var(--text-xl);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.progress-strip-label {
+  font-family: var(--font-mono);
+  font-size: var(--text-3xs);
+  letter-spacing: 1.2px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.progress-strip-divider {
+  width: 1px;
+  height: 36px;
+  background: var(--border-soft);
+}
+
+.progress {
+  width: 100%;
+  height: 4px;
+  background: var(--surface-3);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(135deg, var(--accent-bright), var(--accent-dark));
+  border-radius: var(--radius-full);
+}
+
+/* ============================================================
+   REFLEJO (RE-GÉNESIS BLOCK)
+   ============================================================ */
+
+.reflejo {
+  padding: var(--space-6);
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-3);
+  position: relative;
+}
+.reflejo::before {
+  content: '';
+  position: absolute;
+  left: 0; top: var(--space-6); bottom: var(--space-6);
+  width: 3px;
+  background: linear-gradient(180deg, var(--accent-bright), var(--accent-dark));
+  border-radius: 0 2px 2px 0;
+}
+
+/* ============================================================
+   ATAJOS (FOOTER DEL HUB)
+   ============================================================ */
+
+.atajos {
+  margin-top: var(--space-12);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--border-soft);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.atajo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  transition: var(--transition-fast);
+}
+.atajo:hover { background: var(--surface-2); color: var(--text); border-color: var(--border); }
+
+/* ============================================================
+   GRID HELPERS (USADAS EN /mas y /admin)
+   ============================================================ */
+
+.grid { display: grid; gap: var(--space-4); }
+.grid-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 720px) {
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+}
+.card-hover { cursor: pointer; transition: var(--transition-fast); }
+.card-hover:hover { border-color: var(--border); }
+
+/* ============================================================
+   BADGES (MUY SOBRIOS)
+   ============================================================ */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  font-family: var(--font-mono);
+  font-size: var(--text-3xs);
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  background: var(--surface-2);
+  color: var(--text-muted);
+}
+.badge-accent { background: var(--accent-soft-bg); color: var(--accent-deeper); }
+.badge-success { background: var(--success-soft); color: var(--success); }
+
+/* ============================================================
+   PHASE BANNER
+   ============================================================ */
+
+.phase-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-6);
+}
+.phase-banner-body { flex: 1; }
+.phase-banner-title { font-weight: 600; font-size: var(--text-sm); margin-bottom: 2px; }
+.phase-banner-meta { font-size: var(--text-xs); color: var(--text-muted); }
+
+/* ============================================================
+   FORM (VALIDACIÓN PRODUCTO)
+   ============================================================ */
+
+.field { margin-bottom: var(--space-5); }
+.field-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: 1.3px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: var(--space-2);
+}
+.field-input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: var(--text-base);
+  outline: none;
+  transition: var(--transition-fast);
+}
+.field-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+.field-textarea { min-height: 120px; resize: vertical; line-height: 1.55; font-family: inherit; }
+
+/* ============================================================
+   PREVIEW NAV (showcase footer)
+   ============================================================ */
+
+.preview-nav {
+  position: fixed;
+  bottom: var(--space-4);
+  right: var(--space-4);
+  z-index: 100;
+  background: var(--surface);
+  border-radius: var(--radius-full);
+  padding: 4px;
+  box-shadow: var(--shadow-md);
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  border: 1px solid var(--border-soft);
+}
+.preview-nav a {
+  padding: 5px 10px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  transition: var(--transition-fast);
+}
+.preview-nav a:hover { background: var(--surface-2); color: var(--text); }
+.preview-nav a.active { background: var(--text); color: #FFF; }
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+
+.text-center { text-align: center; }
+.text-muted { color: var(--text-muted); }
+.mt-2 { margin-top: var(--space-2); }
+.mt-3 { margin-top: var(--space-3); }
+.mt-4 { margin-top: var(--space-4); }
+.mt-6 { margin-top: var(--space-6); }
+.mt-8 { margin-top: var(--space-8); }
+.mb-2 { margin-bottom: var(--space-2); }
+.mb-4 { margin-bottom: var(--space-4); }
+.mb-6 { margin-bottom: var(--space-6); }
+.mb-8 { margin-bottom: var(--space-8); }

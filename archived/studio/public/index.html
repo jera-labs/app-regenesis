@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <script src="/studio/shared/turbo.min.js?v=20260714"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Studio · Neurohackers</title>
+  <link rel="stylesheet" href="/studio/shared/styles.css?v=20260714">
+  <style>
+    .red-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); margin-top: var(--space-6); }
+    @media (max-width: 920px) { .red-grid { grid-template-columns: 1fr; } }
+    .red-card {
+      background: var(--surface); border: 1px solid var(--border-soft);
+      border-radius: var(--radius-lg); padding: var(--space-5);
+      display: flex; flex-direction: column; gap: var(--space-3);
+      transition: 200ms; text-decoration: none; color: inherit;
+    }
+    .red-card:hover { box-shadow: var(--shadow-card-hover); border-color: var(--accent); transform: translateY(-2px); }
+    .red-card.disabled { opacity: 0.45; pointer-events: none; }
+    .red-card .icon { font-size: 32px; color: var(--accent); }
+    .red-card h3 { font-size: var(--text-lg); margin: 0; }
+    .red-card p { font-size: var(--text-sm); color: var(--text-muted); margin: 0; }
+    .red-card .footer { display: flex; gap: var(--space-2); align-items: center; margin-top: auto; padding-top: var(--space-3); border-top: 1px solid var(--border-soft); }
+    .red-card .pill { font-family: var(--font-mono); font-size: 10px; padding: 2px 8px; border-radius: 999px; background: var(--surface-2); color: var(--text-muted); }
+    .red-card.activo .pill { background: var(--accent-soft); color: var(--accent-dark); }
+  </style>
+</head>
+<body>
+
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<div data-studio-nav data-active="hoy"></div>
+
+<div class="admin-strip" style="background: #1D1D1F;">
+  <div class="admin-strip-inner">
+    <span class="admin-strip-dot" style="background: var(--accent);"></span>
+    <span>STUDIO · GENERADOR DE CONTENIDO</span>
+    <span style="opacity: 0.5;">·</span>
+    <span id="user-greeting">Cargando...</span>
+  </div>
+</div>
+
+<main class="container-wide" id="main">
+
+  <section style="margin-bottom: var(--space-6);">
+    <span class="eyebrow">CONTENIDO PARA REDES</span>
+    <h1 class="greeting-lg">Tu estudio.</h1>
+    <p class="lead">Genera contenido para tus redes sociales personalizado por tu marca y productos. Cada post incluye texto y una imagen lista para descargar o publicar.</p>
+  </section>
+
+  <div id="kpi-strip" class="progress-strip" style="display: none;">
+    <div class="progress-strip-item">
+      <span class="progress-strip-num" id="kpi-total">-</span>
+      <span class="progress-strip-label">Piezas generadas</span>
+    </div>
+    <div class="progress-strip-divider"></div>
+    <div class="progress-strip-item">
+      <span class="progress-strip-num" id="kpi-aprobados">-</span>
+      <span class="progress-strip-label">Aprobados</span>
+    </div>
+    <div class="progress-strip-divider"></div>
+    <div class="progress-strip-item">
+      <span class="progress-strip-num" id="kpi-publicados">-</span>
+      <span class="progress-strip-label">Publicados</span>
+    </div>
+  </div>
+
+  <section style="margin-top: var(--space-8);">
+    <span class="eyebrow">REDES DISPONIBLES</span>
+    <h2 style="margin: 4px 0 0; font-size: var(--text-xl);">Empieza generando contenido</h2>
+    <div class="red-grid" id="red-grid"></div>
+  </section>
+
+  <section style="margin-top: var(--space-10);">
+    <span class="eyebrow">¿CÓMO FUNCIONA?</span>
+    <h2 style="margin: 4px 0 var(--space-4); font-size: var(--text-lg);">3 pasos para tu contenido</h2>
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); font-size: var(--text-sm); color: var(--text-muted);">
+      <div>
+        <div style="font-family: var(--font-mono); font-size: 11px; color: var(--accent-dark);">01</div>
+        <strong style="display: block; color: var(--text); margin: 4px 0;">Elige tu producto</strong>
+        Selecciona el servicio que quieres promocionar. El generador usa tu DNA y la promesa del producto para crear contenido alineado a tu voz.
+      </div>
+      <div>
+        <div style="font-family: var(--font-mono); font-size: 11px; color: var(--accent-dark);">02</div>
+        <strong style="display: block; color: var(--text); margin: 4px 0;">Genera y edita</strong>
+        IA crea el copy y una imagen acompañante. Puedes editar texto, regenerar imagen, abrir el editor canvas para retoques avanzados.
+      </div>
+      <div>
+        <div style="font-family: var(--font-mono); font-size: 11px; color: var(--accent-dark);">03</div>
+        <strong style="display: block; color: var(--text); margin: 4px 0;">Descarga o publica</strong>
+        Descarga el paquete (imagen + texto + hashtags) y publica manualmente. Próximamente: publicación automática via tu cuenta GHL conectada.
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/studio/shared/scripts/config.js?v=20260714"></script>
+<script src="/studio/shared/scripts/supabase-client.js?v=20260714"></script>
+<script src="/studio/shared/scripts/utils.js?v=20260714"></script>
+<script src="/studio/shared/scripts/studio-auth.js?v=20260714"></script>
+<script src="/studio/shared/scripts/studio-contenido.js?v=20260714"></script>
+<script src="/studio/shared/scripts/studio-nav.js?v=20260714"></script>
+<script>
+(async function () {
+  const auth = await window.requireStudioAuth();
+  if (!auth) return;
+  const { admin, lead } = auth;
+
+  document.getElementById('user-greeting').textContent =
+    `Hola, ${lead?.nombre || admin?.nombre || 'humano'}${admin ? ' · admin' : ''}`;
+
+  // Determinar qué redes tiene activas el lead
+  const REDES = [
+    { slug: 'contenido-instagram', icon: '◉', label: 'Instagram', href: '/studio/modules/instagram/index.html', desc: 'Posts, carruseles y reels con imagen IA' },
+    { slug: 'contenido-linkedin',  icon: '▦', label: 'LinkedIn',  href: '/studio/modules/linkedin/index.html',  desc: 'Posts profesionales y artículos largos' },
+    { slug: 'contenido-facebook',  icon: '◇', label: 'Facebook',  href: '/studio/modules/facebook/index.html',  desc: 'Posts para grupos y página de marca' },
+  ];
+
+  let activos = new Set();
+  if (lead) {
+    const [{ data: cat }, { data: ov }] = await Promise.all([
+      window.db.from('modulos_catalogo').select('slug, default_activo'),
+      window.db.from('modulos_cliente').select('modulo_slug, activo').eq('lead_id', lead.id),
+    ]);
+    const oMap = new Map((ov || []).map(o => [o.modulo_slug, o.activo]));
+    (cat || []).forEach(m => {
+      const v = oMap.has(m.slug) ? oMap.get(m.slug) : m.default_activo;
+      if (v) activos.add(m.slug);
+    });
+  } else if (admin) {
+    // Admin ve todas las redes (para preview/testing)
+    REDES.forEach(r => activos.add(r.slug));
+  }
+
+  const grid = document.getElementById('red-grid');
+  grid.innerHTML = REDES.map((r) => {
+    const on = activos.has(r.slug);
+    return `
+      <a class="red-card ${on ? 'activo' : 'disabled'}" href="${on ? r.href : '#'}">
+        <div class="icon">${r.icon}</div>
+        <h3>${r.label}</h3>
+        <p>${r.desc}</p>
+        <div class="footer">
+          <span class="pill">${on ? 'ACTIVO' : 'DESACTIVADO'}</span>
+          ${on ? '<span style="font-size: 11px; color: var(--text-muted);">Click para entrar →</span>' : '<span style="font-size: 11px; color: var(--text-muted);">Pide acceso al equipo</span>'}
+        </div>
+      </a>`;
+  }).join('');
+
+  if (!activos.size && !admin) {
+    grid.innerHTML += `<p style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: var(--space-4);">
+      No tienes ningún módulo de contenido activado. Pide al equipo de Neurohackers que te active al menos uno.
+    </p>`;
+  }
+
+  // KPIs
+  if (lead) {
+    try {
+      const m = await window.studioContenidoApi.metricas(lead.id);
+      if (m.total > 0) {
+        document.getElementById('kpi-total').textContent = m.total;
+        document.getElementById('kpi-aprobados').textContent = m.aprobado || 0;
+        document.getElementById('kpi-publicados').textContent = m.publicado || 0;
+        document.getElementById('kpi-strip').style.display = '';
+      }
+    } catch (_) {}
+  }
+})();
+</script>
+
+</body>
+</html>

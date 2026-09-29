@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin · Clientes · Neurohackers</title>
+  <script src="/shared/turbo.min.js?v=20260797"></script>
+  <link rel="stylesheet" href="/shared/styles.css?v=20260797">
+</head>
+<body class="with-sidebar admin-mode">
+
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<script>(function(){try{var c=localStorage.getItem("nav-cache-admin-v4");var w=document.getElementById("sidebar-wrapper");if(c&&w&&!w.firstChild)w.innerHTML=c;}catch(e){}})();</script>
+<div data-nav data-active="admin" data-base="../"></div>
+
+<div class="admin-strip">
+  <div class="admin-strip-inner">
+    <span class="admin-strip-dot"></span>
+    <span>PANEL DE OPERACIÓN</span>
+    <span style="opacity: 0.5;">·</span>
+    <span id="admin-name">-</span>
+  </div>
+</div>
+
+<main class="container-wide" id="main">
+
+  <section style="margin-bottom: var(--space-8);">
+    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap;">
+      <div>
+        <span class="eyebrow">PANEL DE OPERACIÓN</span>
+        <h1 class="greeting-lg">Clientes activos</h1>
+        <p class="lead">Lista de todos los leads del programa. Click en uno para ver su plataforma como si fueras él.</p>
+      </div>
+      <div style="display: flex; gap: var(--space-2); flex-wrap: wrap;">
+        <button class="btn btn-accent btn-sm" id="btn-nuevo-usuario" title="Crear cliente, moderador o admin manualmente">+ Nuevo usuario</button>
+        <button class="btn btn-secondary btn-sm" id="btn-recalc-todos" title="Recalcular semáforos engagement/progreso de todos los clientes">⟳ Recalcular salud · todos</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="progress-strip">
+    <div class="progress-strip-item">
+      <span class="progress-strip-num" id="kpi-total">-</span>
+      <span class="progress-strip-label">Total activos</span>
+    </div>
+    <div class="progress-strip-divider"></div>
+    <div class="progress-strip-item">
+      <span class="progress-strip-num" id="kpi-productos">-</span>
+      <span class="progress-strip-label">Productos en plataforma</span>
+    </div>
+    <div class="progress-strip-divider"></div>
+    <div class="progress-strip-item">
+      <span class="progress-strip-num" id="kpi-auditados">-</span>
+      <span class="progress-strip-label">Productos diagnosticados</span>
+    </div>
+    <div class="progress-strip-divider"></div>
+    <div class="progress-strip-item">
+      <span class="progress-strip-num" id="kpi-sin-producto">-</span>
+      <span class="progress-strip-label">Sin productos aún</span>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: var(--space-3); align-items: center; margin-bottom: var(--space-3); flex-wrap: wrap;">
+    <div style="display: flex; align-items: center; gap: var(--space-2); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 6px 12px; min-width: 320px; flex: 1; max-width: 480px;">
+      <span style="color: var(--text-muted); font-size: 14px;">◌</span>
+      <input id="search-input" type="search" placeholder="Buscar nombre, email, vehículo, nicho..." style="border: 0; outline: 0; flex: 1; background: transparent; font-size: var(--text-sm); padding: 4px 0;" autocomplete="off">
+    </div>
+    <div style="display: flex; align-items: center; gap: 6px;">
+      <label style="font-family: var(--font-mono); font-size: var(--text-2xs); text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted);">Ordenar:</label>
+      <select id="orden-select" class="field-input" style="max-width: 200px; padding: 6px 10px; font-size: var(--text-xs);">
+        <option value="fecha_pago_desc">Pago más reciente</option>
+        <option value="fecha_pago_asc">Pago más antiguo</option>
+        <option value="nombre_asc">Nombre A-Z</option>
+        <option value="activacion_desc">Activación más reciente</option>
+        <option value="fin_asc">Fin contractual más cercano</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="filters-bar" id="filtros">
+    <button class="filter-chip active" data-filtro="todos">Todos</button>
+    <button class="filter-chip" data-filtro="estado-activo">Activos</button>
+    <button class="filter-chip" data-filtro="estado-onboarding">Onboarding</button>
+    <button class="filter-chip" data-filtro="estado-riesgo">En riesgo</button>
+    <button class="filter-chip" data-filtro="estado-pausa">Pausa</button>
+    <button class="filter-chip" data-filtro="caso-exito">⭐ Caso éxito</button>
+    <button class="filter-chip" data-filtro="churn">Churn</button>
+    <button class="filter-chip" data-filtro="con-productos">Con productos</button>
+    <button class="filter-chip" data-filtro="sin-productos">Sin productos</button>
+  </div>
+
+  <div id="clientes-grid" class="clientes-grid"></div>
+
+  <div id="empty" class="empty hidden">
+    <div class="empty-icon">○</div>
+    <h3 class="empty-title">No hay clientes con ese filtro</h3>
+    <p class="empty-detail">Prueba cambiar el filtro.</p>
+  </div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/shared/scripts/config.js?v=20260797"></script>
+<script src="/shared/scripts/supabase-client.js?v=20260797"></script>
+  <script src="/shared/scripts/cache.js?v=20260797"></script>
+<script src="/shared/scripts/utils.js?v=20260797"></script>
+<script src="/shared/scripts/auth.js?v=20260797"></script>
+  <script src="/shared/scripts/event-tracker.js?v=20260797"></script>
+<script src="/shared/scripts/admin-gate.js?v=20260797"></script>
+<script src="/shared/scripts/equipo.js?v=20260797"></script>
+<script src="/shared/scripts/estados.js?v=20260797"></script>
+<script src="/shared/scripts/salud.js?v=20260797"></script>
+<script src="/shared/scripts/jobs.js?v=20260797"></script>
+<script src="/shared/scripts/usuarios.js?v=20260797"></script>
+<script src="/shared/nav.js?v=20260797"></script>
+<script>
+(async function () {
+  const auth = await window.requireAdmin();
+  if (!auth) return;
+  const { admin } = auth;
+
+  document.getElementById('admin-name').textContent = (admin.nombre || admin.email).toUpperCase();
+
+  // Paralelizar todo lo que no depende entre sí. requireAdmin ya trajo {id,email,nombre,rol,activo},
+  // así que no volvemos a consultar usuarios_admin (antes era un round-trip duplicado).
+  const yo = admin;
+  const [leadsRes, productosRes, cohortesRes, arquetiposRes, estadosRes, etiquetasRes, semaforosRes] = await Promise.all([
+    window.db.from('leads')
+      .select('id,email,nombre,telefono,pais,estado,modalidad,fecha_pago,fecha_inicio_programa,tema_actual_orden,semana_actual,personaje_nombre,vehiculo_negocio,nicho_mercado,cohorte_id,fecha_activacion_programa,fecha_fin_contractual,sesiones_realizadas,churn_at,caso_exito_at')
+      .neq('estado', 'perdido')
+      .order('fecha_pago', { ascending: false, nullsFirst: false }),
+    window.db.from('productos')
+      .select('id,lead_id,nombre,salud_score,auditoria_at,estado')
+      .neq('estado', 'archivado'),
+    window.db.from('cohortes').select('id,nombre,slug').eq('activa', true),
+    window.db.from('cliente_arquetipo').select('lead_id,arquetipo'),
+    window.db.from('lead_estado_comercial').select('lead_id,estado'),
+    window.db.from('lead_etiquetas').select('lead_id, etiqueta:etiqueta_id (slug, nombre, color, icono)'),
+    window.db.from('lead_semaforos').select('lead_id, engagement_color, progreso_color'),
+  ]);
+
+  const soyAdminFull = yo?.rol === 'admin';
+  const { data: leads, error: leadsErr } = leadsRes;
+  const productos = productosRes.data;
+
+  // Los queries secundarios fallaban en silencio (KPIs en 0 con apariencia de
+  // datos válidos). Al menos dejamos rastro en consola.
+  [['productos', productosRes], ['cohortes', cohortesRes], ['arquetipos', arquetiposRes],
+   ['estados', estadosRes], ['etiquetas', etiquetasRes], ['semaforos', semaforosRes]]
+    .forEach(([nombre, res]) => {
+      if (res?.error) console.error(`[admin] query ${nombre} falló:`, res.error.message);
+    });
+
+  if (!soyAdminFull) {
+    document.querySelector('h1.greeting-lg').textContent = yo?.rol === 'moderador' ? 'Mis clientes asignados.' : 'Clientes que puedes ver.';
+    document.querySelector('.lead').textContent = yo?.rol === 'moderador'
+      ? 'Estos son los clientes que te han asignado. Puedes editarlos y todo cambio queda registrado.'
+      : 'Estos son los clientes que te han asignado. Modo lectura: puedes ver todo pero no editar.';
+    // Solo admin pleno puede crear usuarios manualmente
+    const btnNuevo = document.getElementById('btn-nuevo-usuario');
+    if (btnNuevo) btnNuevo.style.display = 'none';
+  }
+
+  // Asignaciones del miembro (solo si no es admin full; await aislado, no bloquea el render principal)
+  let misAsignaciones = [];
+  if (yo && !soyAdminFull) {
+    try { misAsignaciones = await window.equipoApi.leadsDelMiembro(yo.id); }
+    catch (e) { console.warn('No pude cargar mis asignaciones:', e); }
+  }
+  const miRolPorLead = {};
+  misAsignaciones.forEach(a => {
+    if (!miRolPorLead[a.lead_id]) miRolPorLead[a.lead_id] = [];
+    miRolPorLead[a.lead_id].push(a.rol_funcional?.nombre || '?');
+  });
+  window.__miRolPorLead = miRolPorLead;
+  window.__soyAdminFull = soyAdminFull;
+
+  const semaforoPorLead = {};
+  (semaforosRes.data || []).forEach(s => semaforoPorLead[s.lead_id] = s);
+  const cohortesPorId = {};
+  (cohortesRes.data || []).forEach(c => cohortesPorId[c.id] = c);
+  const arquetipoPorLead = {};
+  (arquetiposRes.data || []).forEach(a => arquetipoPorLead[a.lead_id] = a.arquetipo);
+  const estadoPorLead = {};
+  (estadosRes.data || []).forEach(e => estadoPorLead[e.lead_id] = e.estado);
+  const etiquetasPorLead = {};
+  (etiquetasRes.data || []).forEach(le => {
+    if (!etiquetasPorLead[le.lead_id]) etiquetasPorLead[le.lead_id] = [];
+    if (le.etiqueta) etiquetasPorLead[le.lead_id].push(le.etiqueta);
+  });
+
+  const ARQUETIPO_COLOR = {
+    explorador: '#86868B', constructor: '#D4AF37',
+    escalador: '#248A3D', consolidador: '#1D1D1F', no_clasificado: '#C6C6C8',
+  };
+
+  if (leadsErr) {
+    window.utils.toast('Error: ' + leadsErr.message, 'error');
+    console.error(leadsErr);
+    return;
+  }
+
+  const productosPorLead = {};
+  (productos || []).forEach(p => {
+    if (!productosPorLead[p.lead_id]) productosPorLead[p.lead_id] = [];
+    productosPorLead[p.lead_id].push(p);
+  });
+
+  // KPIs
+  document.getElementById('kpi-total').textContent = leads.length;
+  document.getElementById('kpi-productos').textContent = (productos || []).length;
+  document.getElementById('kpi-auditados').textContent = (productos || []).filter(p => p.salud_score !== null).length;
+  document.getElementById('kpi-sin-producto').textContent = leads.filter(l => !productosPorLead[l.id]).length;
+
+  const grid = document.getElementById('clientes-grid');
+  const empty = document.getElementById('empty');
+
+  function iniciales(nombre, email) {
+    const n = (nombre || email || '?').trim();
+    const parts = n.split(/\s+/);
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return n.slice(0, 2).toUpperCase();
+  }
+
+  let busqueda = '';
+  let ordenActual = 'fecha_pago_desc';
+
+  function pintar(filtroSel) {
+    let filtrados = leads.slice();
+    if (filtroSel === 'con-productos') filtrados = filtrados.filter(l => productosPorLead[l.id]);
+    else if (filtroSel === 'sin-productos') filtrados = filtrados.filter(l => !productosPorLead[l.id]);
+    else if (filtroSel === 'estado-activo') filtrados = filtrados.filter(l => ['activo','extension','renovacion_paga'].includes(estadoPorLead[l.id]));
+    else if (filtroSel === 'estado-onboarding') filtrados = filtrados.filter(l => estadoPorLead[l.id] === 'onboarding_pendiente');
+    else if (filtroSel === 'estado-riesgo') filtrados = filtrados.filter(l => ['activo_cuota_impaga','reembolso_solicitado'].includes(estadoPorLead[l.id]));
+    else if (filtroSel === 'estado-pausa') filtrados = filtrados.filter(l => estadoPorLead[l.id] === 'pausa');
+    else if (filtroSel === 'caso-exito') filtrados = filtrados.filter(l => l.caso_exito_at || estadoPorLead[l.id] === 'caso_exito');
+    else if (filtroSel === 'churn') filtrados = filtrados.filter(l => l.churn_at);
+
+    // Búsqueda libre
+    if (busqueda) {
+      const q = busqueda.toLowerCase();
+      filtrados = filtrados.filter(l => {
+        const hay = `${l.nombre || ''} ${l.email} ${l.nicho_mercado || ''} ${l.vehiculo_negocio || ''}`.toLowerCase();
+        return hay.includes(q);
+      });
+    }
+
+    // Ordenamiento
+    const cmp = {
+      'fecha_pago_desc': (a, b) => (b.fecha_pago || '').localeCompare(a.fecha_pago || ''),
+      'fecha_pago_asc':  (a, b) => (a.fecha_pago || '￿').localeCompare(b.fecha_pago || '￿'),
+      'nombre_asc':      (a, b) => (a.nombre || a.email).localeCompare(b.nombre || b.email),
+      'activacion_desc': (a, b) => (b.fecha_activacion_programa || '').localeCompare(a.fecha_activacion_programa || ''),
+      'fin_asc':         (a, b) => (a.fecha_fin_contractual || '￿').localeCompare(b.fecha_fin_contractual || '￿'),
+    };
+    if (cmp[ordenActual]) filtrados.sort(cmp[ordenActual]);
+
+    if (filtrados.length === 0) {
+      grid.innerHTML = '';
+      empty.classList.remove('hidden');
+      return;
+    }
+    empty.classList.add('hidden');
+
+    grid.innerHTML = filtrados.map(l => {
+      const prods = productosPorLead[l.id] || [];
+      const audCount = prods.filter(p => p.salud_score !== null).length;
+      const avgSalud = audCount
+        ? Math.round(prods.filter(p=>p.salud_score!==null).reduce((s,p)=>s+p.salud_score,0) / audCount)
+        : null;
+      const fecha = l.fecha_pago ? new Date(l.fecha_pago).toLocaleDateString('es-ES', { day:'numeric', month:'short' }) : '-';
+      const tags = [];
+      if (l.modalidad) tags.push(`<span class="badge">${window.utils.escapeHtml(l.modalidad)}</span>`);
+      // Estado comercial (badge dinámico)
+      const estadoComercial = estadoPorLead[l.id] || 'onboarding_pendiente';
+      tags.push(window.estadosApi.badgeEstado(estadoComercial));
+      // Etiquetas operativas del cliente (limit 3 para no saturar)
+      const etiquetas = etiquetasPorLead[l.id] || [];
+      etiquetas.slice(0, 3).forEach(et => {
+        tags.push(`<span class="badge" style="background: ${et.color}1A; color: ${et.color}; border: 1px solid ${et.color}40;">${et.icono || '◇'} ${window.utils.escapeHtml(et.nombre)}</span>`);
+      });
+      if (etiquetas.length > 3) tags.push(`<span class="badge text-muted">+${etiquetas.length - 3}</span>`);
+      if (l.tema_actual_orden) tags.push(`<span class="badge badge-accent">Tema ${l.tema_actual_orden}</span>`);
+      // Arquetipo
+      const arq = arquetipoPorLead[l.id];
+      if (arq && arq !== 'no_clasificado') {
+        const color = ARQUETIPO_COLOR[arq] || '#86868B';
+        tags.push(`<span class="badge" style="background: ${color}; color: #FFF; text-transform: capitalize;">${arq}</span>`);
+      }
+      // Cohorte
+      const cohorte = cohortesPorId[l.cohorte_id];
+      if (cohorte) tags.push(`<span class="badge" title="Cohorte">${window.utils.escapeHtml(cohorte.nombre)}</span>`);
+      // Tag de MI rol funcional con este cliente (solo no-admin)
+      if (!window.__soyAdminFull && window.__miRolPorLead?.[l.id]) {
+        window.__miRolPorLead[l.id].forEach(rolNombre => {
+          tags.push(`<span class="badge badge-accent" title="Tu función con este cliente">${window.utils.escapeHtml(rolNombre)}</span>`);
+        });
+      }
+
+      // Sesiones 1:1 contador
+      const ses = l.sesiones_realizadas || 0;
+      // Línea de vehículo + nicho (sutil)
+      const lineaNegocio = l.vehiculo_negocio || l.nicho_mercado
+        ? `<div class="cliente-vehiculo">${l.vehiculo_negocio ? window.utils.escapeHtml(l.vehiculo_negocio) : ''}${l.vehiculo_negocio && l.nicho_mercado ? ' · ' : ''}${l.nicho_mercado ? window.utils.escapeHtml(l.nicho_mercado.slice(0, 50)) : ''}</div>`
+        : '';
+
+      const sem = semaforoPorLead[l.id];
+      const dots = sem ? `
+        <div style="display: flex; gap: 4px; align-items: center; flex-shrink: 0;" title="Engagement: ${sem.engagement_color} · Progreso: ${sem.progreso_color}">
+          ${window.saludApi.dot(sem.engagement_color, 'Engagement: ' + sem.engagement_color)}
+          ${window.saludApi.dot(sem.progreso_color, 'Progreso: ' + sem.progreso_color)}
+        </div>` : '';
+
+      return `
+        <a href="cliente.html?lead=${l.id}" class="cliente-card">
+          <div class="cliente-head">
+            <div class="cliente-avatar">${iniciales(l.nombre, l.email)}</div>
+            <div class="cliente-head-text" style="flex: 1; min-width: 0;">
+              <div class="cliente-name" style="display: flex; align-items: center; gap: var(--space-2);">
+                <span style="flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${window.utils.escapeHtml(l.nombre || '(sin nombre)')}</span>
+                ${dots}
+              </div>
+              <div class="cliente-email">${window.utils.escapeHtml(l.email)}</div>
+              ${lineaNegocio}
+            </div>
+          </div>
+          <div class="cliente-tags">${tags.join('')}</div>
+          <div class="cliente-stats">
+            <div class="cliente-stat">
+              <span class="cliente-stat-num">${prods.length}</span>
+              <span class="cliente-stat-label">Productos</span>
+            </div>
+            <div class="cliente-stat">
+              <span class="cliente-stat-num">${avgSalud !== null ? avgSalud + '%' : '-'}</span>
+              <span class="cliente-stat-label">Salud</span>
+            </div>
+            <div class="cliente-stat">
+              <span class="cliente-stat-num">${ses}</span>
+              <span class="cliente-stat-label">Sesiones</span>
+            </div>
+            <div class="cliente-stat">
+              <span class="cliente-stat-num">${fecha}</span>
+              <span class="cliente-stat-label">Pago</span>
+            </div>
+          </div>
+        </a>`;
+    }).join('');
+  }
+
+  let filtroActual = 'todos';
+  document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      filtroActual = chip.dataset.filtro;
+      pintar(filtroActual);
+    });
+  });
+
+  let searchT;
+  document.getElementById('search-input').addEventListener('input', (e) => {
+    clearTimeout(searchT);
+    searchT = setTimeout(() => {
+      busqueda = e.target.value.trim();
+      pintar(filtroActual);
+    }, 180);
+  });
+
+  document.getElementById('orden-select').addEventListener('change', (e) => {
+    ordenActual = e.target.value;
+    pintar(filtroActual);
+  });
+
+  pintar('todos');
+
+  // Botón "+ Nuevo usuario" (admin pleno crea clientes/admins/moderadores/lectores)
+  document.getElementById('btn-nuevo-usuario')?.addEventListener('click', () => {
+    if (!window.usuariosApi) return window.utils?.toast?.('usuariosApi no cargó. Recarga la página.', 'error');
+    window.usuariosApi.abrirModal();
+  });
+  // Guard: el listener vive en document y sobrevive a visitas Turbo.
+  if (!window.__usuarioCreadoWired) {
+    window.__usuarioCreadoWired = true;
+    document.addEventListener('usuario:creado', () => {
+      // refrescar lista de clientes tras crear uno nuevo
+      location.reload();
+    });
+  }
+
+  // Botón recalcular salud · todos
+  // Fase 3 async: encola job y hace polling para no bloquear la UI 30-90s.
+  document.getElementById('btn-recalc-todos').addEventListener('click', async (e) => {
+    if (!confirm('¿Recalcular semáforos engagement+progreso para todos los clientes?\n\nVa a procesarse en background, te avisaremos cuando termine.')) return;
+    const btn = e.currentTarget;
+    btn.disabled = true; const orig = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner"></span> Encolando...';
+    try {
+      if (!window.jobsApi) throw new Error('jobsApi no disponible — recarga la página');
+      const job = await window.jobsApi.encolar('recalcular_salud_todos', {});
+      window.utils.toast('✓ Encolado. La cola procesa cada 1 min — te aviso cuando termine.', 'success', 4000);
+      btn.innerHTML = '<span class="spinner"></span> En cola…';
+
+      // Polling no bloqueante (~hasta 5 min)
+      const final = await window.jobsApi.esperar(job.id, (r) => {
+        if (r?.estado === 'procesando') btn.innerHTML = '<span class="spinner"></span> Procesando…';
+      });
+
+      if (final?.estado === 'completado') {
+        const resultado = final.resultado || {};
+        window.utils.toast(`✓ Recalculado · ${resultado.ok || 0} OK, ${resultado.fail || 0} fallos`, resultado.fail ? 'warning' : 'success', 5000);
+        // Recargar semáforos y repintar
+        const { data: nuevosSem } = await window.db.from('lead_semaforos').select('lead_id, engagement_color, progreso_color');
+        Object.keys(semaforoPorLead).forEach(k => delete semaforoPorLead[k]);
+        (nuevosSem || []).forEach(s => semaforoPorLead[s.lead_id] = s);
+        pintar(filtroActual);
+      } else if (final?.timeout) {
+        window.utils.toast('El job sigue en cola — revisa más tarde.', 'warning', 5000);
+      } else {
+        window.utils.toast('Error en el job: ' + (final?.ultimo_error || 'desconocido'), 'error', 5000);
+      }
+    } catch (err) {
+      window.utils.toast('Error: ' + err.message, 'error', 5000);
+    } finally {
+      btn.disabled = false; btn.innerHTML = orig;
+    }
+  });
+
+  document.getElementById('main').style.opacity = '1';
+})();
+</script>
+
+
+</body>
+</html>

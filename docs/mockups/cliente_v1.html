@@ -1,0 +1,2207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Re-Génesis · Plataforma</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600&family=Geist:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Paleta neuro-tech */
+    --bg: #FAFAF7;
+    --surface: #FFFFFF;
+    --surface-2: #F4F4F0;
+    --border: #E5E5E0;
+    --border-strong: #D4D4D0;
+    --text: #0A0A0A;
+    --text-muted: #71717A;
+    --text-faint: #A1A1AA;
+    --accent: #B8FF3D;
+    --accent-glow: rgba(184, 255, 61, 0.4);
+    --accent-soft: #E8FFC4;
+    --black: #0A0A0A;
+    
+    /* Sombras precisas */
+    --shadow-xs: 0 1px 2px rgba(10, 10, 10, 0.04);
+    --shadow-sm: 0 1px 3px rgba(10, 10, 10, 0.06), 0 1px 2px rgba(10, 10, 10, 0.04);
+    --shadow-md: 0 4px 6px rgba(10, 10, 10, 0.04), 0 2px 4px rgba(10, 10, 10, 0.03);
+    --shadow-lg: 0 10px 15px rgba(10, 10, 10, 0.05), 0 4px 6px rgba(10, 10, 10, 0.03);
+    --shadow-glow: 0 0 0 1px rgba(184, 255, 61, 0.2), 0 4px 12px rgba(184, 255, 61, 0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+
+  body {
+    font-family: 'Geist', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.5;
+    overflow-x: hidden;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+
+  /* === GRID DE FONDO (textura sutil) === */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: 
+      linear-gradient(to right, rgba(10, 10, 10, 0.015) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(10, 10, 10, 0.015) 1px, transparent 1px);
+    background-size: 32px 32px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .mono { font-family: 'Geist Mono', monospace; }
+
+  /* === SCREEN MANAGEMENT === */
+  .screen { display: none; min-height: 100vh; position: relative; z-index: 1; animation: fadeIn 0.4s ease-out; }
+  .screen.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* === NAV DEMO === */
+  .nav-demo {
+    position: fixed;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--black);
+    padding: 4px;
+    border-radius: 8px;
+    z-index: 1000;
+    display: flex;
+    gap: 2px;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .nav-demo button {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.5);
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    transition: all 0.15s;
+  }
+
+  .nav-demo button:hover { color: white; }
+
+  .nav-demo button.active {
+    background: var(--accent);
+    color: var(--black);
+  }
+
+  /* ============================================
+     PANTALLA 1 · LOGIN
+     ============================================ */
+  #login-screen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 24px;
+  }
+
+  #login-screen.active { display: flex; }
+
+  .login-container {
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+  }
+
+  .login-marker {
+    position: absolute;
+    top: -80px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .login-marker::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px var(--accent-glow);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 4px var(--accent-glow); }
+    50% { box-shadow: 0 0 0 8px rgba(184, 255, 61, 0.1); }
+  }
+
+  .login-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 48px 40px;
+    box-shadow: var(--shadow-md);
+    position: relative;
+  }
+
+  .login-header {
+    margin-bottom: 40px;
+  }
+
+  .login-logo {
+    font-family: 'Geist', sans-serif;
+    font-weight: 700;
+    font-size: 24px;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+  }
+
+  .login-logo-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    margin: 0 4px;
+  }
+
+  .login-eyebrow {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+
+  .login-headline {
+    font-family: 'Geist', sans-serif;
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    margin-bottom: 8px;
+    margin-top: 24px;
+  }
+
+  .login-headline-accent {
+    background: var(--accent);
+    padding: 0 8px;
+    margin-left: 2px;
+  }
+
+  .login-subheadline {
+    color: var(--text-muted);
+    font-size: 15px;
+    margin-bottom: 36px;
+  }
+
+  .form-group { margin-bottom: 18px; }
+
+  .form-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+
+  .form-label-hint {
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--text-faint);
+    font-size: 11px;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-family: 'Geist', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--surface);
+    transition: all 0.15s;
+  }
+
+  .form-input:hover { border-color: var(--border-strong); }
+  
+  .form-input:focus {
+    outline: none;
+    border-color: var(--text);
+    box-shadow: 0 0 0 4px rgba(10, 10, 10, 0.06);
+  }
+
+  .login-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 16px 0 28px;
+    font-size: 13px;
+  }
+
+  .checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+
+  .checkbox-wrapper input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+
+  .forgot-link {
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 500;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1px;
+    transition: border-color 0.15s;
+  }
+
+  .forgot-link:hover { border-bottom-color: var(--text); }
+
+  .btn-primary {
+    width: 100%;
+    background: var(--black);
+    color: white;
+    padding: 14px 24px;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Geist', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary::after {
+    content: '→';
+    transition: transform 0.2s;
+  }
+
+  .btn-primary:hover {
+    background: var(--text);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .btn-primary:hover::after { transform: translateX(4px); }
+
+  .btn-primary.accent {
+    background: var(--accent);
+    color: var(--black);
+  }
+
+  .btn-primary.accent:hover {
+    background: var(--accent);
+    box-shadow: var(--shadow-glow);
+  }
+
+  .login-quote-card {
+    margin-top: 24px;
+    padding: 20px;
+    background: var(--black);
+    border-radius: 10px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .login-quote-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--accent);
+  }
+
+  .login-quote-card-text {
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 8px;
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .login-quote-card-author {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+
+  .login-footer {
+    text-align: center;
+    margin-top: 24px;
+    color: var(--text-faint);
+    font-size: 13px;
+  }
+
+  /* ============================================
+     PANTALLA 2 · DASHBOARD
+     ============================================ */
+  .app-header {
+    padding: 16px 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(250, 250, 247, 0.85);
+    backdrop-filter: blur(12px);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+  }
+
+  .app-logo {
+    font-family: 'Geist', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    text-decoration: none;
+    display: flex;
+    align-items: baseline;
+    gap: 1px;
+  }
+
+  .app-logo-dot {
+    width: 5px;
+    height: 5px;
+    background: var(--accent);
+    border-radius: 50%;
+    margin: 0 3px;
+  }
+
+  .app-nav {
+    display: flex;
+    gap: 4px;
+  }
+
+  .app-nav button {
+    background: transparent;
+    border: none;
+    padding: 7px 12px;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-family: 'Geist', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 6px;
+    transition: all 0.15s;
+    letter-spacing: -0.01em;
+  }
+
+  .app-nav button:hover {
+    color: var(--text);
+    background: var(--surface-2);
+  }
+
+  .app-nav button.active {
+    color: var(--text);
+    background: var(--surface-2);
+  }
+
+  .user-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .user-info {
+    text-align: right;
+    line-height: 1.3;
+  }
+
+  .user-info-name {
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .user-info-meta {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--black);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Geist', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  .container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 48px 32px 80px;
+  }
+
+  /* === BREADCRUMB / STATUS BAR === */
+  .status-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .status-bar-item { display: flex; align-items: center; gap: 6px; }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+
+  .status-divider { width: 16px; height: 1px; background: var(--border); }
+
+  /* === HERO === */
+  .greeting-section { margin-bottom: 56px; }
+
+  .greeting {
+    font-family: 'Geist', sans-serif;
+    font-size: 56px;
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+
+  .greeting-mark {
+    background: var(--accent);
+    padding: 0 6px;
+    margin-left: 4px;
+    display: inline-block;
+  }
+
+  .day-counter {
+    color: var(--text-muted);
+    font-size: 15px;
+    font-weight: 400;
+  }
+
+  .day-counter strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  /* === MAIN GRID === */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 24px;
+  }
+
+  .reflection-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .reflection-card-corner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 40px;
+    height: 40px;
+    border-top: 2px solid var(--accent);
+    border-left: 2px solid var(--accent);
+    border-top-left-radius: 16px;
+  }
+
+  .reflection-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    background: var(--surface-2);
+    color: var(--text);
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+
+  .badge-accent {
+    background: var(--accent);
+    color: var(--black);
+    border-color: var(--accent);
+  }
+
+  .badge-dark {
+    background: var(--black);
+    color: white;
+    border-color: var(--black);
+  }
+
+  .reflection-prompt-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 16px;
+    font-weight: 500;
+  }
+
+  .reflection-prompt-label::before {
+    content: '';
+    width: 16px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  .reflection-prompt {
+    font-family: 'Geist', sans-serif;
+    font-size: 36px;
+    line-height: 1.2;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    margin-bottom: 36px;
+    font-weight: 500;
+  }
+
+  .editor-label {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 12px;
+    font-weight: 500;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 180px;
+    padding: 18px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-family: 'Geist', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text);
+    resize: vertical;
+    background: var(--surface);
+    transition: all 0.15s;
+  }
+
+  textarea:focus {
+    outline: none;
+    border-color: var(--text);
+    box-shadow: 0 0 0 4px rgba(10, 10, 10, 0.05);
+  }
+
+  textarea::placeholder {
+    color: var(--text-faint);
+  }
+
+  .editor-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+  }
+
+  .word-count {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .btn-send {
+    background: var(--accent);
+    color: var(--black);
+    padding: 12px 24px;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Geist', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: -0.01em;
+  }
+
+  .btn-send::after {
+    content: '↗';
+    font-size: 16px;
+    transition: transform 0.2s;
+  }
+
+  .btn-send:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-glow);
+  }
+
+  .btn-send:hover::after { transform: translate(2px, -2px); }
+
+  .btn-send:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* === IA RESPONSE === */
+  .ia-response {
+    display: none;
+    margin-top: 32px;
+    padding: 32px;
+    background: var(--black);
+    border-radius: 12px;
+    color: white;
+    position: relative;
+    animation: slideIn 0.5s ease-out;
+  }
+
+  .ia-response.visible { display: block; }
+
+  .ia-response::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .ia-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .ia-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--accent);
+    color: var(--black);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Geist', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .ia-meta {
+    flex: 1;
+  }
+
+  .ia-title {
+    font-family: 'Geist', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 2px;
+  }
+
+  .ia-subtitle {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .ia-tag {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    padding: 4px 8px;
+    border: 1px solid rgba(184, 255, 61, 0.3);
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .ia-content {
+    font-family: 'Geist', sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .ia-content p { margin-bottom: 14px; }
+  .ia-content p:last-child { margin-bottom: 0; }
+  
+  .ia-content em {
+    color: var(--accent);
+    font-style: normal;
+    font-weight: 500;
+  }
+
+  .ia-loading {
+    display: none;
+    margin-top: 32px;
+    padding: 32px;
+    text-align: center;
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    color: var(--text-muted);
+    font-family: 'Geist Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .ia-loading.visible { display: block; }
+
+  .ia-loading::after {
+    content: '...';
+    animation: dots 1.5s infinite;
+  }
+
+  @keyframes dots {
+    0%, 20% { content: '.'; }
+    40% { content: '..'; }
+    60%, 100% { content: '...'; }
+  }
+
+  /* === SIDEBAR === */
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .sidebar-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .sidebar-title {
+    font-family: 'Geist', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+
+  .sidebar-meta {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* Progress list neuro-tech */
+  .progress-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .progress-list li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 0;
+    font-size: 13px;
+    color: var(--text-muted);
+    position: relative;
+  }
+
+  .progress-list li + li {
+    border-top: 1px solid var(--border);
+  }
+
+  .progress-list li.completed {
+    color: var(--text);
+  }
+
+  .progress-list li.current {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .progress-list li.upcoming {
+    color: var(--text-faint);
+  }
+
+  .status-icon {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 1.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    flex-shrink: 0;
+    background: var(--surface);
+    color: var(--text-faint);
+  }
+
+  .completed .status-icon {
+    background: var(--text);
+    border-color: var(--text);
+    color: white;
+  }
+
+  .current .status-icon {
+    border-color: var(--accent);
+    background: var(--accent);
+    position: relative;
+  }
+
+  .current .status-icon::after {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--black);
+    border-radius: 1px;
+  }
+
+  .progress-num {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    color: var(--text-faint);
+    margin-left: auto;
+    letter-spacing: 0.5px;
+  }
+
+  /* Session card */
+  .session-card {
+    background: var(--black);
+    color: white;
+    border-color: var(--black);
+  }
+
+  .session-card .sidebar-title { color: white; }
+  .session-card .sidebar-meta { color: var(--accent); }
+
+  .session-detail {
+    margin: 16px 0;
+  }
+
+  .session-day-block {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .session-day-num {
+    font-family: 'Geist', sans-serif;
+    font-size: 56px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: var(--accent);
+  }
+
+  .session-day-meta {
+    line-height: 1.3;
+  }
+
+  .session-day-month {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    display: block;
+  }
+
+  .session-day-week {
+    font-size: 14px;
+    color: white;
+    font-weight: 500;
+  }
+
+  .session-info {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.5;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 16px;
+    margin-top: 16px;
+  }
+
+  .session-info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+  }
+
+  .session-info-row span:first-child {
+    color: rgba(255, 255, 255, 0.5);
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .session-info-row span:last-child {
+    color: white;
+    font-weight: 500;
+  }
+
+  .btn-secondary-dark {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Geist', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    margin-top: 16px;
+    transition: all 0.15s;
+    letter-spacing: -0.01em;
+  }
+
+  .btn-secondary-dark:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  /* Stats card */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .stat-block {
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface-2);
+  }
+
+  .stat-num {
+    font-family: 'Geist', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    margin-bottom: 4px;
+  }
+
+  .stat-num-accent {
+    color: var(--text);
+    background: var(--accent);
+    padding: 0 4px;
+    display: inline-block;
+  }
+
+  .stat-label {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 500;
+  }
+
+  .btn-secondary {
+    width: 100%;
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Geist', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    margin-top: 14px;
+    transition: all 0.15s;
+    letter-spacing: -0.01em;
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--text);
+  }
+
+  /* ============================================
+     PANTALLA 3 · DIARIO
+     ============================================ */
+  .diario-hero {
+    margin-bottom: 56px;
+    padding-bottom: 40px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .diario-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 24px;
+    padding: 6px 12px;
+    background: var(--surface-2);
+    border-radius: 100px;
+    border: 1px solid var(--border);
+  }
+
+  .diario-eyebrow::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+
+  .diario-title {
+    font-family: 'Geist', sans-serif;
+    font-size: 80px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 16px;
+    line-height: 0.95;
+    letter-spacing: -0.05em;
+  }
+
+  .diario-subtitle {
+    font-size: 18px;
+    color: var(--text-muted);
+    max-width: 580px;
+    line-height: 1.5;
+  }
+
+  /* Stats row */
+  .diario-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 56px;
+  }
+
+  .diario-stat {
+    background: var(--surface);
+    padding: 24px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .diario-stat-label {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .diario-stat-num {
+    font-family: 'Geist', sans-serif;
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1;
+    letter-spacing: -0.04em;
+    display: block;
+  }
+
+  .diario-stat:first-child {
+    background: var(--black);
+    color: white;
+    border-color: var(--black);
+  }
+
+  .diario-stat:first-child .diario-stat-label {
+    color: var(--accent);
+  }
+
+  .diario-stat:first-child .diario-stat-num {
+    color: white;
+  }
+
+  .diario-stat-trend {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* Filter bar */
+  .filter-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .filter-bar {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .filter-chip {
+    padding: 6px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    font-family: 'Geist', sans-serif;
+    font-size: 12px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+
+  .filter-chip:hover {
+    border-color: var(--text-muted);
+    color: var(--text);
+  }
+
+  .filter-chip.active {
+    background: var(--text);
+    color: white;
+    border-color: var(--text);
+  }
+
+  .filter-count {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* Entries */
+  .entries-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .entry {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    transition: all 0.2s;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .entry:hover {
+    border-color: var(--text-muted);
+    transform: translateY(-1px);
+  }
+
+  .entry-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .entry-date-block {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+
+  .entry-day {
+    font-family: 'Geist', sans-serif;
+    font-size: 40px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1;
+    letter-spacing: -0.04em;
+  }
+
+  .entry-date-meta {
+    line-height: 1.3;
+  }
+
+  .entry-month {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    display: block;
+  }
+
+  .entry-weekday {
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .entry-tags {
+    display: flex;
+    gap: 6px;
+  }
+
+  .entry-prompt-label {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+
+  .entry-prompt {
+    font-family: 'Geist', sans-serif;
+    font-size: 18px;
+    line-height: 1.4;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+  }
+
+  .entry-response-label {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+
+  .entry-response {
+    font-family: 'Geist', sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--text);
+    margin-bottom: 20px;
+  }
+
+  .entry-ia-section {
+    background: var(--black);
+    color: white;
+    padding: 20px 24px;
+    border-radius: 12px;
+    margin-top: 16px;
+    position: relative;
+  }
+
+  .entry-ia-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 24px;
+    right: 24px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+
+  .entry-ia-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+
+  .entry-ia-label::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+
+  .entry-ia-content {
+    font-family: 'Geist', sans-serif;
+    font-size: 14px;
+    line-height: 1.65;
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .entry-ia-content em {
+    color: var(--accent);
+    font-style: normal;
+    font-weight: 500;
+  }
+
+  .entry-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .entry-footer-actions {
+    display: flex;
+    gap: 12px;
+  }
+
+  .entry-action {
+    color: var(--text);
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.15s;
+    border-bottom: 1px solid transparent;
+    padding-bottom: 1px;
+  }
+
+  .entry-action:hover {
+    border-bottom-color: var(--text);
+  }
+
+  /* Export bar */
+  .export-bar {
+    margin-top: 56px;
+    padding: 48px;
+    background: var(--black);
+    border-radius: 16px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .export-bar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--accent);
+  }
+
+  .export-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 40px;
+    align-items: center;
+  }
+
+  .export-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 16px;
+    padding: 4px 10px;
+    background: rgba(184, 255, 61, 0.1);
+    border-radius: 100px;
+    border: 1px solid rgba(184, 255, 61, 0.2);
+  }
+
+  .export-title {
+    font-family: 'Geist', sans-serif;
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+  }
+
+  .export-text {
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.6;
+  }
+
+  .btn-export {
+    background: var(--accent);
+    color: var(--black);
+    padding: 14px 24px;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Geist', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: -0.01em;
+  }
+
+  .btn-export::after {
+    content: '↗';
+    font-size: 18px;
+    transition: transform 0.2s;
+  }
+
+  .btn-export:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(184, 255, 61, 0.3);
+  }
+
+  .btn-export:hover::after {
+    transform: translate(2px, -2px);
+  }
+
+  /* === RESPONSIVE === */
+  @media (max-width: 968px) {
+    .main-grid { grid-template-columns: 1fr; }
+    .container { padding: 32px 20px 60px; }
+    .app-header { padding: 14px 20px; }
+    .header-left { gap: 16px; }
+    .app-nav { display: none; }
+    .greeting { font-size: 40px; }
+    .reflection-prompt { font-size: 24px; }
+    .reflection-card { padding: 28px 24px; }
+    .diario-title { font-size: 56px; }
+    .diario-stats { grid-template-columns: 1fr 1fr; }
+    .export-grid { grid-template-columns: 1fr; }
+    .nav-demo button { padding: 7px 10px; font-size: 10px; }
+    .login-card { padding: 36px 28px; }
+    .login-headline { font-size: 26px; }
+    .entry { padding: 24px; }
+    .entry-day { font-size: 32px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV DEMO -->
+<div class="nav-demo">
+  <button class="active" onclick="showScreen('login-screen', this)">01 · Login</button>
+  <button onclick="showScreen('dashboard-screen', this)">02 · Dashboard</button>
+  <button onclick="showScreen('diario-screen', this)">03 · Diario</button>
+</div>
+
+<!-- ============================================
+     PANTALLA 1 · LOGIN
+     ============================================ -->
+<div id="login-screen" class="screen active">
+  <div class="login-container">
+    <div class="login-marker">SISTEMA ACTIVO</div>
+    
+    <div class="login-card">
+      <div class="login-header">
+        <div class="login-eyebrow">RE-GÉNESIS PLATFORM v1.0</div>
+        <div class="login-logo">
+          Re<span class="login-logo-dot"></span>Génesis
+        </div>
+      </div>
+
+      <h1 class="login-headline">
+        Tu espacio<br>
+        <span class="login-headline-accent">personal</span>
+      </h1>
+      <p class="login-subheadline">
+        Cada día, una pregunta. Cada respuesta, un paso.
+      </p>
+      
+      <div class="form-group">
+        <label class="form-label">
+          <span>Email</span>
+          <span class="form-label-hint">tu correo registrado</span>
+        </label>
+        <input type="email" class="form-input" placeholder="alex@ejemplo.com" value="alex@ejemplo.com">
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">
+          <span>Contraseña</span>
+        </label>
+        <input type="password" class="form-input" placeholder="••••••••" value="••••••••">
+      </div>
+      
+      <div class="login-meta">
+        <label class="checkbox-wrapper">
+          <input type="checkbox" checked> 
+          <span>Mantener sesión</span>
+        </label>
+        <a href="#" class="forgot-link">Olvidé mi contraseña</a>
+      </div>
+      
+      <button class="btn-primary accent" onclick="loginAction()">Entrar</button>
+      
+      <div class="login-quote-card">
+        <p class="login-quote-card-text">
+          "No es convertirte en alguien nuevo, sino recordar quién eras antes de olvidar tu poder."
+        </p>
+        <p class="login-quote-card-author">Frank Ruiz · Neurohackers</p>
+      </div>
+
+      <p class="login-footer">
+        ¿Aún no tienes acceso? <a href="#" class="forgot-link">Contacta tu facilitador</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================
+     PANTALLA 2 · DASHBOARD
+     ============================================ -->
+<div id="dashboard-screen" class="screen">
+  
+  <header class="app-header">
+    <div class="header-left">
+      <a href="#" class="app-logo">
+        Re<span class="app-logo-dot"></span>Génesis
+      </a>
+      <nav class="app-nav">
+        <button class="active">Inicio</button>
+        <button onclick="showScreen('diario-screen', null, true)">Mi diario</button>
+        <button>Mi progreso</button>
+        <button>Calendario</button>
+      </nav>
+    </div>
+    <div class="user-area">
+      <div class="user-info">
+        <div class="user-info-name">Alexander González</div>
+        <div class="user-info-meta">COHORTE-MAR-2026</div>
+      </div>
+      <div class="avatar">A</div>
+    </div>
+  </header>
+
+  <div class="container">
+    
+    <div class="status-bar">
+      <div class="status-bar-item">
+        <span class="status-dot"></span>
+        <span>SESIÓN ACTIVA</span>
+      </div>
+      <div class="status-divider"></div>
+      <div class="status-bar-item">DOM · 26 ABR · 2026</div>
+      <div class="status-divider"></div>
+      <div class="status-bar-item">DÍA 23 / 70</div>
+    </div>
+
+    <div class="greeting-section">
+      <h1 class="greeting">
+        Hola, Alexander.<br>
+        Tu reflexión<span class="greeting-mark">te espera</span>
+      </h1>
+      <p class="day-counter">
+        Semana <strong>4</strong> · Tema actual <strong>Niño Interior</strong> · Día <strong>4 de 7</strong>
+      </p>
+    </div>
+
+    <div class="main-grid">
+      
+      <main>
+        <div class="reflection-card">
+          <div class="reflection-card-corner"></div>
+          
+          <div class="reflection-meta">
+            <span class="badge badge-accent">NIÑO INTERIOR</span>
+            <span class="badge">DÍA 4 · JUEVES</span>
+            <span class="badge">SEMANA 4</span>
+          </div>
+          
+          <p class="reflection-prompt-label">Tu pregunta de hoy</p>
+          <h2 class="reflection-prompt">¿Qué tan fácil te resulta hoy sonreír ante una situación que antes te generaba tensión?</h2>
+          
+          <div class="editor-section">
+            <p class="editor-label">Tu reflexión</p>
+            <textarea id="response" placeholder="Escribe libremente. Este espacio es solo tuyo. No hay respuestas correctas, solo verdades que se revelan al ponerlas en palabras."></textarea>
+            
+            <div class="editor-footer">
+              <span class="word-count" id="wordCount">0 PALABRAS</span>
+              <button class="btn-send" id="submitBtn" onclick="submitResponse()">Enviar reflexión</button>
+            </div>
+          </div>
+
+          <div class="ia-loading" id="iaLoading">Procesando · metodología Re-Génesis</div>
+
+          <div class="ia-response" id="iaResponse">
+            <div class="ia-header">
+              <div class="ia-icon">R</div>
+              <div class="ia-meta">
+                <div class="ia-title">Reflejo Re-Génesis</div>
+                <div class="ia-subtitle">CLAUDE SONNET · ANÁLISIS PERSONALIZADO</div>
+              </div>
+              <div class="ia-tag">v1.0</div>
+            </div>
+            <div class="ia-content" id="iaContent"></div>
+          </div>
+        </div>
+      </main>
+
+      <aside class="sidebar">
+        
+        <div class="sidebar-card">
+          <div class="sidebar-header">
+            <div class="sidebar-title">Tu camino</div>
+            <div class="sidebar-meta">04 / 10</div>
+          </div>
+          
+          <ul class="progress-list">
+            <li class="completed">
+              <div class="status-icon">✓</div>
+              <span>Epigenética</span>
+              <span class="progress-num">01</span>
+            </li>
+            <li class="completed">
+              <div class="status-icon">✓</div>
+              <span>Gestación</span>
+              <span class="progress-num">02</span>
+            </li>
+            <li class="completed">
+              <div class="status-icon">✓</div>
+              <span>Nacimiento</span>
+              <span class="progress-num">03</span>
+            </li>
+            <li class="current">
+              <div class="status-icon"></div>
+              <span>Niño Interior</span>
+              <span class="progress-num">04</span>
+            </li>
+            <li class="upcoming">
+              <div class="status-icon"></div>
+              <span>Abundancia</span>
+              <span class="progress-num">05</span>
+            </li>
+            <li class="upcoming">
+              <div class="status-icon"></div>
+              <span>La Madre</span>
+              <span class="progress-num">06</span>
+            </li>
+            <li class="upcoming">
+              <div class="status-icon"></div>
+              <span>El Padre</span>
+              <span class="progress-num">07</span>
+            </li>
+            <li class="upcoming">
+              <div class="status-icon"></div>
+              <span>La Pareja</span>
+              <span class="progress-num">08</span>
+            </li>
+            <li class="upcoming">
+              <div class="status-icon"></div>
+              <span>El Dinero</span>
+              <span class="progress-num">09</span>
+            </li>
+            <li class="upcoming">
+              <div class="status-icon"></div>
+              <span>Integración</span>
+              <span class="progress-num">10</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="sidebar-card session-card">
+          <div class="sidebar-header">
+            <div class="sidebar-title">Próxima sesión</div>
+            <div class="sidebar-meta">EN 3 DÍAS</div>
+          </div>
+          
+          <div class="session-detail">
+            <div class="session-day-block">
+              <div class="session-day-num">29</div>
+              <div class="session-day-meta">
+                <span class="session-day-month">ABRIL · 2026</span>
+                <span class="session-day-week">Martes</span>
+              </div>
+            </div>
+            
+            <div class="session-info">
+              <div class="session-info-row">
+                <span>HORA</span>
+                <span>6:45 PM</span>
+              </div>
+              <div class="session-info-row">
+                <span>MODALIDAD</span>
+                <span>Presencial</span>
+              </div>
+              <div class="session-info-row">
+                <span>FACILITADOR</span>
+                <span>Frank Ruiz</span>
+              </div>
+            </div>
+          </div>
+          
+          <button class="btn-secondary-dark">Agregar al calendario →</button>
+        </div>
+
+        <div class="sidebar-card">
+          <div class="sidebar-header">
+            <div class="sidebar-title">Tu diario</div>
+            <div class="sidebar-meta">23 ENTRADAS</div>
+          </div>
+          
+          <div class="stats-grid">
+            <div class="stat-block">
+              <div class="stat-num"><span class="stat-num-accent">23</span></div>
+              <div class="stat-label">Reflexiones</div>
+            </div>
+            <div class="stat-block">
+              <div class="stat-num">87%</div>
+              <div class="stat-label">Compromiso</div>
+            </div>
+          </div>
+          
+          <button class="btn-secondary" onclick="showScreen('diario-screen', null, true)">Ver mi diario completo →</button>
+        </div>
+
+      </aside>
+      
+    </div>
+  </div>
+</div>
+
+<!-- ============================================
+     PANTALLA 3 · DIARIO
+     ============================================ -->
+<div id="diario-screen" class="screen">
+  
+  <header class="app-header">
+    <div class="header-left">
+      <a href="#" class="app-logo">
+        Re<span class="app-logo-dot"></span>Génesis
+      </a>
+      <nav class="app-nav">
+        <button onclick="showScreen('dashboard-screen', null, true)">Inicio</button>
+        <button class="active">Mi diario</button>
+        <button>Mi progreso</button>
+        <button>Calendario</button>
+      </nav>
+    </div>
+    <div class="user-area">
+      <div class="user-info">
+        <div class="user-info-name">Alexander González</div>
+        <div class="user-info-meta">COHORTE-MAR-2026</div>
+      </div>
+      <div class="avatar">A</div>
+    </div>
+  </header>
+
+  <div class="container">
+    
+    <div class="diario-hero">
+      <div class="diario-eyebrow">ARCHIVO PERSONAL</div>
+      <h1 class="diario-title">Mi diario.</h1>
+      <p class="diario-subtitle">El libro vivo de tu transformación, escrito en tus propias palabras y reflejado por la metodología Re-Génesis.</p>
+    </div>
+
+    <div class="diario-stats">
+      <div class="diario-stat">
+        <span class="diario-stat-label">REFLEXIONES</span>
+        <span class="diario-stat-num">23</span>
+        <div class="diario-stat-trend">↗ +4 esta semana</div>
+      </div>
+      <div class="diario-stat">
+        <span class="diario-stat-label">PALABRAS ESCRITAS</span>
+        <span class="diario-stat-num">3,847</span>
+      </div>
+      <div class="diario-stat">
+        <span class="diario-stat-label">DÍAS DE PROCESO</span>
+        <span class="diario-stat-num">23</span>
+      </div>
+      <div class="diario-stat">
+        <span class="diario-stat-label">COMPROMISO</span>
+        <span class="diario-stat-num">87%</span>
+      </div>
+    </div>
+
+    <div class="filter-section">
+      <div class="filter-bar">
+        <button class="filter-chip active">Todas</button>
+        <button class="filter-chip">Esta semana</button>
+        <button class="filter-chip">Niño Interior</button>
+        <button class="filter-chip">Nacimiento</button>
+        <button class="filter-chip">Gestación</button>
+        <button class="filter-chip">Epigenética</button>
+      </div>
+      <div class="filter-count">23 ENTRADAS</div>
+    </div>
+
+    <div class="entries-list">
+      
+      <article class="entry">
+        <div class="entry-header">
+          <div class="entry-date-block">
+            <div class="entry-day">26</div>
+            <div class="entry-date-meta">
+              <span class="entry-month">ABRIL · 2026</span>
+              <span class="entry-weekday">Domingo</span>
+            </div>
+          </div>
+          <div class="entry-tags">
+            <span class="badge badge-accent">NIÑO INTERIOR</span>
+            <span class="badge">DÍA 7</span>
+          </div>
+        </div>
+        
+        <p class="entry-prompt-label">Pregunta del día</p>
+        <p class="entry-prompt">¿Cómo cambia tu energía cuando te das permiso de ser simplemente el protagonista de tu juego?</p>
+        
+        <p class="entry-response-label">Mi reflexión</p>
+        <div class="entry-response">
+          Hoy me di cuenta de algo que llevaba años sin notar: cuando dejo de actuar para los demás y simplemente hago lo que disfruto, mi cuerpo se relaja completamente. Hice un dibujo de algo que me pasó por la cabeza, sin pensarlo mucho. Sentí esa libertad de cuando era niño y dibujaba en los cuadernos del colegio. No para que nadie lo viera, solo porque sí.
+        </div>
+        
+        <div class="entry-ia-section">
+          <div class="entry-ia-label">REFLEJO RE-GÉNESIS</div>
+          <div class="entry-ia-content">
+            Lo que describes —"hacer porque sí"— es exactamente el estado que el sistema nervioso busca cuando deja de operar desde la supervivencia. El acto de dibujar sin propósito es profundamente terapéutico: tu corteza prefrontal descansa y tu cerebro límbico recupera espacio. Esta semana de Niño Interior está cumpliendo su función. <em>Llévate esta sensación a la próxima sesión del martes.</em>
+          </div>
+        </div>
+        
+        <div class="entry-footer">
+          <span>HACE 2 HORAS · 87 PALABRAS</span>
+          <div class="entry-footer-actions">
+            <a href="#" class="entry-action">Editar</a>
+            <a href="#" class="entry-action">Compartir con Frank</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="entry">
+        <div class="entry-header">
+          <div class="entry-date-block">
+            <div class="entry-day">25</div>
+            <div class="entry-date-meta">
+              <span class="entry-month">ABRIL · 2026</span>
+              <span class="entry-weekday">Sábado</span>
+            </div>
+          </div>
+          <div class="entry-tags">
+            <span class="badge badge-accent">NIÑO INTERIOR</span>
+            <span class="badge">DÍA 6</span>
+          </div>
+        </div>
+        
+        <p class="entry-prompt-label">Pregunta del día</p>
+        <p class="entry-prompt">Al mirar el mundo hoy, ¿qué colores o texturas parecen haber recuperado su brillo original?</p>
+        
+        <p class="entry-response-label">Mi reflexión</p>
+        <div class="entry-response">
+          Caminé esta mañana sin audífonos, sin pendientes en la cabeza. Vi cómo el sol pegaba en las hojas de un árbol amarillo. Me detuve y me quedé mirando un buen rato. Antes pasaba por ahí todos los días y nunca lo había visto. ¿En qué momento dejé de ver?
+        </div>
+        
+        <div class="entry-ia-section">
+          <div class="entry-ia-label">REFLEJO RE-GÉNESIS</div>
+          <div class="entry-ia-content">
+            <em>"¿En qué momento dejé de ver?"</em> — esta pregunta, formulada por ti mismo, es una de las preguntas más poderosas que un ser humano puede hacerse. No la respondas hoy. Déjala vibrar. El proceso que estás viviendo no te está dando algo nuevo. Te está devolviendo algo que ya tenías y se quedó dormido. La belleza del árbol amarillo siempre estuvo ahí. Tu capacidad de verla es lo que está regresando.
+          </div>
+        </div>
+        
+        <div class="entry-footer">
+          <span>AYER · 64 PALABRAS</span>
+          <div class="entry-footer-actions">
+            <a href="#" class="entry-action">Editar</a>
+            <a href="#" class="entry-action">Compartir con Frank</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="entry">
+        <div class="entry-header">
+          <div class="entry-date-block">
+            <div class="entry-day">22</div>
+            <div class="entry-date-meta">
+              <span class="entry-month">ABRIL · 2026</span>
+              <span class="entry-weekday">Miércoles</span>
+            </div>
+          </div>
+          <div class="entry-tags">
+            <span class="badge badge-accent">NIÑO INTERIOR</span>
+            <span class="badge">DÍA 3</span>
+          </div>
+        </div>
+        
+        <p class="entry-prompt-label">Pregunta del día</p>
+        <p class="entry-prompt">Mientras descansas, ¿qué aspectos de tu creatividad han encontrado una nueva forma de expresarse?</p>
+        
+        <p class="entry-response-label">Mi reflexión</p>
+        <div class="entry-response">
+          Empecé a cocinar cosas raras. Sin receta. Hace años que no hacía eso. Anoche mezclé ingredientes que ni sabía si iban juntos y salió algo rico. Me reí solo en la cocina como hacía mucho no me reía. Es como si algo me hubiera estado conteniendo y por fin se aflojara.
+        </div>
+        
+        <div class="entry-ia-section">
+          <div class="entry-ia-label">REFLEJO RE-GÉNESIS</div>
+          <div class="entry-ia-content">
+            La cocina sin receta es un acto profundamente regenerativo: combina exploración, riesgo controlado, juego y resultado tangible. Tu sistema nervioso lo agradece. Lo que dices al final —<em>"algo me hubiera estado conteniendo"</em>— es la huella del adulto sobre-controlador que aprendiste a ser. Esa contención está cediendo. No la fuerces a irse, solo nota cuando aparece y cuando se va.
+          </div>
+        </div>
+        
+        <div class="entry-footer">
+          <span>HACE 4 DÍAS · 71 PALABRAS</span>
+          <div class="entry-footer-actions">
+            <a href="#" class="entry-action">Editar</a>
+            <a href="#" class="entry-action">Compartir con Frank</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="entry">
+        <div class="entry-header">
+          <div class="entry-date-block">
+            <div class="entry-day">17</div>
+            <div class="entry-date-meta">
+              <span class="entry-month">ABRIL · 2026</span>
+              <span class="entry-weekday">Viernes</span>
+            </div>
+          </div>
+          <div class="entry-tags">
+            <span class="badge badge-dark">NACIMIENTO</span>
+            <span class="badge">DÍA 5</span>
+          </div>
+        </div>
+        
+        <p class="entry-prompt-label">Pregunta del día</p>
+        <p class="entry-prompt">¿Qué fronteras externas parecen estar listas para volverse más permeables a tu influencia?</p>
+        
+        <p class="entry-response-label">Mi reflexión</p>
+        <div class="entry-response">
+          Hoy hablé con mi jefe sobre algo que llevaba meses callado. No esperaba que reaccionara bien. Reaccionó bien. Me di cuenta de que la frontera estaba más en mi cabeza que en él. Cuántas conversaciones me he perdido por miedo a una reacción que nunca pasó.
+        </div>
+        
+        <div class="entry-ia-section">
+          <div class="entry-ia-label">REFLEJO RE-GÉNESIS</div>
+          <div class="entry-ia-content">
+            Lo que describes es el descubrimiento más liberador del trabajo con Nacimiento: la mayoría de las "fronteras" que creemos externas son ecos de programaciones tempranas. Tu sistema nervioso aprendió a anticipar peligros que ya no existen. Cada vez que tengas una conversación así, marca el momento. <em>Llevas el cuerpo evidencia de que el mundo nuevo es más amable que el que aprendiste a temer.</em>
+          </div>
+        </div>
+        
+        <div class="entry-footer">
+          <span>HACE 9 DÍAS · 62 PALABRAS</span>
+          <div class="entry-footer-actions">
+            <a href="#" class="entry-action">Editar</a>
+            <a href="#" class="entry-action">Compartir con Frank</a>
+          </div>
+        </div>
+      </article>
+
+    </div>
+
+    <div class="export-bar">
+      <div class="export-grid">
+        <div>
+          <div class="export-eyebrow">FUTURO ENTREGABLE</div>
+          <h2 class="export-title">Tu libro de transformación.</h2>
+          <p class="export-text">Al terminar tu programa de 10 semanas, recibirás automáticamente un PDF con todas tus reflexiones y los reflejos que la metodología Re-Génesis te entregó. Será el regalo más significativo de este proceso.</p>
+        </div>
+        <div style="text-align: right;">
+          <button class="btn-export">Vista previa del libro</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function showScreen(screenId, btn, fromInternalLink = false) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(screenId).classList.add('active');
+    
+    if (btn) {
+      document.querySelectorAll('.nav-demo button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    } else if (fromInternalLink) {
+      const navMap = { 'login-screen': 0, 'dashboard-screen': 1, 'diario-screen': 2 };
+      const navBtns = document.querySelectorAll('.nav-demo button');
+      navBtns.forEach(b => b.classList.remove('active'));
+      navBtns[navMap[screenId]].classList.add('active');
+    }
+    
+    window.scrollTo(0, 0);
+  }
+
+  function loginAction() {
+    showScreen('dashboard-screen', null, true);
+  }
+
+  // Dashboard editor
+  const textarea = document.getElementById('response');
+  const wordCount = document.getElementById('wordCount');
+  const submitBtn = document.getElementById('submitBtn');
+  const iaLoading = document.getElementById('iaLoading');
+  const iaResponse = document.getElementById('iaResponse');
+  const iaContent = document.getElementById('iaContent');
+
+  textarea.addEventListener('input', () => {
+    const words = textarea.value.trim().split(/\s+/).filter(w => w.length > 0);
+    const count = textarea.value.trim() === '' ? 0 : words.length;
+    wordCount.textContent = `${count} ${count !== 1 ? 'PALABRAS' : 'PALABRA'}`;
+  });
+
+  const iaResponses = [
+    `<p>Lo que escribes revela algo importante: estás empezando a notar el espacio entre el estímulo y tu reacción. Antes había automatismo, ahora hay observación. <em>Eso ya es transformación.</em></p>
+     <p>Cuando mencionas que ahora puedes sonreír ante algo que te tensaba, estás describiendo lo que en Re-Génesis llamamos <em>desactivación de la huella</em>. Tu sistema nervioso está aprendiendo que ciertas situaciones ya no son amenazas.</p>
+     <p>Una pregunta que te invito a sostener hoy: <em>¿qué parte de ti está sonriendo?</em> ¿La adulta que comprende, o el niño que finalmente se siente seguro?</p>
+     <p>Llevarás esta reflexión contigo hasta la sesión del martes. Será un punto de anclaje hermoso.</p>`,
+    
+    `<p>Hay algo poderoso en lo que acabas de compartir: la capacidad de mirar hacia atrás y notar el cambio. <em>Ese acto de observación consciente es el corazón del proceso.</em></p>
+     <p>Lo que describes no es casualidad. Es el resultado de las semanas previas trabajando con Epigenética, Gestación y Nacimiento. Tu sistema está integrando.</p>
+     <p>Te invito a quedarte con esta sensación. Cuando aparezca de nuevo durante el día, simplemente nota: "esto antes me hubiera afectado, y ahora sonrío". <em>Eso es entrenar al cerebro a reconocer su nueva configuración.</em></p>
+     <p>Frank y Tatiana podrán profundizar contigo este matiz en la próxima sesión.</p>`,
+
+    `<p>Tu respuesta tiene una textura particular: hay reconocimiento, hay espacio, hay consciencia de cambio. <em>Esos tres elementos juntos son raros y valiosos.</em></p>
+     <p>El niño interior no necesita que lo "arregles". Necesita que lo veas. Y al sonreír ante lo que antes te tensaba, le estás mostrando algo importante: <em>ahora hay un adulto presente que puede sostener lo que él no podía sostener solo.</em></p>
+     <p>Hoy, antes de dormir, una práctica: pon tu mano en el pecho durante 30 segundos y di mentalmente "ya estás a salvo". Es un gesto pequeño con efectos profundos.</p>
+     <p>Tu reflexión queda guardada. Es parte del libro que estás escribiendo de tu propia transformación.</p>`
+  ];
+
+  function submitResponse() {
+    const response = textarea.value.trim();
+    if (response.length < 10) {
+      alert('Tómate un momento para escribir tu reflexión con calma.');
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Procesando';
+    iaResponse.classList.remove('visible');
+    iaLoading.classList.add('visible');
+
+    setTimeout(() => {
+      const randomResponse = iaResponses[Math.floor(Math.random() * iaResponses.length)];
+      iaContent.innerHTML = randomResponse;
+      
+      iaLoading.classList.remove('visible');
+      iaResponse.classList.add('visible');
+      
+      iaResponse.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      
+      submitBtn.textContent = 'Enviada ✓';
+      
+      setTimeout(() => {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Editar respuesta';
+      }, 2000);
+    }, 2500);
+  }
+</script>
+
+</body>
+</html>

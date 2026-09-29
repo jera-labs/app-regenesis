@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sesiones 1:1 · Admin · Neurohackers</title>
+  <script src="/shared/turbo.min.js?v=20260797"></script>
+  <link rel="stylesheet" href="/shared/styles.css?v=20260797">
+  <style>
+    .ses-row { display: grid; grid-template-columns: 50px 1fr 160px 140px 120px auto; gap: var(--space-3); padding: var(--space-3); background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-sm); margin-bottom: 6px; align-items: center; transition: var(--transition-fast); }
+    .ses-row:hover { background: var(--surface-2); cursor: pointer; }
+    .ses-num { font-family: var(--font-mono); font-weight: 700; font-size: var(--text-md); color: var(--accent-deeper); text-align: center; }
+    .ses-cliente { min-width: 0; }
+    .ses-cliente-nombre { font-weight: 600; font-size: var(--text-sm); }
+    .ses-cliente-email { font-size: var(--text-xs); color: var(--text-muted); }
+    .ses-foco { font-size: var(--text-xs); color: var(--text-muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; }
+    .ses-mentor { font-size: var(--text-xs); color: var(--text); }
+    .ses-fecha { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-muted); }
+
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-3); margin-bottom: var(--space-6); }
+    @media (max-width: 760px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+    .kpi-mini { padding: var(--space-4); background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); }
+    .kpi-mini-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); }
+    .kpi-mini-num { font-size: var(--text-2xl); font-weight: 600; margin-top: 4px; line-height: 1; }
+    .kpi-mini.pendientes .kpi-mini-num { color: var(--accent-deeper); }
+    .kpi-mini.intervencion .kpi-mini-num { color: var(--error); }
+
+    .modal-grande { max-width: 820px; max-height: 90vh; display: flex; flex-direction: column; }
+    .modal-grande .modal-body { overflow-y: auto; flex: 1; }
+    .sec-form { padding: var(--space-4) 0; border-bottom: 1px solid var(--border-soft); }
+    .sec-form:last-child { border-bottom: 0; }
+    .sec-form-title { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: var(--space-3); }
+  </style>
+</head>
+<body class="with-sidebar admin-mode">
+
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<script>(function(){try{var c=localStorage.getItem("nav-cache-admin-v4");var w=document.getElementById("sidebar-wrapper");if(c&&w&&!w.firstChild)w.innerHTML=c;}catch(e){}})();</script>
+<div data-nav data-active="admin-sesiones" data-base="../"></div>
+
+<div class="admin-strip">
+  <div class="admin-strip-inner">
+    <span class="admin-strip-dot"></span>
+    <span>SESIONES 1:1 · BITÁCORA + QC</span>
+    <span style="opacity: 0.5;">·</span>
+    <a href="index.html">Volver</a>
+  </div>
+</div>
+
+<main class="container-wide" id="main">
+
+  <section style="margin-bottom: var(--space-6);">
+    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap;">
+      <div>
+        <span class="eyebrow">OPERACIÓN MENTORES</span>
+        <h1 class="greeting-lg">Sesiones 1:1.</h1>
+        <p class="lead">Bitácora estructurada de cada sesión mentor-cliente. Cada sesión pasa por Control de Calidad antes de contar.</p>
+      </div>
+      <button class="btn btn-accent" id="btn-nueva-sesion">+ Registrar sesión</button>
+    </div>
+  </section>
+
+  <div class="kpi-grid">
+    <div class="kpi-mini pendientes">
+      <div class="kpi-mini-label">Pendientes QC</div>
+      <div class="kpi-mini-num" id="k-pendientes">-</div>
+    </div>
+    <div class="kpi-mini">
+      <div class="kpi-mini-label">Aprobadas este mes</div>
+      <div class="kpi-mini-num" id="k-aprobadas">-</div>
+    </div>
+    <div class="kpi-mini intervencion">
+      <div class="kpi-mini-label">Requieren intervención</div>
+      <div class="kpi-mini-num" id="k-intervencion">-</div>
+    </div>
+    <div class="kpi-mini">
+      <div class="kpi-mini-label">Total histórico</div>
+      <div class="kpi-mini-num" id="k-total">-</div>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-3); flex-wrap: wrap;">
+    <button class="filter-chip active" data-fil-ses="pendiente_revision">Pendiente QC</button>
+    <button class="filter-chip" data-fil-ses="aprobada">Aprobadas</button>
+    <button class="filter-chip" data-fil-ses="intervencion_requerida">Intervención</button>
+    <button class="filter-chip" data-fil-ses="mias">Mías</button>
+    <button class="filter-chip" data-fil-ses="todas">Todas</button>
+  </div>
+
+  <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-4); flex-wrap: wrap; align-items: center;">
+    <input class="field-input" id="ses-buscar" type="search" placeholder="Buscar por cliente o foco..." style="max-width: 280px; font-size: var(--text-sm);">
+    <select class="field-input" id="ses-fil-mentor" style="max-width: 200px; font-size: var(--text-sm);">
+      <option value="">Todos los mentores</option>
+    </select>
+  </div>
+
+  <div id="ses-lista"></div>
+</main>
+
+<!-- MODAL: registrar / editar sesión -->
+<div class="modal-backdrop hidden" id="modal-ses">
+  <div class="modal modal-grande">
+    <div class="modal-head">
+      <span class="modal-title" id="modal-ses-titulo">Nueva sesión 1:1</span>
+      <button class="modal-close" data-close-ses>✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="sec-form">
+        <div class="sec-form-title">Cliente y modalidad</div>
+        <div class="field">
+          <label class="field-label">Cliente *</label>
+          <select class="field-input" id="s-lead"></select>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-3);">
+          <div class="field">
+            <label class="field-label">Fecha *</label>
+            <input class="field-input" id="s-fecha" type="datetime-local">
+          </div>
+          <div class="field">
+            <label class="field-label">Modalidad</label>
+            <select class="field-input" id="s-modalidad">
+              <option value="zoom">Zoom</option>
+              <option value="meet">Google Meet</option>
+              <option value="presencial">Presencial</option>
+              <option value="llamada">Llamada</option>
+              <option value="grupal">Grupal</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label">Duración (min)</label>
+            <input class="field-input" id="s-duracion" type="number" min="0" placeholder="60">
+          </div>
+        </div>
+      </div>
+
+      <div class="sec-form">
+        <div class="sec-form-title">Lectura emocional</div>
+        <div class="field">
+          <label class="field-label">Rapport / cómo viene el cliente</label>
+          <textarea class="field-input field-textarea" id="s-rapport" placeholder="Cómo entró a la sesión, energía, contexto personal..."></textarea>
+        </div>
+        <div class="field">
+          <label class="field-label">Éxitos / logros desde la última sesión</label>
+          <textarea class="field-input field-textarea" id="s-exitos" placeholder="Qué cerró, qué validó, qué mejoró"></textarea>
+        </div>
+      </div>
+
+      <div class="sec-form">
+        <div class="sec-form-title">Diagnóstico operativo</div>
+        <div class="field">
+          <label class="field-label">Cuello de botella actual</label>
+          <textarea class="field-input field-textarea" id="s-cuello" placeholder="Qué bloquea avance ahora mismo"></textarea>
+        </div>
+        <div class="field">
+          <label class="field-label">Foco de acción para la próxima semana *</label>
+          <textarea class="field-input field-textarea" id="s-foco" placeholder="Qué hace concretamente esta semana"></textarea>
+        </div>
+      </div>
+
+      <div class="sec-form">
+        <div class="sec-form-title">Tareas previas</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+          <div class="field">
+            <label class="field-label">Cumplidas</label>
+            <input class="field-input" id="s-cum" type="number" min="0" value="0">
+          </div>
+          <div class="field">
+            <label class="field-label">Pendientes</label>
+            <input class="field-input" id="s-pen" type="number" min="0" value="0">
+          </div>
+        </div>
+      </div>
+
+      <div class="sec-form">
+        <div class="sec-form-title">Tu lectura · semáforos</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+          <div class="field">
+            <label class="field-label">Engagement</label>
+            <select class="field-input" id="s-sem-eng">
+              <option value="">-</option>
+              <option value="verde">Verde</option>
+              <option value="amarillo">Amarillo</option>
+              <option value="rojo">Rojo</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label">Progreso</label>
+            <select class="field-input" id="s-sem-prog">
+              <option value="">-</option>
+              <option value="verde">Verde</option>
+              <option value="amarillo">Amarillo</option>
+              <option value="rojo">Rojo</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">Notas sobre los semáforos</label>
+          <textarea class="field-input field-textarea" id="s-sem-notas" placeholder="Por qué lo veo así, qué cambió esta semana"></textarea>
+        </div>
+      </div>
+
+      <div class="sec-form">
+        <div class="sec-form-title">NPS percibido</div>
+        <div style="display: grid; grid-template-columns: 120px 1fr; gap: var(--space-3);">
+          <div class="field">
+            <label class="field-label">Score (0-10)</label>
+            <input class="field-input" id="s-nps" type="number" min="0" max="10">
+          </div>
+          <div class="field">
+            <label class="field-label">Comentario</label>
+            <input class="field-input" id="s-nps-com" placeholder="Cómo lo lees, no es la encuesta oficial">
+          </div>
+        </div>
+      </div>
+
+      <div class="sec-form">
+        <div class="sec-form-title">Próxima sesión + resumen</div>
+        <div class="field">
+          <label class="field-label">Próxima sesión agendada</label>
+          <input class="field-input" id="s-proxima" type="datetime-local">
+        </div>
+        <div class="field">
+          <label class="field-label">Resumen visible al cliente (opcional)</label>
+          <textarea class="field-input field-textarea" id="s-resumen" placeholder="Lo que verá el cliente cuando se apruebe la sesión. Si está vacío no ve nada."></textarea>
+          <div class="field-help">El cliente NO ve rapport ni cuello botella. Solo este resumen.</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close-ses>Cancelar</button>
+      <button class="btn btn-accent" id="btn-guardar-ses">Guardar y enviar a QC</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: detalle + QC -->
+<div class="modal-backdrop hidden" id="modal-det">
+  <div class="modal modal-grande">
+    <div class="modal-head">
+      <span class="modal-title" id="modal-det-titulo">Sesión</span>
+      <button class="modal-close" data-close-det>✕</button>
+    </div>
+    <div class="modal-body" id="modal-det-body"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close-det>Cerrar</button>
+      <button class="btn btn-secondary" id="btn-eliminar-ses" style="color: var(--error); margin-right: auto;">Eliminar</button>
+      <button class="btn btn-secondary" id="btn-reabrir-ses" style="display:none;">Reabrir</button>
+      <button class="btn btn-secondary" id="btn-intervencion-ses" style="color: var(--error);">Marcar intervención</button>
+      <button class="btn btn-accent" id="btn-aprobar-ses">✓ Aprobar QC</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/shared/scripts/config.js?v=20260797"></script>
+<script src="/shared/scripts/supabase-client.js?v=20260797"></script>
+  <script src="/shared/scripts/cache.js?v=20260797"></script>
+<script src="/shared/scripts/utils.js?v=20260797"></script>
+<script src="/shared/scripts/auth.js?v=20260797"></script>
+  <script src="/shared/scripts/event-tracker.js?v=20260797"></script>
+<script src="/shared/scripts/admin-gate.js?v=20260797"></script>
+<script src="/shared/scripts/equipo.js?v=20260797"></script>
+<script src="/shared/scripts/sesiones.js?v=20260797"></script>
+<script src="/shared/nav.js?v=20260797"></script>
+<script>
+(async function () {
+  const auth = await window.requireAdmin();
+  if (!auth) return;
+
+  // Paralelizar: rol del admin actual + KPIs + leads en una sola tanda.
+  // Antes era secuencial (4 awaits → ~600ms cold). Ahora ~200ms.
+  const [yo, kpis, leadsRes] = await Promise.all([
+    window.equipoApi.miRol(),
+    window.sesionesApi.kpisGlobales().catch(e => { console.warn(e); return null; }),
+    window.db.from('leads').select('id,email,nombre,vehiculo_negocio').neq('estado','perdido').order('nombre'),
+  ]);
+  const leads = leadsRes.data || [];
+
+  // Función reusable para re-cargar los 4 KPIs (se llama desde varios sitios
+  // después de crear/aprobar/intervenir una sesión).
+  async function cargarKpis() {
+    try {
+      const k = await window.sesionesApi.kpisGlobales();
+      if (!k) return;
+      document.getElementById('k-pendientes').textContent   = k.pendientes;
+      document.getElementById('k-aprobadas').textContent    = k.aprobadasMes;
+      document.getElementById('k-intervencion').textContent = k.intervencion;
+      document.getElementById('k-total').textContent        = k.total;
+    } catch (e) { console.warn('[sesiones] cargarKpis:', e); }
+  }
+
+  if (kpis) {
+    document.getElementById('k-pendientes').textContent   = kpis.pendientes;
+    document.getElementById('k-aprobadas').textContent    = kpis.aprobadasMes;
+    document.getElementById('k-intervencion').textContent = kpis.intervencion;
+    document.getElementById('k-total').textContent        = kpis.total;
+  }
+
+  // Filtros
+  let filtroActual = 'pendiente_revision';
+  let filtroMentor = '';
+  let filtroBuscar = '';
+  let listaCruda = [];
+  document.querySelectorAll('[data-fil-ses]').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('[data-fil-ses]').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    filtroActual = b.dataset.filSes;
+    cargarLista();
+  }));
+
+  // Poblar dropdown de mentores (todos los miembros activos)
+  try {
+    const { data: mentores } = await window.db.from('usuarios_admin').select('id,nombre,email').eq('activo', true).order('nombre');
+    const selMentor = document.getElementById('ses-fil-mentor');
+    (mentores || []).forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m.id;
+      opt.textContent = m.nombre || m.email;
+      selMentor.appendChild(opt);
+    });
+  } catch (_) {}
+
+  document.getElementById('ses-fil-mentor').addEventListener('change', (e) => {
+    filtroMentor = e.target.value;
+    renderLista();
+  });
+  let bDeb;
+  document.getElementById('ses-buscar').addEventListener('input', (e) => {
+    clearTimeout(bDeb);
+    bDeb = setTimeout(() => {
+      filtroBuscar = (e.target.value || '').toLowerCase().trim();
+      renderLista();
+    }, 200);
+  });
+
+  function renderLista() {
+    const cont = document.getElementById('ses-lista');
+    let ses = listaCruda;
+    if (filtroMentor) ses = ses.filter(s => s.mentor_id === filtroMentor);
+    if (filtroBuscar) {
+      ses = ses.filter(s => {
+        const txt = [
+          s.lead?.nombre, s.lead?.email,
+          s.foco_accion, s.rapport_notas, s.cuello_botella,
+        ].filter(Boolean).join(' ').toLowerCase();
+        return txt.includes(filtroBuscar);
+      });
+    }
+    if (ses.length === 0) {
+      cont.innerHTML = '<p class="text-muted text-center" style="padding: var(--space-8);">Sin sesiones que coincidan con el filtro.</p>';
+      return;
+    }
+    cont.innerHTML = ses.map(s => `
+      <div class="ses-row" data-id="${s.id}">
+        <div class="ses-num">#${s.numero_sesion || '?'}</div>
+        <div class="ses-cliente">
+          <div class="ses-cliente-nombre">${window.utils.escapeHtml(s.lead?.nombre || s.lead?.email || '?')}</div>
+          <div class="ses-cliente-email">${window.utils.escapeHtml(s.lead?.email || '')}</div>
+          <div class="ses-foco">${s.foco_accion ? '🎯 ' + window.utils.escapeHtml(s.foco_accion.slice(0, 120)) : ''}</div>
+        </div>
+        <div class="ses-mentor">${window.utils.escapeHtml(s.mentor?.nombre || s.mentor?.email || '-')}<br><span class="ses-fecha">${s.modalidad || ''} · ${s.duracion_min || '-'}m</span></div>
+        <div class="ses-fecha">${window.sesionesApi.formatFecha(s.fecha)}</div>
+        <div>${window.sesionesApi.badgeQA(s.estado_qa)}</div>
+        <div style="font-size: var(--text-xs); color: var(--text-muted); text-align: right;">${s.supervisor ? '✓ ' + window.utils.escapeHtml(s.supervisor.nombre || s.supervisor.email) : ''}</div>
+      </div>`).join('');
+    cont.querySelectorAll('.ses-row').forEach(r => r.addEventListener('click', () => abrirDetalle(r.dataset.id)));
+  }
+
+  async function cargarLista() {
+    const cont = document.getElementById('ses-lista');
+    cont.innerHTML = '<p class="text-muted">Cargando...</p>';
+    const opts = {};
+    if (['pendiente_revision','aprobada','intervencion_requerida'].includes(filtroActual)) {
+      opts.estado_qa = filtroActual;
+    } else if (filtroActual === 'mias') {
+      opts.mentor_id = yo?.id;
+    }
+    try {
+      listaCruda = await window.sesionesApi.listar(opts) || [];
+      renderLista();
+    } catch (e) {
+      cont.innerHTML = `<p style="color: var(--error);">Error: ${window.utils.escapeHtml(e.message)}</p>`;
+    }
+  }
+  await cargarLista();
+
+  // ===== NUEVA SESIÓN =====
+  function abrirModalNueva() {
+    const sel = document.getElementById('s-lead');
+    sel.innerHTML = '<option value="">Selecciona cliente...</option>' +
+      (leads || []).map(l => `<option value="${l.id}">${window.utils.escapeHtml(l.nombre || l.email)}${l.vehiculo_negocio ? ' · ' + window.utils.escapeHtml(l.vehiculo_negocio) : ''}</option>`).join('');
+    const ahora = new Date();
+    ahora.setMinutes(ahora.getMinutes() - ahora.getTimezoneOffset());
+    document.getElementById('s-fecha').value = ahora.toISOString().slice(0, 16);
+    document.getElementById('s-modalidad').value = 'zoom';
+    ['s-duracion','s-rapport','s-exitos','s-cuello','s-foco','s-sem-eng','s-sem-prog','s-sem-notas','s-nps','s-nps-com','s-proxima','s-resumen'].forEach(id => { document.getElementById(id).value = ''; });
+    document.getElementById('s-cum').value = 0;
+    document.getElementById('s-pen').value = 0;
+    const m = document.getElementById('modal-ses');
+    m.classList.remove('hidden');
+    requestAnimationFrame(() => m.classList.add('show'));
+  }
+  document.getElementById('btn-nueva-sesion').addEventListener('click', abrirModalNueva);
+  document.querySelectorAll('[data-close-ses]').forEach(b => b.addEventListener('click', () => {
+    const m = document.getElementById('modal-ses');
+    m.classList.remove('show'); setTimeout(() => m.classList.add('hidden'), 200);
+  }));
+
+  document.getElementById('btn-guardar-ses').addEventListener('click', async (e) => {
+    const lead_id = document.getElementById('s-lead').value;
+    const fecha = document.getElementById('s-fecha').value;
+    const foco = document.getElementById('s-foco').value.trim();
+    if (!lead_id) { window.utils.toast('Selecciona cliente', 'error'); return; }
+    if (!fecha) { window.utils.toast('Fecha requerida', 'error'); return; }
+    if (!foco) { window.utils.toast('Foco de acción requerido', 'error'); return; }
+    e.currentTarget.disabled = true;
+    try {
+      await window.sesionesApi.crear({
+        lead_id,
+        fecha: new Date(fecha).toISOString(),
+        modalidad: document.getElementById('s-modalidad').value,
+        duracion_min: Number(document.getElementById('s-duracion').value) || null,
+        rapport_notas: document.getElementById('s-rapport').value.trim() || null,
+        exitos_logros: document.getElementById('s-exitos').value.trim() || null,
+        cuello_botella: document.getElementById('s-cuello').value.trim() || null,
+        foco_accion: foco,
+        tareas_cumplidas: Number(document.getElementById('s-cum').value) || 0,
+        tareas_pendientes: Number(document.getElementById('s-pen').value) || 0,
+        semaforo_engagement_manual: document.getElementById('s-sem-eng').value || null,
+        semaforo_progreso_manual: document.getElementById('s-sem-prog').value || null,
+        notas_semaforos: document.getElementById('s-sem-notas').value.trim() || null,
+        nps_score_percibido: document.getElementById('s-nps').value ? Number(document.getElementById('s-nps').value) : null,
+        nps_comentario: document.getElementById('s-nps-com').value.trim() || null,
+        proxima_sesion_at: document.getElementById('s-proxima').value ? new Date(document.getElementById('s-proxima').value).toISOString() : null,
+        resumen_visible_cliente: document.getElementById('s-resumen').value.trim() || null,
+      });
+      window.utils.toast('Sesión registrada · pendiente QC', 'success');
+      document.getElementById('modal-ses').classList.remove('show');
+      setTimeout(() => document.getElementById('modal-ses').classList.add('hidden'), 200);
+      await cargarKpis();
+      await cargarLista();
+    } catch (err) { window.utils.toast('Error: ' + err.message, 'error'); }
+    finally { e.currentTarget.disabled = false; }
+  });
+
+  // ===== DETALLE + QC =====
+  let sesionActual = null;
+
+  async function abrirDetalle(id) {
+    try {
+      sesionActual = await window.sesionesApi.obtener(id);
+      if (!sesionActual) return;
+      const s = sesionActual;
+      const lead = s.lead || {};
+
+      document.getElementById('modal-det-titulo').textContent = `#${s.numero_sesion} · ${lead.nombre || lead.email}`;
+      const semEng = s.semaforo_engagement_manual || '-';
+      const semProg = s.semaforo_progreso_manual || '-';
+
+      let html = `
+        <div class="sec-form">
+          <div class="sec-form-title">Resumen</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: var(--space-3);">
+            <div><div style="font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); text-transform: uppercase;">Fecha</div><div style="font-weight: 600; font-size: var(--text-sm);">${window.sesionesApi.formatFecha(s.fecha)}</div></div>
+            <div><div style="font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); text-transform: uppercase;">Modalidad</div><div style="font-weight: 600; font-size: var(--text-sm);">${s.modalidad} · ${s.duracion_min || '-'}m</div></div>
+            <div><div style="font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); text-transform: uppercase;">Estado QC</div><div>${window.sesionesApi.badgeQA(s.estado_qa)}</div></div>
+            <div><div style="font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); text-transform: uppercase;">Mentor</div><div style="font-weight: 600; font-size: var(--text-sm);">${window.utils.escapeHtml(s.mentor?.nombre || s.mentor?.email || '-')}</div></div>
+          </div>
+        </div>
+        <div class="sec-form">
+          <div class="sec-form-title">Lectura emocional</div>
+          <p style="font-size: var(--text-sm); line-height: 1.6;"><strong>Rapport:</strong> ${window.utils.escapeHtml(s.rapport_notas || '(sin notas)')}</p>
+          <p style="font-size: var(--text-sm); line-height: 1.6; margin-top: var(--space-3);"><strong>Éxitos:</strong> ${window.utils.escapeHtml(s.exitos_logros || '(sin notas)')}</p>
+        </div>
+        <div class="sec-form">
+          <div class="sec-form-title">Diagnóstico</div>
+          <p style="font-size: var(--text-sm); line-height: 1.6;"><strong>Cuello de botella:</strong> ${window.utils.escapeHtml(s.cuello_botella || '(sin notas)')}</p>
+          <p style="font-size: var(--text-sm); line-height: 1.6; margin-top: var(--space-3);"><strong>🎯 Foco semana:</strong> ${window.utils.escapeHtml(s.foco_accion || '(sin notas)')}</p>
+          <p style="font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-2);">Tareas previas: <strong>${s.tareas_cumplidas}</strong> cumplidas · <strong>${s.tareas_pendientes}</strong> pendientes</p>
+        </div>
+        <div class="sec-form">
+          <div class="sec-form-title">Semáforos del mentor</div>
+          <p style="font-size: var(--text-sm); line-height: 1.6;">Engagement: <strong>${semEng}</strong> · Progreso: <strong>${semProg}</strong></p>
+          ${s.notas_semaforos ? `<p style="font-size: var(--text-xs); color: var(--text-muted); margin-top: 4px;">${window.utils.escapeHtml(s.notas_semaforos)}</p>` : ''}
+        </div>
+        ${s.nps_score_percibido !== null ? `
+        <div class="sec-form">
+          <div class="sec-form-title">NPS percibido</div>
+          <p style="font-size: var(--text-sm);"><strong>${s.nps_score_percibido}/10</strong> ${s.nps_comentario ? '· ' + window.utils.escapeHtml(s.nps_comentario) : ''}</p>
+        </div>` : ''}
+        ${s.proxima_sesion_at ? `
+        <div class="sec-form">
+          <div class="sec-form-title">Próxima sesión</div>
+          <p style="font-size: var(--text-sm);">${window.sesionesApi.formatFecha(s.proxima_sesion_at)}</p>
+        </div>` : ''}
+        ${s.resumen_visible_cliente ? `
+        <div class="sec-form">
+          <div class="sec-form-title">Resumen visible al cliente</div>
+          <p style="font-size: var(--text-sm); line-height: 1.6; padding: var(--space-3); background: var(--surface-2); border-radius: var(--radius-sm);">${window.utils.escapeHtml(s.resumen_visible_cliente)}</p>
+        </div>` : ''}
+        ${s.qc_notas ? `
+        <div class="sec-form">
+          <div class="sec-form-title">Notas QC</div>
+          <p style="font-size: var(--text-sm); padding: var(--space-3); background: ${s.qc_intervencion_requerida ? '#FEE2E2' : 'var(--surface-2)'}; border-radius: var(--radius-sm); line-height: 1.6;">${window.utils.escapeHtml(s.qc_notas)}</p>
+          ${s.supervisor ? `<p style="font-size: var(--text-xs); color: var(--text-muted); margin-top: 4px;">Por ${s.supervisor.nombre || s.supervisor.email} · ${window.sesionesApi.formatFecha(s.revisado_at)}</p>` : ''}
+        </div>` : ''}
+        <div class="sec-form">
+          <div class="sec-form-title">Acción QC</div>
+          <div class="field">
+            <label class="field-label">Notas para aprobar / rechazar</label>
+            <textarea class="field-input field-textarea" id="qc-notas-input" placeholder="Obligatorio si rechazas. Opcional si apruebas.">${window.utils.escapeHtml(s.qc_notas || '')}</textarea>
+          </div>
+        </div>
+      `;
+      document.getElementById('modal-det-body').innerHTML = html;
+
+      const esAprobada = s.estado_qa === 'aprobada';
+      document.getElementById('btn-aprobar-ses').style.display = esAprobada ? 'none' : 'inline-flex';
+      document.getElementById('btn-intervencion-ses').style.display = esAprobada ? 'none' : 'inline-flex';
+      document.getElementById('btn-reabrir-ses').style.display = esAprobada ? 'inline-flex' : 'none';
+
+      const m = document.getElementById('modal-det');
+      m.classList.remove('hidden');
+      requestAnimationFrame(() => m.classList.add('show'));
+    } catch (e) {
+      window.utils.toast('Error: ' + e.message, 'error');
+    }
+  }
+
+  document.querySelectorAll('[data-close-det]').forEach(b => b.addEventListener('click', () => {
+    const m = document.getElementById('modal-det');
+    m.classList.remove('show'); setTimeout(() => m.classList.add('hidden'), 200);
+    sesionActual = null;
+  }));
+
+  document.getElementById('btn-aprobar-ses').addEventListener('click', async (e) => {
+    if (!sesionActual) return;
+    const notas = document.getElementById('qc-notas-input').value.trim() || null;
+    e.currentTarget.disabled = true;
+    try {
+      await window.sesionesApi.aprobar(sesionActual.id, notas);
+      window.utils.toast('Sesión aprobada · contador del cliente actualizado', 'success');
+      document.getElementById('modal-det').classList.remove('show');
+      setTimeout(() => document.getElementById('modal-det').classList.add('hidden'), 200);
+      await cargarKpis(); await cargarLista();
+    } catch (err) { window.utils.toast('Error: ' + err.message, 'error'); }
+    finally { e.currentTarget.disabled = false; }
+  });
+
+  document.getElementById('btn-intervencion-ses').addEventListener('click', async (e) => {
+    if (!sesionActual) return;
+    const notas = document.getElementById('qc-notas-input').value.trim();
+    if (!notas) { window.utils.toast('Escribe el motivo en notas', 'error'); return; }
+    e.currentTarget.disabled = true;
+    try {
+      await window.sesionesApi.marcarIntervencion(sesionActual.id, notas);
+      window.utils.toast('Marcada para intervención', 'warning');
+      document.getElementById('modal-det').classList.remove('show');
+      setTimeout(() => document.getElementById('modal-det').classList.add('hidden'), 200);
+      await cargarKpis(); await cargarLista();
+    } catch (err) { window.utils.toast('Error: ' + err.message, 'error'); }
+    finally { e.currentTarget.disabled = false; }
+  });
+
+  document.getElementById('btn-reabrir-ses').addEventListener('click', async (e) => {
+    if (!sesionActual) return;
+    if (!confirm('¿Reabrir esta sesión? Volverá a pendiente_revision y se restará del contador del cliente.')) return;
+    e.currentTarget.disabled = true;
+    try {
+      await window.sesionesApi.reabrir(sesionActual.id);
+      window.utils.toast('Reabierta', 'info');
+      document.getElementById('modal-det').classList.remove('show');
+      setTimeout(() => document.getElementById('modal-det').classList.add('hidden'), 200);
+      await cargarKpis(); await cargarLista();
+    } catch (err) { window.utils.toast('Error: ' + err.message, 'error'); }
+    finally { e.currentTarget.disabled = false; }
+  });
+
+  // ELIMINAR sesión (solo admin). Borra completo de sesiones_1a1.
+  document.getElementById('btn-eliminar-ses').addEventListener('click', async (e) => {
+    if (!sesionActual) return;
+    const ok = window.confirm(
+      `¿Eliminar esta sesión?\n\n` +
+      `Se borrará el registro completo de sesiones_1a1, incluyendo:\n` +
+      `  · Notas del closer/coach\n` +
+      `  · Estado QC y revisión\n` +
+      `  · Vínculo con el cliente\n\n` +
+      `NO se puede deshacer.`
+    );
+    if (!ok) return;
+    e.currentTarget.disabled = true;
+    try {
+      await window.sesionesApi.eliminar(sesionActual.id);
+      window.utils.toast('Sesión eliminada', 'success');
+      document.getElementById('modal-det').classList.remove('show');
+      setTimeout(() => document.getElementById('modal-det').classList.add('hidden'), 200);
+      sesionActual = null;
+      await cargarKpis(); await cargarLista();
+    } catch (err) { window.utils.toast('Error: ' + err.message, 'error'); }
+    finally { e.currentTarget.disabled = false; }
+  });
+
+  // Si rol lector, ocultar Eliminar.
+  try {
+    if (yo?.rol === 'lector') {
+      document.getElementById('btn-eliminar-ses').style.display = 'none';
+    }
+  } catch (_) {}
+
+  document.getElementById('main').style.opacity = '1';
+})();
+</script>
+
+</body>
+</html>

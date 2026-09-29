@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bienvenido · Re-Génesis</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600&family=Geist:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <script src="/regenesis/assets/scripts/turbo.min.js?v=20260647"></script>
+  <link rel="stylesheet" href="/regenesis/assets/styles/tokens.css?v=20260647">
+  <link rel="stylesheet" href="/regenesis/assets/styles/base.css?v=20260647">
+  <link rel="stylesheet" href="/regenesis/assets/styles/components.css?v=20260647">
+
+  <style>
+    body {
+      background: var(--bg);
+      min-height: 100vh;
+    }
+
+    .bienvenida-shell {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: var(--space-12) var(--space-6) var(--space-16);
+    }
+
+    .bv-logo {
+      display: flex;
+      align-items: center;
+      font-weight: 700;
+      font-size: 18px;
+      letter-spacing: -0.02em;
+      margin-bottom: var(--space-12);
+    }
+
+    .bv-logo-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      margin: 0 4px;
+      display: inline-block;
+    }
+
+    .bv-eyebrow {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      color: var(--accent-dark);
+      background: rgba(212, 175, 55, 0.12);
+      padding: 6px 12px;
+      border-radius: var(--radius-full);
+      margin-bottom: var(--space-5);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .bv-titulo {
+      font-size: 40px;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      line-height: 1.08;
+      margin-bottom: var(--space-4);
+    }
+
+    .bv-titulo-mark {
+      background: var(--accent);
+      padding: 0 10px;
+      border-radius: 6px;
+      color: var(--text);
+    }
+
+    .bv-sub {
+      font-size: 17px;
+      color: var(--text-muted);
+      line-height: 1.55;
+      margin-bottom: var(--space-8);
+      max-width: 540px;
+    }
+
+    /* ---------- Video de bienvenida ---------- */
+    .bv-video-card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      padding: var(--space-5);
+      box-shadow: var(--shadow-card);
+      margin-bottom: var(--space-10);
+    }
+
+    .bv-video-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      color: var(--accent-dark);
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: var(--space-3);
+    }
+
+    .bv-video-frame {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #000;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+
+    .bv-video-frame video {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+
+    /* ---------- Pasos ---------- */
+    .bv-pasos {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+      margin-bottom: var(--space-10);
+    }
+
+    .bv-paso {
+      display: grid;
+      grid-template-columns: 48px 1fr auto;
+      gap: var(--space-5);
+      background: var(--surface);
+      padding: var(--space-6);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      align-items: center;
+      transition: opacity var(--transition-base), transform var(--transition-base);
+    }
+
+    .bv-paso-numero {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 600;
+      background: var(--surface-3);
+      color: var(--text-muted);
+    }
+
+    .bv-paso-completo .bv-paso-numero {
+      background: var(--text);
+      color: var(--surface);
+    }
+
+    .bv-paso-activo .bv-paso-numero {
+      background: var(--accent);
+      color: var(--text);
+    }
+
+    .bv-paso-bloqueado {
+      opacity: 0.5;
+    }
+
+    .bv-paso-titulo {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      margin-bottom: 2px;
+    }
+
+    .bv-paso-meta {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .bv-paso-cta {
+      background: var(--text);
+      color: var(--surface);
+      font-size: 14px;
+      font-weight: 500;
+      padding: 10px 18px;
+      border-radius: var(--radius-full);
+      border: none;
+      cursor: pointer;
+      transition: opacity var(--transition-base);
+      white-space: nowrap;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .bv-paso-cta:hover { opacity: 0.85; }
+
+    .bv-paso-cta-final {
+      background: var(--accent);
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .bv-paso-cta-final:hover {
+      background: var(--accent-bright);
+      opacity: 1;
+    }
+
+    .bv-paso-check {
+      font-size: 22px;
+      color: var(--success);
+      line-height: 1;
+    }
+
+    .bv-paso-lock {
+      font-size: 18px;
+      color: var(--text-faint);
+      line-height: 1;
+    }
+
+    /* ---------- Soporte ---------- */
+    .bv-soporte {
+      text-align: center;
+      padding: var(--space-6) 0;
+      border-top: 1px solid var(--border-soft);
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .bv-soporte a {
+      color: var(--text);
+      font-weight: 500;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1px;
+    }
+
+    /* ---------- Estados de carga / error ---------- */
+    .bv-loading,
+    .bv-error {
+      text-align: center;
+      padding: var(--space-16) var(--space-6);
+    }
+
+    .bv-error-titulo {
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: var(--space-3);
+    }
+
+    .bv-error-detalle {
+      font-size: 14px;
+      color: var(--text-muted);
+      max-width: 480px;
+      margin: 0 auto var(--space-6);
+      line-height: 1.6;
+    }
+
+    /* ---------- Confetti / pulso al completar ---------- */
+    @keyframes pulse-ring {
+      0% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.5); }
+      100% { box-shadow: 0 0 0 16px rgba(212, 175, 55, 0); }
+    }
+
+    .bv-paso-final-pulse .bv-paso-numero {
+      animation: pulse-ring 1.5s ease-out infinite;
+    }
+
+    @media (max-width: 640px) {
+      .bv-titulo { font-size: 30px; }
+      .bv-paso { grid-template-columns: 40px 1fr; }
+      .bv-paso-cta,
+      .bv-paso-check,
+      .bv-paso-lock {
+        grid-column: 1 / -1;
+        justify-self: stretch;
+        text-align: center;
+        margin-top: var(--space-2);
+      }
+      .bv-paso-cta { width: 100%; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bienvenida-shell">
+  <div class="bv-logo">
+    Re<span class="bv-logo-dot"></span>Génesis
+  </div>
+
+  <div id="bv-content">
+    <div class="bv-loading">
+      <div class="spinner"></div>
+      <div class="full-loader-text" style="margin-top: var(--space-3);">Cargando tu activación</div>
+    </div>
+  </div>
+
+  <!-- El video se monta UNA sola vez aquí abajo. Está fuera de #bv-content
+       a propósito: el polling cada 4s re-renderiza #bv-content para detectar
+       firmas, pero NO toca este slot, así el <video> no se reinicia. -->
+  <div id="bv-video-slot"></div>
+
+  <!-- Pasos y soporte van debajo del video. También se re-renderizan en cada
+       poll porque ahí viven los CTAs que cambian de estado. -->
+  <div id="bv-pasos-slot"></div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://eqyaddcidkywmedwscpu.supabase.co';
+const ESTADO_FN = SUPABASE_URL + '/functions/v1/bienvenida-estado';
+const POLL_MS = 4000;
+
+const params = new URLSearchParams(window.location.search);
+// Si la URL no trae gid, intenta recuperarlo de localStorage (por si el
+// cliente cerró la pestaña y volvió manualmente sin los parámetros).
+// Detecta si un merge tag de GHL llegó sin reemplazar (ej. literal "{{contact.id}}").
+// Pasa cuando el redirect post-pago se configura en un campo que no procesa
+// merge tags (Order Form Thank You URL, Stripe Success URL, etc.).
+function esMergeTagSinReemplazar(v) {
+  if (!v) return false;
+  return /^\{\{.*\}\}$/.test(v.trim()) || v.includes('{{') || v.includes('}}');
+}
+
+// Aceptamos varios nombres de query param porque distintos puntos de entrada
+// de GHL usan convenciones distintas: gid (nuestra propia), contact_id (Thank
+// You URL automática de algunos Order Forms), contactId (algunos webhooks).
+function getGid() {
+  const candidatos = ['gid', 'contact_id', 'contactId', 'contact'];
+  for (const k of candidatos) {
+    const v = params.get(k);
+    if (v && !esMergeTagSinReemplazar(v)) return v;
+  }
+  return localStorage.getItem('regenesis_bv_gid');
+}
+
+let gid = getGid();
+let emailParam = params.get('email') || localStorage.getItem('regenesis_bv_email');
+if (esMergeTagSinReemplazar(emailParam)) emailParam = null;
+
+// Si vino un merge tag sin reemplazar, mostramos error específico (en vez de
+// "cliente no encontrado", que confunde a Frank/Alex en debug).
+const gidCrudo = params.get('gid') || params.get('contact_id') || params.get('contactId');
+window._bvMergeTagSinReemplazar = esMergeTagSinReemplazar(gidCrudo);
+
+// Si vino por URL, lo persistimos para futuras visitas sin parámetros.
+if (gid && !esMergeTagSinReemplazar(gid)) localStorage.setItem('regenesis_bv_gid', gid);
+if (emailParam) localStorage.setItem('regenesis_bv_email', emailParam);
+
+const content = document.getElementById('bv-content');
+const videoSlot = document.getElementById('bv-video-slot');
+const pasosSlot = document.getElementById('bv-pasos-slot');
+
+let pollHandle = null;
+let ultimoPaso = null;
+let videoMontado = false;
+
+function escapeHtml(s) {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast visible' + (type ? ' ' + type : '');
+  setTimeout(() => t.classList.remove('visible'), 3000);
+}
+
+async function fetchEstado() {
+  const url = new URL(ESTADO_FN);
+  if (gid) url.searchParams.set('gid', gid);
+  else if (emailParam) url.searchParams.set('email', emailParam);
+  else throw new Error('Falta el identificador (?gid=... en el URL).');
+
+  const res = await fetch(url.toString());
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Error consultando tu estado');
+  return json;
+}
+
+function pintarEstado(data) {
+  const nombre = data.nombre ? data.nombre.split(' ')[0] : 'Bienvenido';
+  const servicio = data.contratos.servicio_firmado;
+  const waiver   = data.contratos.waiver_firmado;
+  const media    = data.contratos.media_firmado;
+  // todos_firmados (nuevo) o ambos_firmados (legacy) — ambos significan
+  // "los 3 obligatorios firmados".
+  const todos = data.todos_firmados ?? data.ambos_firmados;
+
+  // Pago pendiente (caso pago en efectivo): el lead existe pero todavía no
+  // tiene fecha_pago registrada. No mostramos los contratos hasta que Frank
+  // confirme el pago (workflow Invoice Paid → webhook-ghl → estado pagado).
+  if (!data.fecha_pago) {
+    pintarPagoPendiente(nombre, data.estado);
+    return;
+  }
+
+  // Animación al detectar que se completó un paso
+  if (ultimoPaso && ultimoPaso !== data.paso_actual) {
+    showToast('Firma registrada ✓', 'success');
+  }
+  ultimoPaso = data.paso_actual;
+
+  let titulo, sub, eyebrow;
+  if (todos) {
+    eyebrow = 'TODO LISTO';
+    titulo = '<span class="bv-titulo-mark">' + escapeHtml(nombre) + '</span>, tu activación está completa.';
+    sub = 'Pago confirmado. Los 3 acuerdos firmados. Solo te falta entrar a tu plataforma para empezar el día 1.';
+  } else {
+    eyebrow = 'TE DAMOS LA BIENVENIDA';
+    titulo = escapeHtml(nombre) + ', unos pasos<br>antes de empezar.';
+    sub = 'Tu pago está confirmado. Para activar tu programa necesitamos que firmes los 3 acuerdos. Toma unos minutos.';
+  }
+
+  // Helper: estado lógico de cada paso (completo / activo / bloqueado)
+  // Solo el primer pendiente queda "activo"; los demás bloqueados hasta su turno.
+  function estadoDeContrato(yaFirmado, prerequisitoOk) {
+    if (yaFirmado) return 'completo';
+    if (prerequisitoOk) return 'activo';
+    return 'bloqueado';
+  }
+
+  const pasos = [
+    {
+      n: 1,
+      titulo: 'Pago confirmado',
+      meta: data.fecha_pago
+        ? 'Recibido el ' + new Date(data.fecha_pago).toLocaleDateString('es-CO', { day: 'numeric', month: 'long' })
+        : 'Confirmado',
+      estado: 'completo',
+      icono: '✓',
+    },
+    {
+      n: 2,
+      titulo: 'Firma el contrato de servicio',
+      meta: 'Define el alcance de tu programa de 70 días',
+      estado: estadoDeContrato(servicio, true),
+      icono: servicio ? '✓' : null,
+      ctaTexto: servicio ? null : 'Firmar ahora →',
+      ctaHandler: 'iniciarFirmaServicio',
+    },
+    {
+      n: 3,
+      titulo: 'Firma el Waiver',
+      meta: servicio
+        ? 'Acuerdo de exención de responsabilidad y asunción de riesgos'
+        : 'Disponible cuando firmes el contrato de servicio',
+      estado: estadoDeContrato(waiver, servicio),
+      icono: waiver ? '✓' : (!servicio ? '🔒' : null),
+      ctaTexto: waiver || !servicio ? null : 'Firmar ahora →',
+      ctaHandler: 'iniciarFirmaWaiver',
+    },
+    {
+      n: 4,
+      titulo: 'Firma el Media Release',
+      meta: waiver
+        ? 'Permiso de uso de imagen para documentar la experiencia'
+        : 'Disponible cuando firmes el Waiver',
+      estado: estadoDeContrato(media, waiver),
+      icono: media ? '✓' : (!waiver ? '🔒' : null),
+      ctaTexto: media || !waiver ? null : 'Firmar ahora →',
+      ctaHandler: 'iniciarFirmaMedia',
+    },
+    {
+      n: 5,
+      titulo: 'Entrar a Re-Génesis',
+      meta: todos
+        ? 'Define tu contraseña y entra a tu plataforma'
+        : 'Disponible cuando firmes los 3 acuerdos',
+      estado: todos ? 'activo final' : 'bloqueado',
+      icono: todos ? null : '🔒',
+      ctaTexto: todos ? 'Definir contraseña y entrar →' : null,
+      ctaHandler: 'entrarApp',
+      ctaFinal: true,
+    },
+  ];
+
+  // 1. Header (eyebrow + título + sub) — se re-pinta en cada poll porque
+  //    el copy cambia entre estados (bienvenida vs todo listo).
+  content.innerHTML = '\n' +
+    '<div class="bv-eyebrow">' + eyebrow + '</div>\n' +
+    '<h1 class="bv-titulo">' + titulo + '</h1>\n' +
+    '<p class="bv-sub">' + escapeHtml(sub) + '</p>\n';
+
+  // 2. Video — se monta UNA sola vez. En polls subsecuentes no lo tocamos
+  //    para que el cliente pueda verlo sin que se reinicie cada 4 segundos.
+  if (!videoMontado) {
+    videoSlot.innerHTML =
+      '<div class="bv-video-card">\n' +
+      '  <div class="bv-video-eyebrow">Mensaje de Frank</div>\n' +
+      '  <div class="bv-video-frame">\n' +
+      '    <video controls preload="metadata" playsinline ' +
+      'src="https://assets.cdn.filesafe.space/BAnlOGbwz5e0mw95HroC/media/69f91ea4ecdc5eb6998a20c8.mp4">\n' +
+      '      Tu navegador no soporta video HTML5. Actualízalo para ver el mensaje de Frank.\n' +
+      '    </video>\n' +
+      '  </div>\n' +
+      '</div>\n';
+    videoMontado = true;
+  }
+
+  // 3. Pasos + soporte — sí se re-pintan en cada poll porque los CTAs y
+  //    estados de cada paso dependen de las firmas registradas.
+  pasosSlot.innerHTML =
+    '<div class="bv-pasos">\n' +
+    pasos.map(pintarPaso).join('') +
+    '</div>\n' +
+    '<div class="bv-soporte">\n' +
+    '  ¿Algún problema? Escribe a <a href="mailto:frank@neurohackers.top">frank@neurohackers.top</a>\n' +
+    '</div>\n';
+
+  // Almacenamos la data para que los handlers puedan usarla
+  window._bvData = data;
+}
+
+function pintarPagoPendiente(nombre, estado) {
+  content.innerHTML = '\n' +
+    '<div class="bv-eyebrow" style="background: rgba(212, 175, 55, 0.18);">PAGO EN PROCESO</div>\n' +
+    '<h1 class="bv-titulo">' + escapeHtml(nombre) + ', estamos<br><span class="bv-titulo-mark">esperando tu pago.</span></h1>\n' +
+    '<p class="bv-sub">Frank te envió la factura por email y WhatsApp. En cuanto la pagues y él confirme la recepción, recibirás acceso a la plataforma y a los acuerdos para firmar.</p>\n';
+
+  // No mostramos video todavía para no abrumar — el cliente aún no ha pagado.
+  videoSlot.innerHTML = '';
+  videoMontado = false;
+
+  pasosSlot.innerHTML =
+    '<div class="bv-pasos">\n' +
+    '  <div class="bv-paso bv-paso-activo">\n' +
+    '    <div class="bv-paso-numero">01</div>\n' +
+    '    <div>\n' +
+    '      <div class="bv-paso-titulo">Revisa tu factura</div>\n' +
+    '      <div class="bv-paso-meta">Llegó a tu email y WhatsApp. Si no la ves, revisa spam o escríbele a Frank.</div>\n' +
+    '    </div>\n' +
+    '    <span class="bv-paso-check" style="color: var(--accent-dark);">⏳</span>\n' +
+    '  </div>\n' +
+    '  <div class="bv-paso bv-paso-bloqueado">\n' +
+    '    <div class="bv-paso-numero">02</div>\n' +
+    '    <div>\n' +
+    '      <div class="bv-paso-titulo">Coordina el pago en efectivo</div>\n' +
+    '      <div class="bv-paso-meta">Directamente con Frank por WhatsApp o email.</div>\n' +
+    '    </div>\n' +
+    '    <span class="bv-paso-lock">🔒</span>\n' +
+    '  </div>\n' +
+    '  <div class="bv-paso bv-paso-bloqueado">\n' +
+    '    <div class="bv-paso-numero">03</div>\n' +
+    '    <div>\n' +
+    '      <div class="bv-paso-titulo">Activamos tu cuenta</div>\n' +
+    '      <div class="bv-paso-meta">Cuando Frank confirme el pago, te llegará el acceso a los 3 acuerdos.</div>\n' +
+    '    </div>\n' +
+    '    <span class="bv-paso-lock">🔒</span>\n' +
+    '  </div>\n' +
+    '</div>\n' +
+    '<div class="bv-soporte">\n' +
+    '  Esta página se actualiza sola — déjala abierta o vuelve después de pagar.<br>\n' +
+    '  ¿Dudas? Escribe a <a href="mailto:frank@neurohackers.top">frank@neurohackers.top</a>\n' +
+    '</div>\n';
+}
+
+function pintarPaso(p) {
+  const clases = ['bv-paso'];
+  if (p.estado.includes('completo')) clases.push('bv-paso-completo');
+  if (p.estado.includes('activo')) clases.push('bv-paso-activo');
+  if (p.estado === 'bloqueado') clases.push('bv-paso-bloqueado');
+  if (p.estado.includes('final')) clases.push('bv-paso-final-pulse');
+
+  let derecha = '';
+  if (p.icono === '✓') {
+    derecha = '<span class="bv-paso-check">✓</span>';
+  } else if (p.icono === '🔒') {
+    derecha = '<span class="bv-paso-lock">🔒</span>';
+  } else if (p.ctaTexto) {
+    const claseExtra = p.ctaFinal ? ' bv-paso-cta-final' : '';
+    derecha = '<button type="button" class="bv-paso-cta' + claseExtra + '" onclick="' + p.ctaHandler + '()">' + p.ctaTexto + '</button>';
+  }
+
+  return '<div class="' + clases.join(' ') + '">\n' +
+    '  <div class="bv-paso-numero">' + String(p.n).padStart(2, '0') + '</div>\n' +
+    '  <div>\n' +
+    '    <div class="bv-paso-titulo">' + escapeHtml(p.titulo) + '</div>\n' +
+    '    <div class="bv-paso-meta">' + escapeHtml(p.meta) + '</div>\n' +
+    '  </div>\n' +
+    '  ' + derecha + '\n' +
+    '</div>';
+}
+
+// URLs de los contratos en GHL Documents (link.neurohackers.top).
+// Pre-llenamos email y nombre para que el cliente no tenga que escribirlos
+// otra vez. GHL hace match del firmante por email con el contact existente.
+const URL_SERVICIO = 'https://link.neurohackers.top/documents/doc-form/69f2bd1a51631f52b3a5951c';
+const URL_WAIVER   = 'https://link.neurohackers.top/documents/doc-form/69fb5c949e75ad690e4b5b6e';
+const URL_MEDIA    = 'https://link.neurohackers.top/documents/doc-form/69faaef2b202948fdae2ed45';
+
+function urlContrato(base) {
+  const data = window._bvData || {};
+  const params = new URLSearchParams({ locale: 'es_ES' });
+  if (data.email) params.set('email', data.email);
+  if (data.nombre) {
+    const partes = data.nombre.trim().split(/\s+/);
+    if (partes[0]) params.set('firstName', partes[0]);
+    if (partes.length > 1) params.set('lastName', partes.slice(1).join(' '));
+  }
+  return base + '?' + params.toString();
+}
+
+// Abre el contrato en pestaña nueva. La pestaña original con polling sigue
+// viva detectando la firma — cuando GHL dispara el webhook a Supabase, en
+// 4 segundos máximo la UI marca el paso ✓ sin que el cliente haga nada.
+function abrirContratoEnNuevaPestana(url) {
+  const ventana = window.open(url, '_blank', 'noopener,noreferrer');
+  // Si el navegador bloquea el popup (raro pero posible), cae al mismo tab.
+  if (!ventana || ventana.closed) {
+    window.location.href = url;
+  } else {
+    showToast('Contrato abierto en una pestaña nueva. Vuelve aquí cuando termines.', 'success');
+  }
+}
+
+window.iniciarFirmaServicio = function () {
+  abrirContratoEnNuevaPestana(urlContrato(URL_SERVICIO));
+};
+
+window.iniciarFirmaWaiver = function () {
+  abrirContratoEnNuevaPestana(urlContrato(URL_WAIVER));
+};
+
+window.iniciarFirmaMedia = function () {
+  abrirContratoEnNuevaPestana(urlContrato(URL_MEDIA));
+};
+
+window.entrarApp = function () {
+  const link = window._bvData?.magic_link;
+  if (link) {
+    window.location.href = link;
+  } else {
+    // Fallback: lo mandamos al login. El cliente recibió el invite email
+    // al pagar, ya tiene cómo entrar.
+    window.location.href = '/regenesis/index.html';
+  }
+};
+
+// Vista cuando no hay identificación del cliente. Persiste el progreso de
+// firmas en localStorage usando el query param ?firmado=X que GHL agrega
+// al redirect post-firma de cada contrato. Esto permite mostrar un stepper
+// secuencial (1 → 2 → 3) sin tener que identificar al cliente.
+//
+// Convención del query param:
+//   ?firmado=servicio | waiver | media
+//
+// Al detectar uno, guarda en localStorage y limpia la URL (history API)
+// para que un refresh accidental no re-aplique el mismo flag.
+
+const FIRMA_KEYS = {
+  servicio: 'regenesis_bv_firmado_servicio',
+  waiver:   'regenesis_bv_firmado_waiver',
+  media:    'regenesis_bv_firmado_media',
+};
+
+function leerFirmas() {
+  return {
+    servicio: localStorage.getItem(FIRMA_KEYS.servicio) === '1',
+    waiver:   localStorage.getItem(FIRMA_KEYS.waiver)   === '1',
+    media:    localStorage.getItem(FIRMA_KEYS.media)    === '1',
+  };
+}
+
+function aplicarFirmaDeUrl() {
+  const f = (params.get('firmado') || '').toLowerCase().trim();
+  if (!f || !FIRMA_KEYS[f]) return false;
+  localStorage.setItem(FIRMA_KEYS[f], '1');
+  // Limpiar query param para evitar reaplicar en refresh
+  const limpia = window.location.pathname;
+  window.history.replaceState({}, '', limpia);
+  showToast('Firma registrada ✓', 'success');
+  return true;
+}
+
+function pintarSinIdentificacion() {
+  if (pollHandle) { clearInterval(pollHandle); pollHandle = null; }
+
+  // Si la URL trae ?firmado=X, lo guardamos en localStorage
+  aplicarFirmaDeUrl();
+  const firmas = leerFirmas();
+  const todos = firmas.servicio && firmas.waiver && firmas.media;
+  const cuantas = (firmas.servicio?1:0) + (firmas.waiver?1:0) + (firmas.media?1:0);
+
+  let titulo, sub, eyebrow;
+  if (todos) {
+    eyebrow = 'TODO LISTO';
+    titulo = 'Los 3 acuerdos<br><span class="bv-titulo-mark">están firmados.</span>';
+    sub = 'Tu programa está activado. Entra a la plataforma para empezar.';
+  } else if (cuantas === 0) {
+    eyebrow = 'TE DAMOS LA BIENVENIDA';
+    titulo = 'Estás a 3 firmas<br>de empezar.';
+    sub = 'Tu pago está confirmado. Para activar tu programa, firma los 3 acuerdos. Toma unos minutos.';
+  } else {
+    eyebrow = 'VAS BIEN';
+    titulo = 'Te falta ' + (3 - cuantas) + (3 - cuantas === 1 ? ' acuerdo' : ' acuerdos') + '<br>para empezar.';
+    sub = 'Sigue firmando para activar tu programa. Cada firma te lleva al siguiente paso automáticamente.';
+  }
+
+  content.innerHTML = '\n' +
+    '<div class="bv-eyebrow">' + eyebrow + '</div>\n' +
+    '<h1 class="bv-titulo">' + titulo + '</h1>\n' +
+    '<p class="bv-sub">' + escapeHtml(sub) + '</p>\n';
+
+  if (!videoMontado) {
+    videoSlot.innerHTML =
+      '<div class="bv-video-card">\n' +
+      '  <div class="bv-video-eyebrow">Mensaje de Frank</div>\n' +
+      '  <div class="bv-video-frame">\n' +
+      '    <video controls preload="metadata" playsinline ' +
+      'src="https://assets.cdn.filesafe.space/BAnlOGbwz5e0mw95HroC/media/69f91ea4ecdc5eb6998a20c8.mp4">\n' +
+      '      Tu navegador no soporta video HTML5.\n' +
+      '    </video>\n' +
+      '  </div>\n' +
+      '</div>\n';
+    videoMontado = true;
+  }
+
+  // Stepper secuencial: cada paso queda completo / activo / bloqueado según
+  // el orden de firma. El cliente firma 1 → 2 → 3, y cada redirect post-firma
+  // desbloquea el siguiente.
+  const pasos = [
+    { n: 1, key: 'servicio', titulo: 'Contrato de Servicio',
+      meta: 'Define el alcance de tu programa de 70 días',
+      handler: 'iniciarFirmaServicio' },
+    { n: 2, key: 'waiver', titulo: 'Waiver',
+      meta: 'Acuerdo de exención de responsabilidad y asunción de riesgos',
+      handler: 'iniciarFirmaWaiver' },
+    { n: 3, key: 'media', titulo: 'Media Release',
+      meta: 'Permiso de uso de imagen para documentar la experiencia',
+      handler: 'iniciarFirmaMedia' },
+  ];
+
+  // El siguiente paso activo es el primero no firmado.
+  let primerPendiente = null;
+  for (const p of pasos) {
+    if (!firmas[p.key]) { primerPendiente = p.n; break; }
+  }
+
+  let html = '<div class="bv-pasos">\n';
+  for (const p of pasos) {
+    const firmado = firmas[p.key];
+    const esActivo = !firmado && p.n === primerPendiente;
+    const bloqueado = !firmado && !esActivo;
+
+    const clases = ['bv-paso'];
+    if (firmado) clases.push('bv-paso-completo');
+    if (esActivo) clases.push('bv-paso-activo');
+    if (bloqueado) clases.push('bv-paso-bloqueado');
+
+    let derecha = '';
+    if (firmado) {
+      derecha = '<span class="bv-paso-check">✓</span>';
+    } else if (esActivo) {
+      derecha = '<button type="button" class="bv-paso-cta" onclick="' + p.handler + '()">Firmar ahora →</button>';
+    } else {
+      derecha = '<span class="bv-paso-lock">🔒</span>';
+    }
+
+    const meta = firmado
+      ? 'Firmado ✓'
+      : (bloqueado ? 'Disponible cuando firmes el paso anterior' : p.meta);
+
+    html += '<div class="' + clases.join(' ') + '">\n' +
+      '  <div class="bv-paso-numero">' + String(p.n).padStart(2, '0') + '</div>\n' +
+      '  <div>\n' +
+      '    <div class="bv-paso-titulo">' + escapeHtml(p.titulo) + '</div>\n' +
+      '    <div class="bv-paso-meta">' + escapeHtml(meta) + '</div>\n' +
+      '  </div>\n' +
+      '  ' + derecha + '\n' +
+      '</div>';
+  }
+  html += '</div>\n';
+
+  // Card final: acceso a la plataforma cuando los 3 están firmados.
+  // Como en modo estático no tenemos identificado al cliente, pedimos su email
+  // y generamos un magic link al vuelo (type=recovery → activa pantalla de
+  // set-password en /index.html). El cliente establece su contraseña y entra
+  // al dashboard sin necesidad de revisar emails.
+  if (todos) {
+    html += '<div class="bv-pasos" style="margin-top: var(--space-3);">\n' +
+      '  <div class="bv-paso bv-paso-activo bv-paso-final-pulse">\n' +
+      '    <div class="bv-paso-numero">04</div>\n' +
+      '    <div style="flex: 1;">\n' +
+      '      <div class="bv-paso-titulo">Entrar a Re-Génesis</div>\n' +
+      '      <div class="bv-paso-meta">Confirma el email del pago para activar tu cuenta</div>\n' +
+      '      <form id="form-acceso-final" style="display: flex; gap: var(--space-2); margin-top: var(--space-3); flex-wrap: wrap;">\n' +
+      '        <input type="email" id="email-acceso-final" required autocomplete="email" placeholder="tu@email.com" ' +
+      'style="flex: 1; min-width: 200px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-family: inherit;">\n' +
+      '        <button type="submit" class="bv-paso-cta bv-paso-cta-final" id="btn-acceso-final">Acceder →</button>\n' +
+      '      </form>\n' +
+      '    </div>\n' +
+      '  </div>\n' +
+      '</div>\n';
+  }
+
+  html += '<div class="bv-soporte" style="margin-top: var(--space-6);">\n';
+  if (!todos) {
+    html += '  Cuando firmes los 3 acuerdos, podrás entrar a la plataforma desde aquí.<br>\n';
+  }
+  html += '  ¿Algún problema? Escribe a <a href="mailto:frank@neurohackers.top">frank@neurohackers.top</a>\n' +
+    '</div>\n';
+
+  pasosSlot.innerHTML = html;
+
+  // Wire-up del form de acceso final (cuando los 3 firmados en modo estático)
+  const formAcceso = document.getElementById('form-acceso-final');
+  if (formAcceso && !formAcceso._wired) {
+    formAcceso._wired = true;
+    formAcceso.addEventListener('submit', accesoFinalConEmail);
+  }
+}
+
+async function accesoFinalConEmail(e) {
+  e.preventDefault();
+  const input = document.getElementById('email-acceso-final');
+  const btn = document.getElementById('btn-acceso-final');
+  const email = input.value.trim().toLowerCase();
+  if (!email || !email.includes('@')) {
+    showToast('Escribe un email válido', 'error');
+    return;
+  }
+  btn.disabled = true;
+  const textoOriginal = btn.textContent;
+  btn.textContent = 'Generando acceso…';
+
+  try {
+    const url = new URL(ESTADO_FN);
+    url.searchParams.set('email', email);
+    const res = await fetch(url.toString());
+    const json = await res.json();
+
+    if (!res.ok) {
+      throw new Error(json.error || 'No pudimos verificar tu email');
+    }
+
+    if (!json.todos_firmados) {
+      throw new Error('Aún te faltan firmas. Vuelve a revisar los pasos arriba.');
+    }
+
+    if (!json.magic_link) {
+      throw new Error('No pudimos generar tu acceso. Escribe a frank@neurohackers.top y resolvemos.');
+    }
+
+    showToast('Acceso listo, redirigiendo…', 'success');
+    window.location.href = json.magic_link;
+  } catch (err) {
+    console.error('[acceso-final] error:', err);
+    showToast(err.message || 'Algo falló al generar tu acceso', 'error');
+    btn.disabled = false;
+    btn.textContent = textoOriginal;
+  }
+}
+
+window.entrarPlataforma = function () {
+  // Solo se usa en el flujo legacy (modo dinámico con gid). En modo estático,
+  // accesoFinalConEmail() reemplaza esta lógica con el form de email.
+  window.location.href = '/regenesis/index.html';
+};
+
+// Botón opcional para resetear el progreso local (útil en debug o si el
+// cliente firma desde un dispositivo y quiere empezar de cero en otro).
+window.resetearFirmasLocales = function () {
+  Object.values(FIRMA_KEYS).forEach(k => localStorage.removeItem(k));
+  window.location.reload();
+};
+
+function mostrarError(msg, esRecargable) {
+  if (pollHandle) clearInterval(pollHandle);
+  // Limpiamos los slots de video y pasos para que el error no aparezca
+  // colgado encima de un video o de pasos antiguos.
+  videoSlot.innerHTML = '';
+  pasosSlot.innerHTML = '';
+  videoMontado = false;
+  content.innerHTML =
+    '<div class="bv-error">\n' +
+    '  <div class="bv-error-titulo">Algo no calzó</div>\n' +
+    '  <div class="bv-error-detalle">' + escapeHtml(msg) + '</div>\n' +
+    (esRecargable
+      ? '  <button class="btn-primary" onclick="window.location.reload()">Reintentar</button>'
+      : '  <p style="font-size:13px;color:var(--text-muted);">' +
+        '    Escribe a <a href="mailto:frank@neurohackers.top" style="color:var(--text);font-weight:500;">frank@neurohackers.top</a> y resolvemos.' +
+        '  </p>') + '\n' +
+    '</div>';
+}
+
+async function cargar() {
+  // Si el cliente llegó SIN identificación (sin ?gid= y sin email guardado),
+  // mostramos la página estática con los 3 contratos. No bloqueamos por falta
+  // de parámetros — cualquiera que llegue puede firmar.
+  if (!gid && !emailParam) {
+    pintarSinIdentificacion();
+    return;
+  }
+  try {
+    const data = await fetchEstado();
+    pintarEstado(data);
+    // Si no está completo, hacemos polling para detectar firmas en GHL.
+    const estaCompleto = (d) => d.todos_firmados ?? d.ambos_firmados;
+    if (!estaCompleto(data) && !pollHandle) {
+      pollHandle = setInterval(async () => {
+        try {
+          const fresh = await fetchEstado();
+          pintarEstado(fresh);
+          if (estaCompleto(fresh)) {
+            clearInterval(pollHandle);
+            pollHandle = null;
+          }
+        } catch (e) {
+          console.error('poll error:', e);
+        }
+      }, POLL_MS);
+    }
+  } catch (err) {
+    console.error('cargar error:', err);
+    const esNotFound = (err.message || '').includes('no encontrado');
+    if (esNotFound) {
+      mostrarError('Si acabas de pagar, dale 30 segundos y refresca esta página. Si llevas más de un minuto, escríbenos y revisamos.', true);
+    } else {
+      mostrarError(err.message || 'Error inesperado', true);
+    }
+  }
+}
+
+// Siempre llamamos a cargar(): si no hay gid ni email, cargar() detecta y
+// muestra el modo estático con los 3 botones (pintarSinIdentificacion).
+cargar();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mi ruta · Neurohackers</title>
+  <link rel="stylesheet" href="../shared/styles.css">
+  <style>
+    .ruta-timeline {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: var(--space-3);
+      margin: var(--space-6) 0;
+      padding: var(--space-6) 0;
+      border-top: 1px solid var(--border-soft);
+      border-bottom: 1px solid var(--border-soft);
+    }
+    .ruta-fase {
+      text-align: center;
+      position: relative;
+    }
+    .ruta-fase-num {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--surface-2);
+      border: 1.5px solid var(--border);
+      color: var(--text-muted);
+      display: grid; place-items: center;
+      font-weight: 600;
+      font-size: var(--text-sm);
+      margin: 0 auto var(--space-2);
+    }
+    .ruta-fase.done .ruta-fase-num {
+      background: linear-gradient(135deg, var(--accent-bright), var(--accent-dark));
+      color: #1D1D1F;
+      border-color: transparent;
+    }
+    .ruta-fase.actual .ruta-fase-num {
+      background: var(--surface);
+      border: 2px solid var(--accent);
+      color: var(--accent-deeper);
+      box-shadow: 0 0 0 4px var(--accent-glow);
+    }
+    .ruta-fase-titulo { font-size: var(--text-sm); font-weight: 600; max-width: 140px; margin: 0 auto; line-height: 1.3; }
+    .ruta-fase-meta { font-size: var(--text-2xs); color: var(--text-muted); margin-top: 4px; }
+  </style>
+</head>
+<body>
+
+<div data-nav data-active="hub" data-base="../"></div>
+
+<main class="container">
+
+  <div style="display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-xs); color: var(--text-muted); margin-bottom: var(--space-6);">
+    <a href="../hub.html">Hoy</a>
+    <span>·</span>
+    <span>Mi ruta</span>
+  </div>
+
+  <section style="margin-bottom: var(--space-6);">
+    <span class="eyebrow">TU RUTA · 6 MESES · 5 FASES</span>
+    <h1 class="greeting">Del punto A al punto B, en orden.</h1>
+    <p class="text-muted" style="font-size: var(--text-md); line-height: 1.6; margin-top: var(--space-3);">
+      Las fases son las mismas para todos los clientes. Las tácticas dentro de cada fase se personalizan a tu negocio. Avanzas cuando completas el hito.
+    </p>
+  </section>
+
+  <!-- TIMELINE -->
+  <div class="ruta-timeline">
+    <div class="ruta-fase done">
+      <div class="ruta-fase-num">✓</div>
+      <div class="ruta-fase-titulo">Valida tu oferta</div>
+      <div class="ruta-fase-meta">Sem. 1–3</div>
+    </div>
+    <div class="ruta-fase actual">
+      <div class="ruta-fase-num">2</div>
+      <div class="ruta-fase-titulo">Activa tu tráfico</div>
+      <div class="ruta-fase-meta">Sem. 4–7 · estás aquí</div>
+    </div>
+    <div class="ruta-fase">
+      <div class="ruta-fase-num">3</div>
+      <div class="ruta-fase-titulo">Domina el cierre</div>
+      <div class="ruta-fase-meta">Sem. 8–13</div>
+    </div>
+    <div class="ruta-fase">
+      <div class="ruta-fase-num">4</div>
+      <div class="ruta-fase-titulo">Sistematiza</div>
+      <div class="ruta-fase-meta">Sem. 14–19</div>
+    </div>
+    <div class="ruta-fase">
+      <div class="ruta-fase-num">5</div>
+      <div class="ruta-fase-titulo">Escala</div>
+      <div class="ruta-fase-meta">Sem. 20–26</div>
+    </div>
+  </div>
+
+  <!-- FASE ACTUAL DETALLE -->
+  <section style="margin-bottom: var(--space-10);">
+    <div class="section-h">
+      <span class="section-h-title">Estás en fase 02 · Activa tu tráfico</span>
+      <span class="section-h-meta">37% AVANCE · SEM. 2 DE 4</span>
+    </div>
+
+    <div class="card mb-4" style="padding: var(--space-5);">
+      <span class="eyebrow eyebrow-accent">META DE LA FASE</span>
+      <div style="font-size: var(--text-lg); font-weight: 600; margin: 4px 0 var(--space-3);">10 conversaciones nuevas por semana, sostenido 4 semanas</div>
+      <p class="text-muted" style="font-size: var(--text-sm); line-height: 1.6;">
+        Tu oferta ya está validada. Ahora necesitas un flujo CONSISTENTE de prospectos entrando a tu pipeline. Sin tráfico, no hay ventas. Sin ventas, no hay meta de 6 meses.
+      </p>
+    </div>
+
+    <h3 style="font-size: var(--text-md); font-weight: 600; margin: var(--space-6) 0 var(--space-3);">Tus 3 tácticas esta fase</h3>
+    <p class="text-muted mb-4" style="font-size: var(--text-sm);">
+      Personalizadas según tu Assessment: consultoría B2B · ICP founders $10K-$50K MRR · canal principal LinkedIn.
+    </p>
+
+    <div class="action">
+      <div class="action-num">1</div>
+      <div class="action-body">
+        <h3 class="action-title">Outbound LinkedIn con plantilla de Paola C</h3>
+        <p class="action-detail">10 mensajes nuevos al día. Lista de prospectos curada por la IA según tu ICP.</p>
+        <span class="action-meta"><span>ACTIVA</span><span class="action-meta-dot"></span><span>SEMANA 2 DE 4</span></span>
+      </div>
+      <div class="action-cta"><span class="badge badge-success">✓ EN MARCHA</span></div>
+    </div>
+
+    <div class="action">
+      <div class="action-num">2</div>
+      <div class="action-body">
+        <h3 class="action-title">Calendario editorial mensual con Ronald</h3>
+        <p class="action-detail">Workshop el miércoles a las 7 PM sale con 30 posts listos para tu LinkedIn.</p>
+        <span class="action-meta"><span>PENDIENTE</span><span class="action-meta-dot"></span><span>MIÉRCOLES 29</span></span>
+      </div>
+      <div class="action-cta"><button class="btn btn-secondary btn-sm">Inscribirme</button></div>
+    </div>
+
+    <div class="action">
+      <div class="action-num">3</div>
+      <div class="action-body">
+        <h3 class="action-title">Automatizar captura de leads (Alex)</h3>
+        <p class="action-detail">Conecta tu Instagram DM con el CRM. Leads calientes entran solos con etiquetas.</p>
+        <span class="action-meta"><span>PENDIENTE</span><span class="action-meta-dot"></span><span>~3H AHORRADAS/SEM</span></span>
+      </div>
+      <div class="action-cta"><button class="btn btn-ia">⚡ Activar</button></div>
+    </div>
+  </section>
+
+  <!-- LO QUE VIENE -->
+  <section style="margin-bottom: var(--space-8);">
+    <div class="section-h">
+      <span class="section-h-title">Lo que viene</span>
+      <span class="section-h-meta">FASES 03 · 04 · 05</span>
+    </div>
+    <div class="grid grid-3">
+      <div class="card">
+        <span class="eyebrow">FASE 03 · 6 SEM.</span>
+        <div style="font-weight: 600; margin: 4px 0 6px;">Domina el cierre</div>
+        <p class="text-muted" style="font-size: var(--text-sm); line-height: 1.55;">Con 40+ conversaciones acumuladas, trabajas con Paola C el guion. Meta: 1 venta cada 6 conv.</p>
+      </div>
+      <div class="card">
+        <span class="eyebrow">FASE 04 · 6 SEM.</span>
+        <div style="font-weight: 600; margin: 4px 0 6px;">Sistematiza</div>
+        <p class="text-muted" style="font-size: var(--text-sm); line-height: 1.55;">Procesos, delegación, GPTs entrenados. Tu negocio opera sin que estés 12 horas.</p>
+      </div>
+      <div class="card">
+        <span class="eyebrow">FASE 05 · 7 SEM.</span>
+        <div style="font-weight: 600; margin: 4px 0 6px;">Escala</div>
+        <p class="text-muted" style="font-size: var(--text-sm); line-height: 1.55;">Doblas ticket o volumen. Defines siguiente nivel: equipo, productización, salida del rol operativo.</p>
+      </div>
+    </div>
+  </section>
+
+  <a href="../hub.html" class="btn btn-secondary">Volver a Hoy</a>
+
+</main>
+
+<script src="../shared/nav.js"></script>
+<div data-preview-nav data-active="ruta" data-base="../"></div>
+
+</body>
+</html>

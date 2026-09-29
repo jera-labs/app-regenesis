@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Academia · Admin · Neurohackers</title>
+  <script src="/shared/turbo.min.js?v=20260797"></script>
+  <link rel="stylesheet" href="/shared/styles.css?v=20260797">
+  <style>
+    .tab-bar { display: flex; gap: var(--space-2); margin-bottom: var(--space-5); border-bottom: 1px solid var(--border-soft); }
+    .tab-btn { padding: var(--space-3) var(--space-4); cursor: pointer; border: none; background: none; font-weight: 600; color: var(--text-muted); border-bottom: 2px solid transparent; }
+    .tab-btn.active { color: var(--text); border-bottom-color: var(--accent-dark); }
+    .row { display: grid; grid-template-columns: 1fr auto; gap: var(--space-3); padding: var(--space-3) var(--space-4); background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-sm); margin-bottom: 6px; align-items: center; }
+    .row small { color: var(--text-muted); font-family: var(--font-mono); font-size: var(--text-xs); }
+    .card { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); padding: var(--space-5); margin-bottom: var(--space-4); }
+    .field { display: flex; flex-direction: column; gap: 4px; margin-bottom: var(--space-3); }
+    .field label { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); font-family: var(--font-mono); }
+    .field input, .field textarea, .field select { padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font: inherit; }
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: var(--space-3); margin: var(--space-4) 0; }
+    .stat { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); padding: var(--space-4); }
+    .stat-num { font-size: var(--text-xl); font-weight: 700; }
+    .stat-lbl { font-size: var(--text-xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-family: var(--font-mono); }
+    .heatmap { display: flex; align-items: flex-end; gap: 3px; height: 120px; margin-top: var(--space-3); }
+    .heat-bar { flex: 1; background: linear-gradient(180deg, var(--accent-bright), var(--accent-dark)); border-radius: 2px 2px 0 0; min-height: 2px; position: relative; }
+    .heat-axis { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+  </style>
+</head>
+<body class="with-sidebar admin-mode">
+
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<script>(function(){try{var c=localStorage.getItem("nav-cache-admin-v4");var w=document.getElementById("sidebar-wrapper");if(c&&w&&!w.firstChild)w.innerHTML=c;}catch(e){}})();</script>
+<div data-nav data-active="admin-academia" data-base="../"></div>
+
+<div class="admin-strip">
+  <div class="admin-strip-inner">
+    <span class="admin-strip-dot"></span>
+    <span>ACADEMIA · GESTIÓN Y ANALÍTICA</span>
+    <span style="opacity: 0.5;">·</span>
+    <a href="index.html">Volver a clientes</a>
+  </div>
+</div>
+
+<main class="container-wide" id="main" style="max-width: 1000px;">
+  <section style="margin-bottom: var(--space-5);">
+    <span class="eyebrow">ACADEMIA</span>
+    <h1 class="greeting-lg">Cursos y analítica.</h1>
+    <p class="lead">Crea cursos, sube los videos (descargados de Loom) y mide cómo los consumen tus clientes: % visto, completados y dónde abandonan.</p>
+  </section>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="cursos">Cursos</button>
+    <button class="tab-btn" data-tab="analitica">Analítica</button>
+  </div>
+
+  <div id="tab-cursos"></div>
+  <div id="tab-analitica" style="display:none;"></div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/shared/scripts/config.js?v=20260797"></script>
+<script src="/shared/scripts/supabase-client.js?v=20260797"></script>
+<script src="/shared/scripts/cache.js?v=20260797"></script>
+<script src="/shared/scripts/utils.js?v=20260797"></script>
+<script src="/shared/scripts/auth.js?v=20260797"></script>
+<script src="/shared/scripts/event-tracker.js?v=20260797"></script>
+<script src="/shared/scripts/admin-gate.js?v=20260797"></script>
+<script src="/shared/scripts/academia.js?v=20260797"></script>
+<script src="/shared/nav.js?v=20260797"></script>
+<script>
+(async function () {
+  const auth = await window.requireAdmin();
+  if (!auth) return;
+  const esc = (s) => (window.utils?.escapeHtml ? window.utils.escapeHtml(s) : String(s ?? ''));
+  const toast = (m, t) => window.utils?.toast ? window.utils.toast(m, t) : alert(m);
+  const A = window.academiaApi;
+
+  // ---- Tabs ----
+  document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(x => x.classList.toggle('active', x === b));
+    document.getElementById('tab-cursos').style.display = b.dataset.tab === 'cursos' ? '' : 'none';
+    document.getElementById('tab-analitica').style.display = b.dataset.tab === 'analitica' ? '' : 'none';
+    if (b.dataset.tab === 'analitica') renderAnalitica();
+  }));
+
+  // ============ TAB CURSOS ============
+  async function renderCursos() {
+    const root = document.getElementById('tab-cursos');
+    const cursos = await A.adminListarCursos();
+    root.innerHTML = `
+      <div class="card">
+        <h3 style="margin-top:0;">Nuevo curso</h3>
+        <div class="field"><label>Nombre</label><input id="nc-nombre" placeholder="Ej. Fundamentos de Marca"></div>
+        <div class="field"><label>Descripción</label><textarea id="nc-desc" rows="2"></textarea></div>
+        <div class="field"><label>Visible para</label>
+          <select id="nc-serv"><option value="">Todos los servicios</option><option value="regenesis">Re-Génesis</option><option value="growth">Growth</option><option value="terapia">Terapia</option></select></div>
+        <button class="btn btn-primary" id="nc-crear">Crear curso</button>
+      </div>
+      <div id="cursos-list"></div>`;
+    document.getElementById('nc-crear').addEventListener('click', async () => {
+      const nombre = document.getElementById('nc-nombre').value.trim();
+      if (!nombre) return toast('Pon un nombre', 'error');
+      try {
+        await A.crearCurso({ nombre, descripcion: document.getElementById('nc-desc').value, servicio_requerido: document.getElementById('nc-serv').value || null, orden: cursos.length * 10 + 10 });
+        toast('Curso creado', 'success'); renderCursos();
+      } catch (e) { toast(e.message || 'Error', 'error'); }
+    });
+
+    const list = document.getElementById('cursos-list');
+    list.innerHTML = cursos.length ? '' : '<p class="lead">Aún no hay cursos.</p>';
+    for (const c of cursos) {
+      const wrap = document.createElement('div'); wrap.className = 'card';
+      const lecciones = await A.listarLecciones(c.id);
+      wrap.innerHTML = `
+        <div class="row" style="border:none;background:none;padding:0;margin-bottom:var(--space-3);">
+          <div><strong>${esc(c.nombre)}</strong> <small>${c.visible_cliente ? 'visible' : 'oculto'} · ${esc(c.servicio_requerido || 'todos')}</small></div>
+        </div>
+        <div class="lec-rows">${lecciones.map(l => `<div class="row"><div>${esc(l.nombre)} <small>${l.video_path ? (Math.round((l.duracion_seg||0)/60)+' min') : 'sin video'}</small></div></div>`).join('') || '<p class="lead" style="font-size:var(--text-sm)">Sin lecciones aún.</p>'}</div>
+        <details style="margin-top:var(--space-3)"><summary style="cursor:pointer;color:var(--accent-dark);font-weight:600;">+ Nueva lección</summary>
+          <div class="field" style="margin-top:var(--space-3)"><label>Nombre</label><input class="nl-nombre" placeholder="Ej. Lección 1"></div>
+          <div class="field"><label>Descripción</label><textarea class="nl-desc" rows="2"></textarea></div>
+          <div class="field"><label>Video (MP4 descargado de Loom)</label><input type="file" class="nl-file" accept="video/mp4,video/*"></div>
+          <button class="btn btn-primary nl-crear">Subir lección</button>
+          <div class="nl-status" style="margin-top:8px;font-size:var(--text-sm);color:var(--text-muted)"></div>
+        </details>`;
+      wrap.querySelector('.nl-crear').addEventListener('click', async () => {
+        const nombre = wrap.querySelector('.nl-nombre').value.trim();
+        const file = wrap.querySelector('.nl-file').files[0];
+        const status = wrap.querySelector('.nl-status');
+        if (!nombre) return toast('Pon un nombre a la lección', 'error');
+        try {
+          status.textContent = 'Leyendo duración…';
+          const dur = file ? await leerDuracion(file) : null;
+          status.textContent = 'Creando lección…';
+          const lec = await A.crearLeccion({ curso_id: c.id, nombre, descripcion: wrap.querySelector('.nl-desc').value, orden: lecciones.length * 10 + 10, duracion_seg: dur });
+          if (file) {
+            status.textContent = 'Subiendo video… (puede tardar)';
+            const path = await A.subirVideo(file, c.id, lec.id);
+            await window.db.from('academia_lecciones').update({ video_path: path, duracion_seg: dur }).eq('id', lec.id);
+          }
+          toast('Lección lista', 'success'); renderCursos();
+        } catch (e) { status.textContent = ''; toast(e.message || 'Error', 'error'); }
+      });
+      list.appendChild(wrap);
+    }
+  }
+
+  function leerDuracion(file) {
+    return new Promise((resolve) => {
+      try {
+        const v = document.createElement('video'); v.preload = 'metadata';
+        v.onloadedmetadata = () => { const d = Math.round(v.duration); URL.revokeObjectURL(v.src); resolve(isFinite(d) ? d : null); };
+        v.onerror = () => resolve(null);
+        v.src = URL.createObjectURL(file);
+      } catch (_) { resolve(null); }
+    });
+  }
+
+  // ============ TAB ANALÍTICA ============
+  async function renderAnalitica() {
+    const root = document.getElementById('tab-analitica');
+    const cursos = await A.adminListarCursos();
+    root.innerHTML = `
+      <div class="field" style="max-width:420px"><label>Curso</label><select id="an-curso"><option value="">Elige…</option>${cursos.map(c => `<option value="${c.id}">${esc(c.nombre)}</option>`).join('')}</select></div>
+      <div class="field" style="max-width:420px"><label>Lección</label><select id="an-lec"><option value="">Elige…</option></select></div>
+      <div id="an-out"></div>`;
+    document.getElementById('an-curso').addEventListener('change', async (e) => {
+      const lecs = e.target.value ? await A.listarLecciones(e.target.value) : [];
+      document.getElementById('an-lec').innerHTML = '<option value="">Elige…</option>' + lecs.map(l => `<option value="${l.id}" data-dur="${l.duracion_seg||0}">${esc(l.nombre)}</option>`).join('');
+      document.getElementById('an-out').innerHTML = '';
+    });
+    document.getElementById('an-lec').addEventListener('change', async (e) => {
+      const opt = e.target.selectedOptions[0];
+      if (!e.target.value) return;
+      const dur = parseInt(opt.dataset.dur || '0', 10);
+      const prog = await A.analiticaLeccion(e.target.value);
+      const aband = await A.abandonosLeccion(e.target.value);
+      const n = prog.length;
+      const completos = prog.filter(p => p.completado_at).length;
+      const avg = n ? Math.round(prog.reduce((s, p) => s + (p.pct_visto || 0), 0) / n) : 0;
+      // histograma de abandono en 12 bins
+      const bins = 12; const hist = new Array(bins).fill(0);
+      if (dur > 0) aband.forEach(a => { const b = Math.min(bins - 1, Math.floor((a.segundo / dur) * bins)); if (b >= 0) hist[b]++; });
+      const maxH = Math.max(1, ...hist);
+      document.getElementById('an-out').innerHTML = `
+        <div class="stat-grid">
+          <div class="stat"><div class="stat-num">${n}</div><div class="stat-lbl">clientes empezaron</div></div>
+          <div class="stat"><div class="stat-num">${completos}</div><div class="stat-lbl">completaron</div></div>
+          <div class="stat"><div class="stat-num">${avg}%</div><div class="stat-lbl">% visto promedio</div></div>
+          <div class="stat"><div class="stat-num">${n ? Math.round(completos / n * 100) : 0}%</div><div class="stat-lbl">tasa de finalización</div></div>
+        </div>
+        <div class="card">
+          <strong>Mapa de abandono</strong>
+          <p class="lead" style="font-size:var(--text-sm)">Dónde se caen los clientes a lo largo del video (más alto = más abandonos en ese tramo).</p>
+          ${dur > 0 ? `<div class="heatmap">${hist.map(h => `<div class="heat-bar" style="height:${Math.round(h / maxH * 100)}%" title="${h} abandonos"></div>`).join('')}</div>
+          <div class="heat-axis"><span>0:00</span><span>${Math.floor(dur/60)}:${String(dur%60).padStart(2,'0')}</span></div>` : '<p class="lead" style="font-size:var(--text-sm)">Esta lección no tiene duración registrada aún.</p>'}
+        </div>`;
+    });
+  }
+
+  await renderCursos();
+  document.getElementById('main').style.opacity = '1';
+})();
+</script>
+</body>
+</html>

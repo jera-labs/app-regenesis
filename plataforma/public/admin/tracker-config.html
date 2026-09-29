@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tracker · Config · Admin · Neurohackers</title>
+  <script src="/shared/turbo.min.js?v=20260797"></script>
+  <link rel="stylesheet" href="/shared/styles.css?v=20260797">
+  <style>
+    .tk-row { display: grid; grid-template-columns: 48px 1fr 200px auto auto; gap: var(--space-3); padding: var(--space-3); background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-sm); margin-bottom: 6px; align-items: center; }
+    .tk-icon { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; color: #FFF; font-weight: 700; }
+    .tk-name { font-weight: 600; font-size: var(--text-md); }
+    .tk-meta { font-size: var(--text-xs); color: var(--text-muted); margin-top: 2px; }
+    .tk-target { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--text); text-align: right; }
+  </style>
+</head>
+<body class="with-sidebar admin-mode">
+
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<script>(function(){try{var c=localStorage.getItem("nav-cache-admin-v4");var w=document.getElementById("sidebar-wrapper");if(c&&w&&!w.firstChild)w.innerHTML=c;}catch(e){}})();</script>
+<div data-nav data-active="admin-tracker-config" data-base="../"></div>
+
+<div class="admin-strip">
+  <div class="admin-strip-inner">
+    <span class="admin-strip-dot"></span>
+    <span>TRACKER · CATÁLOGO · SOLO ADMIN PLENO</span>
+    <span style="opacity: 0.5;">·</span>
+    <a href="index.html">Volver</a>
+  </div>
+</div>
+
+<main class="container-wide" id="main" style="max-width: 1080px;">
+
+  <section style="margin-bottom: var(--space-6);">
+    <span class="eyebrow">CATÁLOGO DEL TRACKER</span>
+    <h1 class="greeting-lg">Configurar tracker.</h1>
+    <p class="lead">Define los KPIs que los clientes registran, los checkpoints del roadmap y los módulos formativos. Aplica a todos los clientes (con override individual donde corresponda).</p>
+  </section>
+
+  <div id="no-admin" class="empty hidden">
+    <div class="empty-icon">○</div>
+    <h3 class="empty-title">Solo admin pleno</h3>
+    <a href="index.html" class="btn btn-secondary btn-lg mt-3">Volver</a>
+  </div>
+
+  <div id="contenido" class="hidden">
+    <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-5); padding-bottom: var(--space-3); border-bottom: 1px solid var(--border-soft); flex-wrap: wrap;">
+      <button class="filter-chip active" data-tk-sec="kpis">KPIs</button>
+      <button class="filter-chip" data-tk-sec="roadmap">Checkpoints</button>
+      <button class="filter-chip" data-tk-sec="modulos">Módulos</button>
+    </div>
+
+    <section id="tk-sec-kpis">
+      <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-4);">
+        <button class="btn btn-accent" id="btn-add-kpi">+ Nuevo KPI</button>
+      </div>
+      <div id="kpis-lista"></div>
+    </section>
+
+    <section id="tk-sec-roadmap" class="hidden">
+      <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-4);">
+        <button class="btn btn-accent" id="btn-add-cp">+ Nuevo checkpoint</button>
+      </div>
+      <div id="cps-lista"></div>
+    </section>
+
+    <section id="tk-sec-modulos" class="hidden">
+      <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-4);">
+        <button class="btn btn-accent" id="btn-add-mod">+ Nuevo módulo</button>
+      </div>
+      <div id="mods-lista"></div>
+    </section>
+  </div>
+</main>
+
+<!-- MODAL KPI -->
+<div class="modal-backdrop hidden" id="modal-kpi">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="modal-kpi-titulo">Nuevo KPI</span>
+      <button class="modal-close" data-close-kpi>✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label class="field-label">Slug *</label>
+        <input class="field-input" id="k-slug" required pattern="[a-z0-9_]+" placeholder="mensajes_outbound">
+      </div>
+      <div class="field">
+        <label class="field-label">Nombre visible *</label>
+        <input class="field-input" id="k-nombre" required placeholder="Mensajes outbound">
+      </div>
+      <div class="field">
+        <label class="field-label">Descripción</label>
+        <textarea class="field-input field-textarea" id="k-desc"></textarea>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+        <div class="field">
+          <label class="field-label">Tipo</label>
+          <select class="field-input" id="k-tipo">
+            <option value="predictivo">Predictivo (acción)</option>
+            <option value="historico">Histórico (resultado)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label">Unidad</label>
+          <select class="field-input" id="k-unidad">
+            <option value="cantidad">Cantidad</option>
+            <option value="usd">USD</option>
+            <option value="pct">%</option>
+            <option value="minutos">Minutos</option>
+          </select>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-3);">
+        <div class="field">
+          <label class="field-label">Target default</label>
+          <input class="field-input" id="k-target" type="number" min="0" step="1">
+        </div>
+        <div class="field">
+          <label class="field-label">Unidad target</label>
+          <input class="field-input" id="k-tunidad" placeholder="/día, /semana, USD/mes">
+        </div>
+        <div class="field">
+          <label class="field-label">Orden</label>
+          <input class="field-input" id="k-orden" type="number" min="0" value="0">
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+        <div class="field">
+          <label class="field-label">Color (hex)</label>
+          <input class="field-input" id="k-color" pattern="#[0-9A-Fa-f]{6}" value="#D4AF37">
+        </div>
+        <div class="field">
+          <label class="field-label">Ícono</label>
+          <input class="field-input" id="k-icono" maxlength="2" value="◆">
+        </div>
+      </div>
+      <div class="field">
+        <label style="display: flex; align-items: center; gap: 8px; font-size: var(--text-sm); cursor: pointer;">
+          <input type="checkbox" id="k-visible" checked>
+          <span>Visible al cliente (lo ve y puede registrar valores)</span>
+        </label>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close-kpi>Cancelar</button>
+      <button class="btn btn-accent" id="btn-guardar-kpi">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CHECKPOINT -->
+<div class="modal-backdrop hidden" id="modal-cp">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="modal-cp-titulo">Nuevo checkpoint</span>
+      <button class="modal-close" data-close-cp>✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label class="field-label">Slug *</label>
+        <input class="field-input" id="cp-slug" required pattern="[a-z0-9_]+">
+      </div>
+      <div class="field">
+        <label class="field-label">Nombre *</label>
+        <input class="field-input" id="cp-nombre" required>
+      </div>
+      <div class="field">
+        <label class="field-label">Descripción</label>
+        <textarea class="field-input field-textarea" id="cp-desc"></textarea>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+        <div class="field">
+          <label class="field-label">Fase</label>
+          <input class="field-input" id="cp-fase" placeholder="onboarding | lanzamiento | traccion | escala | consolidacion">
+        </div>
+        <div class="field">
+          <label class="field-label">Orden</label>
+          <input class="field-input" id="cp-orden" type="number" min="0" value="10">
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">Criterio legible</label>
+        <textarea class="field-input field-textarea" id="cp-criterio" placeholder="Cómo se sabe que se cumplió"></textarea>
+      </div>
+      <div class="field">
+        <label style="display: flex; align-items: center; gap: 8px; font-size: var(--text-sm); cursor: pointer;">
+          <input type="checkbox" id="cp-bloq">
+          <span>Bloqueante (los checkpoints siguientes solo aparecen al cumplir éste)</span>
+        </label>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close-cp>Cancelar</button>
+      <button class="btn btn-accent" id="btn-guardar-cp">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MÓDULO -->
+<div class="modal-backdrop hidden" id="modal-mod">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="modal-mod-titulo">Nuevo módulo</span>
+      <button class="modal-close" data-close-mod>✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label class="field-label">Slug *</label>
+        <input class="field-input" id="md-slug" required pattern="[a-z0-9_]+">
+      </div>
+      <div class="field">
+        <label class="field-label">Nombre *</label>
+        <input class="field-input" id="md-nombre" required>
+      </div>
+      <div class="field">
+        <label class="field-label">Descripción</label>
+        <textarea class="field-input field-textarea" id="md-desc"></textarea>
+      </div>
+      <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: var(--space-3);">
+        <div class="field">
+          <label class="field-label">URL del recurso</label>
+          <input class="field-input" id="md-url" type="url" placeholder="https://...">
+        </div>
+        <div class="field">
+          <label class="field-label">Tipo</label>
+          <select class="field-input" id="md-tipo">
+            <option value="">-</option>
+            <option value="skool">Skool</option>
+            <option value="loom">Loom</option>
+            <option value="drive">Drive</option>
+            <option value="pdf">PDF</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label">Duración (min)</label>
+          <input class="field-input" id="md-dur" type="number" min="0">
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+        <div class="field">
+          <label class="field-label">Fase aplica</label>
+          <input class="field-input" id="md-fase">
+        </div>
+        <div class="field">
+          <label class="field-label">Orden</label>
+          <input class="field-input" id="md-orden" type="number" min="0" value="10">
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close-mod>Cancelar</button>
+      <button class="btn btn-accent" id="btn-guardar-mod">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/shared/scripts/config.js?v=20260797"></script>
+<script src="/shared/scripts/supabase-client.js?v=20260797"></script>
+  <script src="/shared/scripts/cache.js?v=20260797"></script>
+<script src="/shared/scripts/utils.js?v=20260797"></script>
+<script src="/shared/scripts/auth.js?v=20260797"></script>
+  <script src="/shared/scripts/event-tracker.js?v=20260797"></script>
+<script src="/shared/scripts/admin-gate.js?v=20260797"></script>
+<script src="/shared/scripts/equipo.js?v=20260797"></script>
+<script src="/shared/scripts/tracker.js?v=20260797"></script>
+<script src="/shared/nav.js?v=20260797"></script>
+<script>
+(async function () {
+  const auth = await window.requireAdmin();
+  if (!auth) return;
+  const yo = await window.equipoApi.miRol();
+  if (!yo || yo.rol !== 'admin') {
+    document.getElementById('no-admin').classList.remove('hidden');
+    document.getElementById('main').style.opacity = '1';
+    return;
+  }
+  document.getElementById('contenido').classList.remove('hidden');
+
+  // Tabs
+  document.querySelectorAll('[data-tk-sec]').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('[data-tk-sec]').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    ['kpis','roadmap','modulos'].forEach(s => {
+      document.getElementById('tk-sec-' + s).classList.toggle('hidden', s !== b.dataset.tkSec);
+    });
+    if (b.dataset.tkSec === 'roadmap') cargarCps();
+    if (b.dataset.tkSec === 'modulos') cargarMods();
+  }));
+
+  // ===== KPIs =====
+  let kpis = [];
+  let editandoKpi = null;
+
+  async function cargarKpis() {
+    kpis = await window.trackerApi.listarKpiDefiniciones(false);
+    pintarKpis();
+  }
+  function pintarKpis() {
+    const cont = document.getElementById('kpis-lista');
+    if (kpis.length === 0) {
+      cont.innerHTML = '<p class="text-muted">Sin KPIs. Crea el primero.</p>';
+      return;
+    }
+    cont.innerHTML = kpis.map(k => `
+      <div class="tk-row" style="${k.activo ? '' : 'opacity: 0.5;'}">
+        <div class="tk-icon" style="background: ${k.color};">${k.icono || '◆'}</div>
+        <div>
+          <div class="tk-name">${window.utils.escapeHtml(k.nombre)}</div>
+          <div class="tk-meta">${window.utils.escapeHtml(k.slug)} · ${k.tipo} · ${k.unidad}${k.visible_cliente ? '' : ' · NO_VISIBLE'}</div>
+        </div>
+        <div class="tk-target">${k.target_default || '-'} ${k.target_unidad || ''}</div>
+        <button class="btn btn-secondary btn-sm" data-edit-kpi="${k.id}">Editar</button>
+        <button class="btn btn-ghost btn-sm" data-toggle-kpi="${k.id}" data-to="${!k.activo}" style="color: ${k.activo ? 'var(--error)' : 'var(--accent-deeper)'};">${k.activo ? 'Desact' : 'React'}</button>
+      </div>`).join('');
+    cont.querySelectorAll('[data-edit-kpi]').forEach(b => b.addEventListener('click', () => abrirModalKpi(kpis.find(k => k.id === b.dataset.editKpi))));
+    cont.querySelectorAll('[data-toggle-kpi]').forEach(b => b.addEventListener('click', async () => {
+      try { await window.trackerApi.actualizarKpiDefinicion(b.dataset.toggleKpi, { activo: b.dataset.to === 'true' }); cargarKpis(); }
+      catch (e) { window.utils.toast('Error: ' + e.message, 'error'); }
+    }));
+  }
+  function abrirModalKpi(k = null) {
+    editandoKpi = k?.id || null;
+    document.getElementById('modal-kpi-titulo').textContent = k ? 'Editar KPI' : 'Nuevo KPI';
+    document.getElementById('k-slug').value = k?.slug || '';
+    document.getElementById('k-slug').disabled = !!k;
+    document.getElementById('k-nombre').value = k?.nombre || '';
+    document.getElementById('k-desc').value = k?.descripcion || '';
+    document.getElementById('k-tipo').value = k?.tipo || 'predictivo';
+    document.getElementById('k-unidad').value = k?.unidad || 'cantidad';
+    document.getElementById('k-target').value = k?.target_default || '';
+    document.getElementById('k-tunidad').value = k?.target_unidad || '';
+    document.getElementById('k-orden').value = k?.orden ?? 0;
+    document.getElementById('k-color').value = k?.color || '#D4AF37';
+    document.getElementById('k-icono').value = k?.icono || '◆';
+    document.getElementById('k-visible').checked = k?.visible_cliente !== false;
+    const m = document.getElementById('modal-kpi');
+    m.classList.remove('hidden');
+    requestAnimationFrame(() => m.classList.add('show'));
+  }
+  document.querySelectorAll('[data-close-kpi]').forEach(b => b.addEventListener('click', () => {
+    const m = document.getElementById('modal-kpi'); m.classList.remove('show'); setTimeout(() => m.classList.add('hidden'), 200);
+  }));
+  document.getElementById('btn-add-kpi').addEventListener('click', () => abrirModalKpi());
+  document.getElementById('btn-guardar-kpi').addEventListener('click', async () => {
+    const datos = {
+      nombre: document.getElementById('k-nombre').value,
+      descripcion: document.getElementById('k-desc').value,
+      tipo: document.getElementById('k-tipo').value,
+      unidad: document.getElementById('k-unidad').value,
+      target_default: document.getElementById('k-target').value ? Number(document.getElementById('k-target').value) : null,
+      target_unidad: document.getElementById('k-tunidad').value || null,
+      orden: Number(document.getElementById('k-orden').value) || 0,
+      color: document.getElementById('k-color').value,
+      icono: document.getElementById('k-icono').value || '◆',
+      visible_cliente: document.getElementById('k-visible').checked,
+    };
+    try {
+      if (editandoKpi) await window.trackerApi.actualizarKpiDefinicion(editandoKpi, datos);
+      else await window.trackerApi.crearKpiDefinicion({ slug: document.getElementById('k-slug').value, ...datos });
+      window.utils.toast('KPI guardado', 'success');
+      document.getElementById('modal-kpi').classList.remove('show');
+      setTimeout(() => document.getElementById('modal-kpi').classList.add('hidden'), 200);
+      cargarKpis();
+    } catch (e) { window.utils.toast('Error: ' + e.message, 'error'); }
+  });
+
+  // ===== CHECKPOINTS =====
+  let cps = [];
+  let editandoCp = null;
+  async function cargarCps() {
+    cps = await window.trackerApi.listarCheckpointsPlantilla(false);
+    pintarCps();
+  }
+  function pintarCps() {
+    const cont = document.getElementById('cps-lista');
+    if (cps.length === 0) { cont.innerHTML = '<p class="text-muted">Sin checkpoints. Crea el primero.</p>'; return; }
+    cont.innerHTML = cps.map(c => `
+      <div class="tk-row" style="${c.activo ? '' : 'opacity: 0.5;'} grid-template-columns: 40px 1fr 140px auto auto;">
+        <div style="text-align: center; font-family: var(--font-mono); font-weight: 700; color: var(--accent-deeper);">${c.orden}</div>
+        <div>
+          <div class="tk-name">${window.utils.escapeHtml(c.nombre)}</div>
+          <div class="tk-meta">${window.utils.escapeHtml(c.slug)}${c.bloqueante ? ' · 🔒 bloqueante' : ''}</div>
+        </div>
+        <div style="font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); text-transform: uppercase;">${c.fase || '-'}</div>
+        <button class="btn btn-secondary btn-sm" data-edit-cp="${c.id}">Editar</button>
+        <button class="btn btn-ghost btn-sm" data-toggle-cp="${c.id}" data-to="${!c.activo}" style="color: ${c.activo ? 'var(--error)' : 'var(--accent-deeper)'};">${c.activo ? 'Desact' : 'React'}</button>
+      </div>`).join('');
+    cont.querySelectorAll('[data-edit-cp]').forEach(b => b.addEventListener('click', () => abrirModalCp(cps.find(c => c.id === b.dataset.editCp))));
+    cont.querySelectorAll('[data-toggle-cp]').forEach(b => b.addEventListener('click', async () => {
+      try { await window.trackerApi.actualizarCheckpoint(b.dataset.toggleCp, { activo: b.dataset.to === 'true' }); cargarCps(); }
+      catch (e) { window.utils.toast('Error: ' + e.message, 'error'); }
+    }));
+  }
+  function abrirModalCp(c = null) {
+    editandoCp = c?.id || null;
+    document.getElementById('modal-cp-titulo').textContent = c ? 'Editar checkpoint' : 'Nuevo checkpoint';
+    document.getElementById('cp-slug').value = c?.slug || '';
+    document.getElementById('cp-slug').disabled = !!c;
+    document.getElementById('cp-nombre').value = c?.nombre || '';
+    document.getElementById('cp-desc').value = c?.descripcion || '';
+    document.getElementById('cp-fase').value = c?.fase || '';
+    document.getElementById('cp-orden').value = c?.orden ?? 10;
+    document.getElementById('cp-criterio').value = c?.criterio_legible || '';
+    document.getElementById('cp-bloq').checked = !!c?.bloqueante;
+    const m = document.getElementById('modal-cp');
+    m.classList.remove('hidden');
+    requestAnimationFrame(() => m.classList.add('show'));
+  }
+  document.querySelectorAll('[data-close-cp]').forEach(b => b.addEventListener('click', () => {
+    const m = document.getElementById('modal-cp'); m.classList.remove('show'); setTimeout(() => m.classList.add('hidden'), 200);
+  }));
+  document.getElementById('btn-add-cp').addEventListener('click', () => abrirModalCp());
+  document.getElementById('btn-guardar-cp').addEventListener('click', async () => {
+    const datos = {
+      nombre: document.getElementById('cp-nombre').value,
+      descripcion: document.getElementById('cp-desc').value,
+      fase: document.getElementById('cp-fase').value,
+      orden: Number(document.getElementById('cp-orden').value) || 10,
+      criterio_legible: document.getElementById('cp-criterio').value,
+      bloqueante: document.getElementById('cp-bloq').checked,
+    };
+    try {
+      if (editandoCp) await window.trackerApi.actualizarCheckpoint(editandoCp, datos);
+      else await window.trackerApi.crearCheckpoint({ slug: document.getElementById('cp-slug').value, ...datos });
+      window.utils.toast('Checkpoint guardado', 'success');
+      document.getElementById('modal-cp').classList.remove('show');
+      setTimeout(() => document.getElementById('modal-cp').classList.add('hidden'), 200);
+      cargarCps();
+    } catch (e) { window.utils.toast('Error: ' + e.message, 'error'); }
+  });
+
+  // ===== MÓDULOS =====
+  let mods = [];
+  async function cargarMods() {
+    mods = await window.trackerApi.listarModulos(false);
+    const cont = document.getElementById('mods-lista');
+    if (mods.length === 0) { cont.innerHTML = '<p class="text-muted">Sin módulos.</p>'; return; }
+    cont.innerHTML = mods.map(m => `
+      <div class="tk-row" style="${m.activo ? '' : 'opacity: 0.5;'} grid-template-columns: 40px 1fr 140px auto;">
+        <div style="text-align: center; font-family: var(--font-mono); font-weight: 700; color: var(--accent-deeper);">${m.orden}</div>
+        <div>
+          <div class="tk-name">${window.utils.escapeHtml(m.nombre)}</div>
+          <div class="tk-meta">${window.utils.escapeHtml(m.slug)}${m.recurso_tipo ? ' · ' + m.recurso_tipo : ''}${m.duracion_minutos ? ' · ' + m.duracion_minutos + 'min' : ''}</div>
+        </div>
+        <div style="font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); text-transform: uppercase;">${m.fase_aplica || '-'}</div>
+        <a href="${m.recurso_url || '#'}" target="_blank" class="btn btn-secondary btn-sm">Ver</a>
+      </div>`).join('');
+  }
+  document.getElementById('btn-add-mod').addEventListener('click', () => {
+    document.getElementById('md-slug').value = '';
+    document.getElementById('md-nombre').value = '';
+    document.getElementById('md-desc').value = '';
+    document.getElementById('md-url').value = '';
+    document.getElementById('md-tipo').value = '';
+    document.getElementById('md-dur').value = '';
+    document.getElementById('md-fase').value = '';
+    document.getElementById('md-orden').value = 10;
+    const m = document.getElementById('modal-mod'); m.classList.remove('hidden'); requestAnimationFrame(() => m.classList.add('show'));
+  });
+  document.querySelectorAll('[data-close-mod]').forEach(b => b.addEventListener('click', () => {
+    const m = document.getElementById('modal-mod'); m.classList.remove('show'); setTimeout(() => m.classList.add('hidden'), 200);
+  }));
+  document.getElementById('btn-guardar-mod').addEventListener('click', async () => {
+    try {
+      await window.trackerApi.crearModulo({
+        slug: document.getElementById('md-slug').value,
+        nombre: document.getElementById('md-nombre').value,
+        descripcion: document.getElementById('md-desc').value,
+        recurso_url: document.getElementById('md-url').value || null,
+        recurso_tipo: document.getElementById('md-tipo').value || null,
+        duracion_minutos: document.getElementById('md-dur').value ? Number(document.getElementById('md-dur').value) : null,
+        fase_aplica: document.getElementById('md-fase').value || null,
+        orden: Number(document.getElementById('md-orden').value) || 10,
+      });
+      window.utils.toast('Módulo creado', 'success');
+      document.getElementById('modal-mod').classList.remove('show');
+      setTimeout(() => document.getElementById('modal-mod').classList.add('hidden'), 200);
+      cargarMods();
+    } catch (e) { window.utils.toast('Error: ' + e.message, 'error'); }
+  });
+
+  await cargarKpis();
+  document.getElementById('main').style.opacity = '1';
+})();
+</script>
+
+</body>
+</html>

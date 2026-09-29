@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tracker · Neurohackers</title>
+  <script src="/shared/turbo.min.js?v=20260797"></script>
+  <link rel="stylesheet" href="/shared/styles.css?v=20260797">
+  <style>
+    .tab-bar { display: flex; gap: var(--space-2); margin-bottom: var(--space-5); padding-bottom: var(--space-3); border-bottom: 1px solid var(--border-soft); flex-wrap: wrap; }
+    .kpi-card { padding: var(--space-4); background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); display: flex; flex-direction: column; gap: var(--space-2); }
+    .kpi-row { display: grid; grid-template-columns: auto 1fr auto auto; gap: var(--space-3); align-items: center; }
+    .kpi-icon { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; color: #FFF; font-size: 16px; font-weight: 700; }
+    .kpi-name { font-weight: 600; font-size: var(--text-md); }
+    .kpi-meta { font-size: var(--text-xs); color: var(--text-muted); }
+    .kpi-input { width: 100px; padding: 8px 10px; font-size: var(--text-md); font-weight: 600; text-align: right; border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: var(--font-mono); }
+    .kpi-target { font-size: var(--text-xs); color: var(--text-muted); font-family: var(--font-mono); white-space: nowrap; }
+    .kpi-progress-bar { height: 4px; background: var(--surface-2); border-radius: 2px; overflow: hidden; }
+    .kpi-progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent-bright), var(--accent-dark)); transition: width 200ms; }
+
+    .checkpoint-row { display: grid; grid-template-columns: 40px 1fr auto; gap: var(--space-3); padding: var(--space-4); background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); margin-bottom: var(--space-2); align-items: center; }
+    .checkpoint-row.alcanzado { background: linear-gradient(135deg, rgba(212,175,55,0.05), transparent); border-color: var(--accent-soft); }
+    .checkpoint-dot { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--border); display: grid; place-items: center; background: var(--surface); }
+    .checkpoint-row.alcanzado .checkpoint-dot { background: linear-gradient(135deg, var(--accent-bright), var(--accent-dark)); border-color: var(--accent-dark); color: #1D1D1F; font-weight: 700; }
+
+    .tarea-row { display: grid; grid-template-columns: auto 1fr auto auto; gap: var(--space-3); padding: var(--space-3) var(--space-4); background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-sm); margin-bottom: 6px; align-items: center; }
+    .tarea-row.completada { opacity: 0.5; }
+    .tarea-row.completada .tarea-titulo { text-decoration: line-through; }
+    .tarea-titulo { font-weight: 600; font-size: var(--text-sm); }
+    .tarea-detalle { font-size: var(--text-xs); color: var(--text-muted); margin-top: 2px; }
+    .tarea-check { width: 20px; height: 20px; border: 2px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; display: grid; place-items: center; background: var(--surface); }
+    .tarea-check.checked { background: var(--accent); border-color: var(--accent); color: #FFF; }
+
+    .fact-fila { display: grid; grid-template-columns: 120px 1fr auto; gap: var(--space-3); padding: var(--space-3); border-bottom: 1px solid var(--border-soft); align-items: center; }
+    .fact-mes { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+    .fact-monto { font-size: var(--text-md); font-weight: 600; }
+  </style>
+</head>
+<body>
+
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<div data-nav data-active="tracker" data-base="../../"></div>
+
+<main class="container" id="main">
+
+  <div class="crumb">
+    <a href="../../index.html">Hoy</a><span>·</span><span>Tracker</span>
+  </div>
+
+  <section style="margin-bottom: var(--space-8);">
+    <span class="eyebrow">TU OPERACIÓN DIARIA</span>
+    <h1 class="greeting-lg" id="saludo">Tracker.</h1>
+    <p class="lead">Registra tus acciones del día, marca tareas, sigue tu roadmap. Lo que mides crece.</p>
+  </section>
+
+  <div class="tab-bar">
+    <button class="filter-chip active" data-tab="hoy">KPIs hoy</button>
+    <button class="filter-chip" data-tab="roadmap">Roadmap</button>
+    <button class="filter-chip" data-tab="tareas">Mis tareas</button>
+    <button class="filter-chip" data-tab="facturacion">Facturación</button>
+  </div>
+
+  <!-- KPIs HOY -->
+  <section id="tab-hoy">
+    <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--space-4); gap: var(--space-3);">
+      <div>
+        <strong style="font-size: var(--text-md);">Hoy: <span id="fecha-hoy"></span></strong>
+        <p class="text-muted" style="font-size: var(--text-sm); margin-top: 2px;">Tus números de hoy. Edita libremente: se guarda al cambiar.</p>
+      </div>
+      <input type="date" id="fecha-input" class="field-input" style="max-width: 180px;">
+    </div>
+    <div id="kpis-lista" style="display: flex; flex-direction: column; gap: var(--space-2);"></div>
+    <div id="kpis-empty" class="empty hidden">
+      <div class="empty-icon">◆</div>
+      <h3 class="empty-title">Tu mentor aún no configuró KPIs</h3>
+      <p class="empty-detail">Pídele que active los KPIs que vas a trackear esta fase.</p>
+    </div>
+  </section>
+
+  <!-- ROADMAP -->
+  <section id="tab-roadmap" class="hidden">
+    <p class="text-muted" style="font-size: var(--text-sm); margin-bottom: var(--space-4);">Los hitos del programa Neurohackers. Cada checkpoint cumplido te acerca a tu caso de éxito.</p>
+    <div id="roadmap-lista"></div>
+  </section>
+
+  <!-- TAREAS -->
+  <section id="tab-tareas" class="hidden">
+    <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-4); flex-wrap: wrap;">
+      <button class="filter-chip active" data-fil-tareas="pendiente">Pendientes</button>
+      <button class="filter-chip" data-fil-tareas="en_progreso">En progreso</button>
+      <button class="filter-chip" data-fil-tareas="completada">Completadas</button>
+      <button class="filter-chip" data-fil-tareas="todas">Todas</button>
+    </div>
+    <div id="tareas-lista"></div>
+    <p class="text-muted" style="font-size: var(--text-xs); margin-top: var(--space-4);">Las tareas las asigna tu mentor o el sistema (al diagnosticar productos, al alcanzar checkpoints).</p>
+  </section>
+
+  <!-- FACTURACIÓN -->
+  <section id="tab-facturacion" class="hidden">
+    <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--space-4); gap: var(--space-3); flex-wrap: wrap;">
+      <div>
+        <strong style="font-size: var(--text-md);">Facturación mensual</strong>
+        <p class="text-muted" style="font-size: var(--text-sm); margin-top: 2px;">Tu ingreso real cada mes. Sirve para medir tu progreso vs la meta del programa.</p>
+      </div>
+      <button class="btn btn-accent btn-sm" id="btn-add-mes">+ Registrar mes</button>
+    </div>
+    <div id="facturacion-lista"></div>
+    <div id="fact-empty" class="empty hidden">
+      <div class="empty-icon">◈</div>
+      <h3 class="empty-title">Aún no has registrado tu facturación</h3>
+      <p class="empty-detail">Empieza por el "Punto A" (mes 0, antes del programa) para medir tu crecimiento real.</p>
+      <button class="btn btn-accent btn-lg mt-3" id="btn-empezar-fact">Registrar mi Punto A</button>
+    </div>
+  </section>
+
+</main>
+
+<!-- MODAL: registrar mes facturación -->
+<div class="modal-backdrop hidden" id="modal-fact">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">Registrar mes</span>
+      <button class="modal-close" data-close-fact>✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label class="field-label">Mes *</label>
+        <input class="field-input" id="ff-mes" type="month">
+        <div class="field-help">Selecciona el mes (no el día específico).</div>
+      </div>
+      <div class="field">
+        <label class="field-label">Ingreso total del mes (USD) *</label>
+        <input class="field-input" id="ff-ingreso" type="number" min="0" step="1">
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+        <div class="field">
+          <label class="field-label">Clientes nuevos</label>
+          <input class="field-input" id="ff-clientes" type="number" min="0" value="0">
+        </div>
+        <div class="field">
+          <label class="field-label">Upsells</label>
+          <input class="field-input" id="ff-upsells" type="number" min="0" value="0">
+        </div>
+      </div>
+      <div class="field">
+        <label style="display: flex; align-items: center; gap: 8px; font-size: var(--text-sm); cursor: pointer;">
+          <input type="checkbox" id="ff-snapshot">
+          <span><strong>Este es mi Punto A</strong> (mes 0, antes del programa)</span>
+        </label>
+      </div>
+      <div class="field">
+        <label class="field-label">Notas (opcional)</label>
+        <textarea class="field-input field-textarea" id="ff-notas"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close-fact>Cancelar</button>
+      <button class="btn btn-accent" id="btn-guardar-fact">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/shared/scripts/config.js?v=20260797"></script>
+<script src="/shared/scripts/supabase-client.js?v=20260797"></script>
+  <script src="/shared/scripts/cache.js?v=20260797"></script>
+<script src="/shared/scripts/utils.js?v=20260797"></script>
+<script src="/shared/scripts/auth.js?v=20260797"></script>
+  <script src="/shared/scripts/event-tracker.js?v=20260797"></script>
+  <script src="/shared/scripts/nps.js?v=20260797"></script>
+<script src="/shared/scripts/tracker.js?v=20260797"></script>
+<script src="/shared/nav.js?v=20260797"></script>
+<script>
+(async function () {
+  const { session, lead } = await window.requireAuth() || {};
+  if (!session) return;
+
+  const nombre = (lead.nombre || session.user.email.split('@')[0]).split(' ')[0];
+  document.getElementById('saludo').textContent = `Tracker, ${nombre}.`;
+  const hoy = new Date().toISOString().slice(0, 10);
+  document.getElementById('fecha-hoy').textContent = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+  document.getElementById('fecha-input').value = hoy;
+
+  // Tabs
+  const tabs = ['hoy','roadmap','tareas','facturacion'];
+  document.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('[data-tab]').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    tabs.forEach(t => document.getElementById('tab-' + t).classList.toggle('hidden', t !== b.dataset.tab));
+    if (b.dataset.tab === 'roadmap') cargarRoadmap();
+    if (b.dataset.tab === 'tareas') cargarTareas();
+    if (b.dataset.tab === 'facturacion') cargarFacturacion();
+  }));
+
+  // ===== KPIs hoy =====
+  let kpiDefs = [];
+  let kpiAsignaciones = [];
+  let kpiRegistros = [];
+  let fechaActual = hoy;
+
+  async function cargarKpis() {
+    [kpiDefs, kpiAsignaciones] = await Promise.all([
+      window.trackerApi.listarKpiDefiniciones(true),
+      window.trackerApi.listarKpiAsignaciones(lead.id),
+    ]);
+    kpiRegistros = await window.trackerApi.listarKpiDiario(lead.id, { desde: fechaActual, hasta: fechaActual });
+    pintarKpis();
+  }
+
+  function pintarKpis() {
+    const visibles = kpiDefs.filter(k => k.visible_cliente !== false);
+    const cont = document.getElementById('kpis-lista');
+    if (visibles.length === 0) {
+      cont.innerHTML = '';
+      document.getElementById('kpis-empty').classList.remove('hidden');
+      return;
+    }
+    document.getElementById('kpis-empty').classList.add('hidden');
+
+    cont.innerHTML = visibles.map(k => {
+      const reg = kpiRegistros.find(r => r.kpi_id === k.id);
+      const asig = kpiAsignaciones.find(a => a.kpi_id === k.id);
+      const target = window.trackerApi.targetEfectivo(k, asig);
+      const valor = reg?.valor ?? '';
+      const pct = target && reg?.valor ? Math.min(100, Math.round(Number(reg.valor) * 100 / Number(target))) : 0;
+      return `
+        <div class="kpi-card">
+          <div class="kpi-row">
+            <div class="kpi-icon" style="background: ${k.color};">${k.icono || '◆'}</div>
+            <div style="min-width: 0;">
+              <div class="kpi-name">${window.utils.escapeHtml(k.nombre)}</div>
+              <div class="kpi-meta">${window.utils.escapeHtml(k.descripcion || '')}</div>
+            </div>
+            <input type="number" class="kpi-input" data-kpi-id="${k.id}" value="${valor}" min="0" step="${k.unidad === 'usd' ? '1' : '1'}" placeholder="0">
+            <div class="kpi-target">${target ? '/ ' + window.trackerApi.formatValor(target, k) : ''} ${k.target_unidad ? ' ' + k.target_unidad : ''}</div>
+          </div>
+          ${target ? `<div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width: ${pct}%;"></div></div>` : ''}
+        </div>`;
+    }).join('');
+
+    // Autoguardado al cambiar input
+    cont.querySelectorAll('.kpi-input').forEach(input => {
+      let t;
+      input.addEventListener('input', () => {
+        clearTimeout(t);
+        t = setTimeout(async () => {
+          try {
+            await window.trackerApi.registrarKpiDia({
+              lead_id: lead.id,
+              kpi_id: input.dataset.kpiId,
+              fecha: fechaActual,
+              valor: input.value || 0,
+            });
+            // Recalcular barra de progreso
+            const k = kpiDefs.find(x => x.id === input.dataset.kpiId);
+            const asig = kpiAsignaciones.find(a => a.kpi_id === input.dataset.kpiId);
+            const target = window.trackerApi.targetEfectivo(k, asig);
+            const pct = target && input.value ? Math.min(100, Math.round(Number(input.value) * 100 / Number(target))) : 0;
+            const fill = input.closest('.kpi-card')?.querySelector('.kpi-progress-fill');
+            if (fill) fill.style.width = pct + '%';
+          } catch (e) { window.utils.toast('Error: ' + e.message, 'error'); }
+        }, 500);
+      });
+    });
+  }
+
+  document.getElementById('fecha-input').addEventListener('change', async (e) => {
+    fechaActual = e.target.value;
+    kpiRegistros = await window.trackerApi.listarKpiDiario(lead.id, { desde: fechaActual, hasta: fechaActual });
+    pintarKpis();
+  });
+
+  // ===== ROADMAP =====
+  async function cargarRoadmap() {
+    const [plantilla, mios] = await Promise.all([
+      window.trackerApi.listarCheckpointsPlantilla(true),
+      window.trackerApi.listarCheckpointsLead(lead.id),
+    ]);
+    const visibles = plantilla.filter(p => p.visible_cliente !== false);
+    const miosById = {};
+    mios.forEach(m => miosById[m.checkpoint_id] = m);
+    const cont = document.getElementById('roadmap-lista');
+    if (visibles.length === 0) {
+      cont.innerHTML = '<p class="text-muted text-center" style="padding: var(--space-8);">El equipo aún no configuró el roadmap.</p>';
+      return;
+    }
+    cont.innerHTML = visibles.map((c, i) => {
+      const mio = miosById[c.id];
+      const alcanzado = !!mio?.alcanzado_at;
+      return `
+        <div class="checkpoint-row ${alcanzado ? 'alcanzado' : ''}">
+          <div class="checkpoint-dot">${alcanzado ? '✓' : (i + 1)}</div>
+          <div>
+            <div style="font-weight: 600; font-size: var(--text-md);">${window.utils.escapeHtml(c.nombre)}</div>
+            ${c.descripcion ? `<div class="text-muted" style="font-size: var(--text-sm); margin-top: 2px;">${window.utils.escapeHtml(c.descripcion)}</div>` : ''}
+            ${alcanzado ? `<div style="font-size: var(--text-xs); color: var(--success); margin-top: 4px;">✓ Alcanzado el ${window.trackerApi.formatFecha(mio.alcanzado_at)}</div>` : ''}
+          </div>
+          <div style="font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">${c.fase || ''}</div>
+        </div>`;
+    }).join('');
+  }
+
+  // ===== TAREAS =====
+  let filtroTareas = 'pendiente';
+  document.querySelectorAll('[data-fil-tareas]').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('[data-fil-tareas]').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    filtroTareas = b.dataset.filTareas;
+    cargarTareas();
+  }));
+
+  async function cargarTareas() {
+    const opts = filtroTareas !== 'todas' ? { estado: filtroTareas } : {};
+    const tareas = await window.trackerApi.listarTareas(lead.id, opts);
+    const cont = document.getElementById('tareas-lista');
+    if (tareas.length === 0) {
+      cont.innerHTML = '<p class="text-muted text-center" style="padding: var(--space-8);">Sin tareas en este filtro.</p>';
+      return;
+    }
+    cont.innerHTML = tareas.map(t => `
+      <div class="tarea-row ${t.estado === 'completada' ? 'completada' : ''}">
+        <div class="tarea-check ${t.estado === 'completada' ? 'checked' : ''}" data-tarea-check="${t.id}" data-estado="${t.estado}">${t.estado === 'completada' ? '✓' : ''}</div>
+        <div>
+          <div class="tarea-titulo">${window.utils.escapeHtml(t.titulo)}</div>
+          ${t.detalle ? `<div class="tarea-detalle">${window.utils.escapeHtml(t.detalle)}</div>` : ''}
+          <div class="tarea-detalle">
+            ${t.fecha_limite ? '📅 ' + window.trackerApi.formatFecha(t.fecha_limite) : ''}
+            ${t.asignada_por_user ? ' · por ' + (t.asignada_por_user.nombre || t.asignada_por_user.email) : ''}
+            ${t.origen !== 'mentor_manual' ? ' · <em>' + t.origen + '</em>' : ''}
+          </div>
+        </div>
+        <div>${window.trackerApi.prioridadBadge(t.prioridad)}</div>
+        <div>${window.trackerApi.estadoTareaBadge(t.estado)}</div>
+      </div>
+    `).join('');
+    cont.querySelectorAll('[data-tarea-check]').forEach(el => el.addEventListener('click', async () => {
+      const id = el.dataset.tareaCheck;
+      const yaCompleta = el.dataset.estado === 'completada';
+      try {
+        await window.trackerApi.actualizarTarea(id, { estado: yaCompleta ? 'pendiente' : 'completada' });
+        cargarTareas();
+        window.utils.toast(yaCompleta ? 'Tarea reabierta' : 'Tarea completada ✓', 'success');
+      } catch (e) { window.utils.toast('Error: ' + e.message, 'error'); }
+    }));
+  }
+
+  // ===== FACTURACIÓN =====
+  async function cargarFacturacion() {
+    const meses = await window.trackerApi.listarFacturacion(lead.id);
+    const cont = document.getElementById('facturacion-lista');
+    const empty = document.getElementById('fact-empty');
+    if (meses.length === 0) {
+      cont.innerHTML = '';
+      empty.classList.remove('hidden');
+      return;
+    }
+    empty.classList.add('hidden');
+    cont.innerHTML = meses.map(m => `
+      <div class="fact-fila">
+        <div class="fact-mes">${window.trackerApi.formatMes(m.mes)} ${m.es_snapshot_inicial ? '<br><span style="color: var(--accent-deeper); font-weight: 700;">PUNTO A</span>' : ''}</div>
+        <div>
+          <div class="fact-monto">${window.trackerApi.formatValor(m.ingreso_usd, { unidad: 'usd' })}</div>
+          <div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: 2px;">
+            ${m.clientes_nuevos > 0 ? m.clientes_nuevos + ' nuevos · ' : ''}${m.upsells > 0 ? m.upsells + ' upsells' : ''}
+          </div>
+        </div>
+        <div></div>
+      </div>
+    `).join('');
+  }
+
+  document.getElementById('btn-add-mes').addEventListener('click', () => abrirModalFact());
+  document.getElementById('btn-empezar-fact').addEventListener('click', () => abrirModalFact(true));
+
+  function abrirModalFact(isPuntoA = false) {
+    document.getElementById('ff-mes').value = isPuntoA
+      ? new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().slice(0, 7)
+      : new Date().toISOString().slice(0, 7);
+    document.getElementById('ff-ingreso').value = '';
+    document.getElementById('ff-clientes').value = 0;
+    document.getElementById('ff-upsells').value = 0;
+    document.getElementById('ff-snapshot').checked = isPuntoA;
+    document.getElementById('ff-notas').value = '';
+    const m = document.getElementById('modal-fact');
+    m.classList.remove('hidden');
+    requestAnimationFrame(() => m.classList.add('show'));
+  }
+  document.querySelectorAll('[data-close-fact]').forEach(b => b.addEventListener('click', () => {
+    const m = document.getElementById('modal-fact');
+    m.classList.remove('show'); setTimeout(() => m.classList.add('hidden'), 200);
+  }));
+  document.getElementById('btn-guardar-fact').addEventListener('click', async (e) => {
+    const mes = document.getElementById('ff-mes').value;
+    const ingreso = document.getElementById('ff-ingreso').value;
+    if (!mes || !ingreso) { window.utils.toast('Mes e ingreso requeridos', 'error'); return; }
+    e.currentTarget.disabled = true;
+    try {
+      await window.trackerApi.registrarFacturacionMes({
+        lead_id: lead.id,
+        mes: mes + '-01',
+        ingreso_usd: ingreso,
+        clientes_nuevos: document.getElementById('ff-clientes').value,
+        upsells: document.getElementById('ff-upsells').value,
+        es_snapshot_inicial: document.getElementById('ff-snapshot').checked,
+        notas: document.getElementById('ff-notas').value.trim() || null,
+      });
+      window.utils.toast('Mes registrado', 'success');
+      const m = document.getElementById('modal-fact');
+      m.classList.remove('show'); setTimeout(() => m.classList.add('hidden'), 200);
+      cargarFacturacion();
+    } catch (err) { window.utils.toast('Error: ' + err.message, 'error'); }
+    finally { e.currentTarget.disabled = false; }
+  });
+
+  // Iniciar
+  await cargarKpis();
+  document.getElementById('main').style.opacity = '1';
+})();
+</script>
+
+
+</body>
+</html>

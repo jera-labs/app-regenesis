@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <script src="/studio/shared/turbo.min.js?v=20260714"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin · Studio · Neurohackers</title>
+  <link rel="stylesheet" href="/studio/shared/styles.css?v=20260714">
+  <style>
+    .clientes-grid { display: grid; grid-template-columns: 280px 1fr; gap: var(--space-4); }
+    @media (max-width: 920px) { .clientes-grid { grid-template-columns: 1fr; } }
+
+    .cliente-lista { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); max-height: 70vh; overflow-y: auto; }
+    .cliente-item { padding: var(--space-3); border-bottom: 1px solid var(--border-soft); cursor: pointer; }
+    .cliente-item:hover { background: var(--surface-2); }
+    .cliente-item.selected { background: var(--accent-soft); border-left: 3px solid var(--accent); }
+    .cliente-item-nombre { font-weight: 600; font-size: var(--text-sm); }
+    .cliente-item-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+    .modulo-card { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); padding: var(--space-4); margin-bottom: var(--space-3); display: grid; grid-template-columns: 1fr auto; gap: var(--space-3); align-items: center; }
+    .modulo-card.sub { margin-left: var(--space-6); }
+    .modulo-card.activo { border-left: 3px solid var(--success); }
+    .modulo-nombre { font-weight: 600; }
+    .modulo-desc { font-size: var(--text-xs); color: var(--text-muted); margin-top: 2px; }
+    .modulo-meta { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+
+    .toggle { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: var(--border); border-radius: 999px; transition: 250ms; }
+    .toggle-slider::before { content: ''; position: absolute; height: 18px; width: 18px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: 250ms; }
+    .toggle input:checked + .toggle-slider { background: var(--success); }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+    #status-bar { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); padding: 8px 12px; background: var(--surface-2); border: 1px solid var(--border-soft); border-radius: 6px; margin-bottom: 16px; }
+    #status-bar.err { background: #FEE; border-color: #FCC; color: #900; }
+    #status-bar.ok  { background: #EFE; border-color: #CFC; color: #060; }
+  </style>
+</head>
+<body>
+
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<div data-studio-nav data-active="admin-studio"></div>
+
+<div class="admin-strip" style="background: #1D1D1F;">
+  <div class="admin-strip-inner">
+    <span class="admin-strip-dot" style="background: var(--accent);"></span>
+    <span>ADMIN · ACTIVAR MÓDULOS POR CLIENTE</span>
+    <span style="opacity: 0.5;">·</span>
+    <a href="/studio/index.html">Inicio</a>
+  </div>
+</div>
+
+<main class="container-wide" id="main">
+
+  <section style="margin-bottom: var(--space-5);">
+    <span class="eyebrow">CONTROL DE ACCESO</span>
+    <h1 class="greeting-lg">Módulos por cliente.</h1>
+    <p class="lead">Activa o desactiva qué módulos ve cada cliente en su sidebar del Studio. El módulo Contenido (Instagram/LinkedIn/Facebook) viene <strong>apagado</strong> por default para todos los clientes. Actívalo cliente por cliente para pruebas.</p>
+  </section>
+
+  <div id="status-bar">init...</div>
+
+  <div class="clientes-grid">
+    <div>
+      <input class="field-input" id="buscar" placeholder="Buscar cliente..." style="margin-bottom: var(--space-2);">
+      <div class="cliente-lista" id="cliente-lista">Cargando...</div>
+    </div>
+    <div>
+      <div id="cliente-detalle" style="text-align: center; color: var(--text-muted); padding: var(--space-10);">
+        ← Selecciona un cliente para gestionar sus módulos
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/studio/shared/scripts/config.js?v=20260714"></script>
+<script src="/studio/shared/scripts/supabase-client.js?v=20260714"></script>
+<script src="/studio/shared/scripts/utils.js?v=20260714"></script>
+<script src="/studio/shared/scripts/studio-auth.js?v=20260714"></script>
+<script src="/studio/shared/scripts/studio-nav.js?v=20260714"></script>
+<script>
+(async function () {
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => (window.utils?.escapeHtml || window.escapeHtml || ((x) => String(x ?? '')))(s);
+  const statusBar = $('status-bar');
+  const setStatus = (msg, cls = '') => {
+    statusBar.textContent = msg;
+    statusBar.className = cls;
+    console.log('[studio/admin]', msg);
+  };
+
+  // Timeout wrapper para detectar awaits colgados
+  const withTimeout = (promise, ms, label) => Promise.race([
+    promise,
+    new Promise((_, rej) => setTimeout(() => rej(new Error(`TIMEOUT (${ms}ms) en: ${label}`)), ms))
+  ]);
+
+  let auth, leads = [], catalog = [];
+
+  try {
+    setStatus('paso 1/5 · validando sesión Supabase...');
+    const sessionRes = await withTimeout(window.db.auth.getSession(), 8000, 'auth.getSession()');
+    const session = sessionRes?.data?.session;
+    if (!session) {
+      setStatus('sin sesión, redirigiendo a login...', 'err');
+      const next = encodeURIComponent(window.location.pathname + window.location.search);
+      window.location.href = `https://plataforma.neurohackers.cloud/login.html?next=${next}`;
+      return;
+    }
+    const email = session.user.email;
+    setStatus(`paso 2/5 · sesión activa: ${email}, verificando rol admin...`);
+
+    const admRes = await withTimeout(
+      window.db.from('usuarios_admin').select('id, email, nombre, rol, activo').eq('email', email).maybeSingle(),
+      8000, 'usuarios_admin.select'
+    );
+    if (admRes.error) throw new Error(`usuarios_admin: ${admRes.error.message}`);
+    if (!admRes.data || !admRes.data.activo || admRes.data.rol !== 'admin') {
+      setStatus(`acceso denegado · email ${email} no es admin activo (data=${JSON.stringify(admRes.data)})`, 'err');
+      $('cliente-lista').innerHTML = '';
+      return;
+    }
+    auth = { session, admin: admRes.data };
+
+    setStatus('paso 3/5 · cargando lista de leads...');
+    const leadsRes = await withTimeout(
+      window.db.from('leads').select('id, nombre, email, estado').order('nombre'),
+      12000, 'leads.select'
+    );
+    if (leadsRes.error) throw new Error(`leads: ${leadsRes.error.message}`);
+    leads = leadsRes.data || [];
+    setStatus(`paso 4/5 · ${leads.length} leads cargados, cargando catálogo de módulos...`);
+
+    const catRes = await withTimeout(
+      window.db.from('modulos_catalogo').select('*').order('orden'),
+      8000, 'modulos_catalogo.select'
+    );
+    if (catRes.error) throw new Error(`modulos_catalogo: ${catRes.error.message}`);
+    catalog = catRes.data || [];
+    setStatus(`OK · ${leads.length} leads · ${catalog.length} módulos`, 'ok');
+  } catch (e) {
+    console.error('[studio/admin] error fatal:', e);
+    setStatus(`ERROR: ${e.message || String(e)}`, 'err');
+    $('cliente-lista').innerHTML = `<div style="padding: 12px; color: #900; font-size: 12px;">
+      ${esc(e.message || String(e))}
+    </div>`;
+    return;
+  }
+
+  if (!leads.length) {
+    $('cliente-lista').innerHTML = `<div style="padding: 12px; color: var(--text-muted); font-size: 12px;">
+      0 leads visibles. Tu cuenta: <code>${auth.session.user.email}</code>
+    </div>`;
+    return;
+  }
+
+  let selectedLead = null;
+
+  function renderListaClientes(filtro = '') {
+    const f = (filtro || '').toLowerCase();
+    const filtered = leads.filter(l =>
+      !f || (l.nombre || '').toLowerCase().includes(f) || (l.email || '').toLowerCase().includes(f)
+    );
+    $('cliente-lista').innerHTML = filtered.map(l => `
+      <div class="cliente-item ${selectedLead?.id === l.id ? 'selected' : ''}" data-id="${l.id}">
+        <div class="cliente-item-nombre">${esc(l.nombre || '(sin nombre)')}</div>
+        <div class="cliente-item-meta">${esc(l.email || '')} · ${l.estado || '-'}</div>
+      </div>
+    `).join('') || '<div style="padding: 16px; color: var(--text-muted); text-align: center;">Sin resultados</div>';
+
+    document.querySelectorAll('.cliente-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const id = el.dataset.id;
+        selectedLead = leads.find(l => l.id === id);
+        renderListaClientes(filtro);
+        renderDetalle();
+      });
+    });
+  }
+
+  async function renderDetalle() {
+    if (!selectedLead) return;
+    $('cliente-detalle').innerHTML = `<div style="text-align: center; padding: var(--space-6);"><span class="spinner"></span> Cargando módulos...</div>`;
+    const { data: overrides, error } = await window.db.from('modulos_cliente')
+      .select('*, activado_por_user:activado_por (nombre)')
+      .eq('lead_id', selectedLead.id);
+    if (error) {
+      $('cliente-detalle').innerHTML = `<div style="color:#900;padding:16px;">Error cargando módulos: ${esc(error.message)}</div>`;
+      return;
+    }
+    const oMap = new Map((overrides || []).map(o => [o.modulo_slug, o]));
+    const top = catalog.filter(m => !m.parent_slug);
+    let html = `<h2 style="margin: 0 0 var(--space-4); font-size: var(--text-lg);">
+      ${esc(selectedLead.nombre || selectedLead.email || '')}
+    </h2>`;
+    top.forEach(m => {
+      const ov = oMap.get(m.slug);
+      const activo = ov ? ov.activo : m.default_activo;
+      html += renderModuloCard(m, activo, ov, false);
+      const subs = catalog.filter(s => s.parent_slug === m.slug);
+      subs.forEach(s => {
+        const sov = oMap.get(s.slug);
+        const sactivo = sov ? sov.activo : s.default_activo;
+        html += renderModuloCard(s, sactivo, sov, true);
+      });
+    });
+    $('cliente-detalle').innerHTML = html;
+
+    document.querySelectorAll('[data-modulo-toggle]').forEach(t => {
+      t.addEventListener('change', async () => {
+        const slug = t.dataset.moduloToggle;
+        const activo = t.checked;
+        try {
+          const { error: upErr } = await window.db.from('modulos_cliente').upsert({
+            lead_id: selectedLead.id,
+            modulo_slug: slug,
+            activo,
+            activado_at: activo ? new Date().toISOString() : null,
+            activado_por: auth.admin?.id || null,
+          }, { onConflict: 'lead_id,modulo_slug' });
+          if (upErr) throw upErr;
+          window.utils?.toast?.(`${activo ? 'Activado' : 'Desactivado'}: ${slug}`, 'success');
+          await renderDetalle();
+        } catch (e) {
+          window.utils?.toast?.('Error: ' + e.message, 'error');
+          t.checked = !activo;
+        }
+      });
+    });
+  }
+
+  function renderModuloCard(m, activo, override, sub) {
+    const audita = override?.activado_at
+      ? `Activado ${new Date(override.activado_at).toLocaleDateString('es-ES')}${override.activado_por_user?.nombre ? ' por ' + override.activado_por_user.nombre : ''}`
+      : `(usando default: ${m.default_activo ? 'on' : 'off'})`;
+    return `
+      <div class="modulo-card ${sub ? 'sub' : ''} ${activo ? 'activo' : ''}">
+        <div>
+          <span class="modulo-nombre">${m.icono ? m.icono + ' ' : ''}${esc(m.nombre)}</span>
+          ${m.descripcion ? `<div class="modulo-desc">${esc(m.descripcion)}</div>` : ''}
+          <div class="modulo-meta">${m.slug} · ${audita}</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" data-modulo-toggle="${m.slug}" ${activo ? 'checked' : ''}>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>`;
+  }
+
+  $('buscar').addEventListener('input', (e) => renderListaClientes(e.target.value));
+  renderListaClientes();
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,89 @@
+# ============================================================================
+# Re-Génesis Platform — Headers de seguridad (Apache / cPanel shared hosting)
+# ============================================================================
+# Este archivo se sube a la raíz del subdominio junto con index.html.
+# Aplica protecciones contra los ataques web más comunes.
+# ============================================================================
+
+# Forzar HTTPS — redirige cualquier petición HTTP a HTTPS
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+# Headers de seguridad
+<IfModule mod_headers.c>
+  # HSTS — fuerza HTTPS por 1 año (incluyendo subdominios). Solo se activa
+  # cuando el sitio sirve por HTTPS, así que no rompe testing local.
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
+
+  # Evita que el navegador intente adivinar el tipo MIME (XSS via misdetect)
+  Header always set X-Content-Type-Options "nosniff"
+
+  # Bloquea que el sitio sea embebido en iframes de otros dominios (clickjacking)
+  Header always set X-Frame-Options "SAMEORIGIN"
+
+  # Política de referrer: no manda info detallada a sitios externos
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+  # Permissions-Policy: deshabilita features del navegador que la app no usa
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+
+  # Content-Security-Policy:
+  # - default-src 'self'      : solo recursos del propio dominio por default
+  # - script-src              : permite el SDK de Supabase desde jsdelivr
+  # - style-src               : permite Google Fonts CSS y nuestros propios CSS inline
+  # - font-src                : permite Google Fonts
+  # - img-src                 : permite imágenes propias, data: URIs y todos los HTTPS
+  # - connect-src             : permite llamar al backend de Supabase + Anthropic
+  # - media-src               : permite reproducir videos hosteados en el CDN de GoHighLevel
+  # - frame-src               : permite embeber videos de Loom (legado, por si se vuelve a usar)
+  # - frame-ancestors 'none'  : refuerzo de X-Frame-Options
+  # - base-uri 'self'         : evita inyección de <base> tags maliciosos
+  # - form-action 'self'      : forms solo a nuestro dominio
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://*.supabase.io wss://*.supabase.co; media-src 'self' https://assets.cdn.filesafe.space https://*.filesafe.space; frame-src 'self' https://www.loom.com https://*.loom.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+
+  # Quita header que revela la versión del servidor
+  Header unset X-Powered-By
+  Header unset Server
+</IfModule>
+
+# ============================================================================
+# Bloquear acceso a archivos sensibles
+# ============================================================================
+
+# .env y archivos similares — nunca deben servirse al público
+<FilesMatch "^\.(env|git|gitignore|htaccess|htpasswd)$">
+  Require all denied
+</FilesMatch>
+
+# Bloquear archivos que solo deberían estar en el repo, no servidos
+<FilesMatch "\.(md|sql|sh|log|bak|swp|orig)$">
+  Require all denied
+</FilesMatch>
+
+# Bloquear listado de directorios — si alguien va a /assets/, que no vea el listado
+Options -Indexes
+
+# ============================================================================
+# Rendimiento básico
+# ============================================================================
+
+# Compresión gzip para text-based responses
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json image/svg+xml
+</IfModule>
+
+# Cache de assets estáticos (1 año para fonts/imgs, 1 hora para HTML/JS/CSS)
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/svg+xml "access plus 1 year"
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType font/woff2 "access plus 1 year"
+  ExpiresByType text/css "access plus 1 hour"
+  ExpiresByType application/javascript "access plus 1 hour"
+  ExpiresByType text/html "access plus 0 seconds"
+</IfModule>

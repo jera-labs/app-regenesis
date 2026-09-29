@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mapa de Automatizaciones · Re-Génesis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F5F7; --surface:#FFFFFF; --surface-2:#FAFAFA; --surface-3:#F2F2F4;
+  --border:#D2D2D7; --border-soft:#E5E5EA; --text:#1D1D1F; --text-muted:#86868B;
+  --accent:#D4AF37; --accent-soft:#F5E9B8; --accent-dark:#B8941F;
+  --ok:#34A853; --warn:#E5A100; --ui:#3B82C4; --wait:#9333AA; --todo:#9CA3AF;
+  --radius:14px; --radius-sm:9px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Geist',-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;padding:32px 20px 80px}
+.wrap{max-width:1180px;margin:0 auto}
+.mono{font-family:'Geist Mono',monospace;text-transform:uppercase;letter-spacing:.04em;font-size:11px}
+header{margin-bottom:28px}
+h1{font-size:30px;font-weight:700;letter-spacing:-.02em}
+.sub{color:var(--text-muted);margin-top:6px;font-size:15px}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin:22px 0 30px;padding:14px 18px;background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--radius)}
+.lg{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--text-muted)}
+.dot{width:9px;height:9px;border-radius:50%;flex:none}
+.d-ok{background:var(--ok)} .d-warn{background:var(--warn)} .d-ui{background:var(--ui)} .d-wait{background:var(--wait)} .d-todo{background:var(--todo)}
+.counters{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:34px}
+.counter{background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--radius);padding:18px}
+.counter .n{font-size:30px;font-weight:700;letter-spacing:-.02em}
+.counter .l{color:var(--text-muted);font-size:13px;margin-top:2px}
+.counter.acc{border-color:var(--accent);background:linear-gradient(180deg,#fff, #fffdf5)}
+section{margin-bottom:38px}
+.sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.sec-head h2{font-size:20px;font-weight:600;letter-spacing:-.01em}
+.sec-head .tag{color:var(--text-muted)}
+.flow{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch}
+.card{background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:13px 15px;flex:1 1 240px;min-width:220px;position:relative;display:flex;flex-direction:column;gap:6px}
+.card .top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.card .name{font-weight:600;font-size:14px}
+.card .desc{color:var(--text-muted);font-size:12.5px}
+.card .meta{margin-top:auto;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.pill{font-family:'Geist Mono',monospace;text-transform:uppercase;letter-spacing:.03em;font-size:10px;padding:3px 7px;border-radius:6px;background:var(--surface-3);color:var(--text-muted)}
+.pill.tag{background:var(--accent-soft);color:var(--accent-dark)}
+.status{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:500;white-space:nowrap}
+.bdr-ok{border-left:3px solid var(--ok)} .bdr-warn{border-left:3px solid var(--warn)} .bdr-ui{border-left:3px solid var(--ui)} .bdr-wait{border-left:3px solid var(--wait)} .bdr-todo{border-left:3px solid var(--todo)}
+.note{font-size:12.5px;color:var(--text-muted);margin:6px 0 14px;padding:10px 14px;background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm)}
+.id{font-family:'Geist Mono',monospace;font-size:10px;color:var(--text-muted)}
+footer{margin-top:40px;color:var(--text-muted);font-size:12px;text-align:center}
+.barwrap{height:8px;background:var(--surface-3);border-radius:99px;overflow:hidden;margin-top:10px}
+.bar{height:100%;background:var(--accent);border-radius:99px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Mapa de Automatizaciones · Re-Génesis</h1>
+  <p class="sub">Seguimiento vivo de workflows, pipelines, etiquetas y plantillas en GoHighLevel. 4 servicios sobre la misma cuenta.</p>
+</header>
+
+<div class="legend">
+  <span class="mono" style="color:var(--text)">Estado</span>
+  <span class="lg"><span class="dot d-ok"></span>Listo / publicado</span>
+  <span class="lg"><span class="dot d-warn"></span>Borrador construido (falta trigger + publicar en UI)</span>
+  <span class="lg"><span class="dot d-ui"></span>Acción en UI / Frank</span>
+  <span class="lg"><span class="dot d-wait"></span>En construcción</span>
+  <span class="lg"><span class="dot d-todo"></span>Por construir</span>
+</div>
+
+<div class="counters" id="counters"></div>
+
+<div id="content"></div>
+
+<footer>
+  Generado por Claude Code · 2026-06-12 · Fuente: blueprint-automatizaciones-ghl.md · Abrir este archivo en el navegador para consultarlo.
+</footer>
+</div>
+
+<script>
+const S = {ok:'Listo',warn:'Borrador',ui:'En UI/Frank',wait:'Construyendo',todo:'Por construir'};
+const ICON = {ok:'●',warn:'◐',ui:'◑',wait:'◔',todo:'○'};
+
+const DATA = [
+  { svc:'Fase 0 · Saneamiento del funnel', tag:'hecho por API', items:[
+    {n:'WF-04 Pago Confirmado', d:'Webhook placeholder roto eliminado', s:'ok'},
+    {n:'Contrato Media Firmado', d:'Acción mal nombrada corregida', s:'ok'},
+    {n:'WF-10 Onboarding Completado', d:'opportunity_status=won (ya cae en pipeline)', s:'ok'},
+    {n:'Recipe Appointment (inglés)', d:'Despublicado, ya no manda correos duplicados', s:'ok'},
+    {n:'Drafts WF-07 / WF-09 / NDA', d:'En borrador; archivar en UI (housekeeping)', s:'ui', tag:'UI'},
+    {n:'Unificar tags de pago', d:'pago-completo/confirmado a pago-realizado; verificar triggers antes', s:'todo'},
+  ]},
+
+  { svc:'Re-Génesis · Seguimiento y cobranza (WhatsApp)', tag:'8 borradores listos', items:[
+    {n:'RG · 20 · Cuota próxima 3d', d:'Aviso 3 días antes con link', s:'warn', tag:'cuota-proxima', id:'d41beed1'},
+    {n:'RG · 21 · Cuota próxima 1d', d:'Aviso 1 día antes', s:'warn', tag:'cuota-proxima', id:'f76faf0d'},
+    {n:'RG · 22 · Cuota atrasada 1d', d:'¿Todo bien? resolución suave', s:'warn', tag:'cuota-atrasada', id:'e0781f97'},
+    {n:'RG · 23 · Cuota atrasada 3d', d:'Seguimiento', s:'warn', tag:'cuota-atrasada', id:'ad233857'},
+    {n:'RG · 24 · Cuota atrasada 7d', d:'Última nota automática, pasa a humano', s:'warn', tag:'cuota-atrasada', id:'68174435'},
+    {n:'RG · 25 · Sin sesión 7d', d:'Invitación a reagendar', s:'warn', tag:'sin-sesion-7d', id:'3a129284'},
+    {n:'RG · 26 · Fin de programa', d:'Sesión de cierre a 1 semana del día 70', s:'warn', tag:'fin-programa-5d', id:'06e7c63b'},
+    {n:'RG · 27 · NPS mensual', d:'Pregunta 0 a 10', s:'warn', tag:'nps-mensual', id:'c0ee961a'},
+  ]},
+
+  { svc:'Re-Génesis · Onboarding y acceso', tag:'mejora pendiente', items:[
+    {n:'WF-03 Link de pago', d:'Existente; agregar paso WhatsApp', s:'todo'},
+    {n:'WF-04 Pago recibido', d:'Agregar WhatsApp de bienvenida + firmas', s:'todo'},
+    {n:'WF-06/07/08 Recordatorio firma', d:'Pasar de SMS/email a WhatsApp', s:'todo'},
+    {n:'WF-11 Acceso plataforma', d:'WhatsApp acceso listo + día 1; ramificar Terapia', s:'todo'},
+  ]},
+
+  { svc:'Re-Génesis · Recuperación', tag:'por construir', items:[
+    {n:'RG · 30 · Carrito pre-venta', d:'Secuencia A1-A4 (1h/1d/3d/7d) recibió link sin pagar', s:'wait', tag:'recuperacion-prepago'},
+    {n:'RG · 31 · Win-back churn', d:'D1-D4 re-enganche y reingreso', s:'wait', tag:'churn / pausa'},
+  ]},
+
+  { svc:'Terapia Re-Génesis', tag:'mismo programa, acceso recortado', items:[
+    {n:'Custom field servicio_programa', d:'regenesis/terapia/growth/crm; radio en form Cierre', s:'todo'},
+    {n:'Rama servicio-terapia en WF-04/11', d:'Tag + copy propio, solo /regenesis/', s:'todo'},
+    {n:'RG · 28 · Sin actividad 3d', d:'No escribe en el diario (alto valor Terapia)', s:'todo', tag:'sin-actividad-3d'},
+    {n:'Migración leads.servicio', d:'Supabase: front recorta módulos de negocio', s:'ui', tag:'Frank'},
+  ]},
+
+  { svc:'Growth Re-Génesis', tag:'ciclo 100% en GHL', items:[
+    {n:'GW · 01 · Bienvenida pago', d:'WhatsApp + email al confirmar pago Growth', s:'wait', tag:'servicio-growth'},
+    {n:'GW · 02 · Entrega accesos', d:'Invitación Skool + aviso CRM (usuario/clave)', s:'wait', tag:'growth-onboarding-iniciado'},
+    {n:'GW · 03 · Coordinación arranque', d:'Agenda kickoff + recordatorio', s:'wait', tag:'crm-provisionado'},
+    {n:'GW · 04 · Nutrición', d:'Goteo días 2/5/9/16/30', s:'wait', tag:'growth-activo'},
+    {n:'GW · 08 · Carrito abandonado', d:'30min/24h/72h', s:'wait', tag:'growth-carrito-abandonado'},
+    {n:'GW · 09 · NPS', d:'Cada 30 días', s:'todo'},
+    {n:'GW · 10 · Recuperación churn', d:'Inactivo 14d', s:'todo'},
+    {n:'Pipeline Growth Re-Génesis', d:'8 etapas propias (crear en UI)', s:'ui', tag:'UI'},
+  ]},
+
+  { svc:'CRM individual (4º servicio) · SaaS', tag:'sub-cuenta auto', items:[
+    {n:'Plan SaaS $70/mes · $700/año', d:'Creado por Frank', s:'ok'},
+    {n:'Trial 15 días', d:'Actualizado (era 60)', s:'ok'},
+    {n:'Auto-provisión sub-cuenta', d:'SaaS Mode + snapshot + Stripe (UI agencia)', s:'ui', tag:'Frank'},
+    {n:'Landing / order-form', d:'Funnel GHL de venta', s:'ui', tag:'UI'},
+    {n:'Aviso de credenciales', d:'Workflow GW-C tras provisión', s:'todo'},
+  ]},
+
+  { svc:'Pipelines', tag:'separación por servicio', items:[
+    {n:'Ventas Regénesis', d:'RG + Terapia (reusar)', s:'ok'},
+    {n:'Clientes Activos Re-Génesis', d:'RG + Terapia (reusar)', s:'ok'},
+    {n:'Growth Re-Génesis', d:'Nuevo, 8 etapas', s:'ui', tag:'UI'},
+    {n:'CRM individual', d:'Definir si propio', s:'ui', tag:'Frank'},
+  ]},
+
+  { svc:'Plantillas WhatsApp (Utility · Meta)', tag:'~20 a aprobar', items:[
+    {n:'P0 Acceso plataforma', d:'5 plantillas (pago, firma, acceso, día 1, sala)', s:'todo'},
+    {n:'P1 Seguimiento', d:'7 (cuota, sesión, fin, NPS, sin actividad)', s:'todo'},
+    {n:'P2 Recuperación', d:'5 (carrito, win-back)', s:'todo'},
+    {n:'P3 Growth', d:'6 (bienvenida, Skool, CRM, kickoff, carrito, NPS)', s:'todo'},
+    {n:'Aprobación Meta', d:'Se crean en UI, Meta aprueba 24-48h', s:'ui', tag:'UI'},
+  ]},
+];
+
+const TAGS = ['servicio-regenesis','servicio-terapia','servicio-growth','servicio-crm','pago-realizado','onboarding-iniciado','onboarding-completado','cliente-activo','en-programa','cuota-proxima','cuota-atrasada','sin-sesion-7d','sin-actividad-3d','riesgo-churn','programa-completado','recuperacion-prepago','churn','pausa','reingreso','nps-promotor','nps-pasivo','nps-detractor','growth-onboarding-iniciado','skool-invitado','crm-provisionado','growth-activo','growth-carrito-abandonado'];
+
+// counters
+let c={ok:0,warn:0,ui:0,wait:0,todo:0,total:0};
+DATA.forEach(g=>g.items.forEach(i=>{c[i.s]++;c.total++}));
+const built = c.ok+c.warn;
+document.getElementById('counters').innerHTML = `
+  <div class="counter acc"><div class="n">${c.total}</div><div class="l">Piezas mapeadas</div><div class="barwrap"><div class="bar" style="width:${Math.round(built/c.total*100)}%"></div></div></div>
+  <div class="counter"><div class="n" style="color:var(--ok)">${c.ok}</div><div class="l">Listas / publicadas</div></div>
+  <div class="counter"><div class="n" style="color:var(--warn)">${c.warn}</div><div class="l">Borradores construidos</div></div>
+  <div class="counter"><div class="n" style="color:var(--ui)">${c.ui}</div><div class="l">Acción UI / Frank</div></div>
+  <div class="counter"><div class="n" style="color:var(--todo)">${c.wait+c.todo}</div><div class="l">Por construir</div></div>`;
+
+// sections
+document.getElementById('content').innerHTML = DATA.map(g=>`
+  <section>
+    <div class="sec-head"><h2>${g.svc}</h2><span class="tag mono">${g.tag}</span></div>
+    <div class="flow">
+      ${g.items.map(i=>`
+        <div class="card bdr-${i.s}">
+          <div class="top">
+            <span class="name">${i.n}</span>
+            <span class="status" style="color:var(--${i.s==='todo'||i.s==='wait'?'todo':i.s})">${ICON[i.s]} ${S[i.s]}</span>
+          </div>
+          <div class="desc">${i.d}</div>
+          <div class="meta">
+            ${i.tag?`<span class="pill tag">${i.tag}</span>`:''}
+            ${i.id?`<span class="id">${i.id}</span>`:''}
+          </div>
+        </div>`).join('')}
+    </div>
+  </section>`).join('') + `
+  <section>
+    <div class="sec-head"><h2>Taxonomía de etiquetas</h2><span class="tag mono">unificada · kebab-case</span></div>
+    <div class="flow" style="gap:7px">
+      ${TAGS.map(t=>`<span class="pill tag" style="flex:none">${t}</span>`).join('')}
+    </div>
+  </section>`;
+</script>
+</body>
+</html>

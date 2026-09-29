@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <script src="/studio/shared/turbo.min.js?v=20260714"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Configuración · Studio · Neurohackers</title>
+  <link rel="stylesheet" href="/studio/shared/styles.css?v=20260714">
+  <style>
+    .provider-card { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); padding: var(--space-5); margin-bottom: var(--space-4); }
+    .provider-card h3 { margin: 0 0 var(--space-2); font-size: var(--text-lg); }
+    .provider-card .lead { font-size: var(--text-sm); color: var(--text-muted); margin-bottom: var(--space-4); }
+    .key-input { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.5px; }
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: var(--space-3) 0; border-top: 1px solid var(--border-soft); }
+    .toggle-row .lbl { font-weight: 600; font-size: var(--text-sm); }
+    .toggle-row .sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .toggle { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: var(--border); border-radius: 999px; transition: 250ms; }
+    .toggle-slider::before { content: ''; position: absolute; height: 18px; width: 18px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: 250ms; }
+    .toggle input:checked + .toggle-slider { background: var(--success); }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
+    .alerta { background: #FEF3C7; border: 1px solid #FCD34D; border-radius: 8px; padding: 12px 16px; font-size: 13px; color: #92400E; margin-bottom: var(--space-4); }
+    .key-saved { color: var(--success); font-size: 12px; font-family: var(--font-mono); }
+    .admin-banner { background: #1D1D1F; color: white; padding: 10px 14px; border-radius: 6px; font-size: 13px; margin-bottom: var(--space-4); display: flex; align-items: center; gap: 8px; }
+    .selector-lead { width: 100%; margin-bottom: var(--space-4); }
+  </style>
+</head>
+<body>
+
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<div data-studio-nav data-active="configuracion"></div>
+
+<div class="admin-strip" style="background: #1D1D1F;">
+  <div class="admin-strip-inner">
+    <span class="admin-strip-dot" style="background: var(--accent);"></span>
+    <span>STUDIO · CONFIGURACIÓN DE API KEYS</span>
+    <span style="opacity: 0.5;">·</span>
+    <a href="/studio/index.html">Inicio</a>
+  </div>
+</div>
+
+<main class="container-wide" id="main" style="max-width: 760px;">
+
+  <section style="margin-bottom: var(--space-5);">
+    <span class="eyebrow">CONFIGURACIÓN</span>
+    <h1 class="greeting-lg">Tus API keys.</h1>
+    <p class="lead">Por default usamos las keys de Neurohackers (tú no pagas nada extra). Si quieres pagar el consumo directamente desde tu propia cuenta de Anthropic u OpenAI, pega tus claves aquí y desactiva el uso de la plataforma. Solo aplica a generación de contenido para redes (no afecta otros módulos).</p>
+  </section>
+
+  <div id="admin-banner-slot"></div>
+
+  <div id="conf-error" class="hidden" style="background: #FEE2E2; color: #991B1B; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px;"></div>
+
+  <!-- Anthropic -->
+  <div class="provider-card">
+    <h3>Anthropic Claude</h3>
+    <p class="lead">Genera todo el texto: hooks, cuerpos, hashtags. Modelo: claude-sonnet-4-6. Cost ~$0.003-0.015 por pieza.</p>
+
+    <div class="field">
+      <label class="field-label">Tu API key (sk-ant-...)</label>
+      <input type="password" class="field-input key-input" id="anthropic-key" placeholder="sk-ant-api03-...">
+      <div class="field-hint">Crea una en <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a>. Se guarda cifrada en tu cuenta.</div>
+    </div>
+
+    <div class="toggle-row" id="row-toggle-anthropic">
+      <div>
+        <div class="lbl">Usar key de Neurohackers</div>
+        <div class="sub" id="sub-toggle-anthropic">Si está activo, los costos los paga Neurohackers (tu key se ignora).</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="usar-plat-anthropic" checked>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <button class="btn btn-accent" id="btn-save-anthropic" style="margin-top: 12px;">Guardar Anthropic</button>
+    <span id="anthropic-saved" class="key-saved hidden" style="margin-left: 10px;">✓ guardado</span>
+  </div>
+
+  <!-- OpenAI -->
+  <div class="provider-card">
+    <h3>OpenAI</h3>
+    <p class="lead">Genera todas las imágenes de los posts (gpt-image-2). Cost ~$0.04-0.25 por imagen según calidad y tamaño.</p>
+
+    <div class="field">
+      <label class="field-label">Tu API key (sk-...)</label>
+      <input type="password" class="field-input key-input" id="openai-key" placeholder="sk-proj-...">
+      <div class="field-hint">Crea una en <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com</a>. Se guarda cifrada en tu cuenta.</div>
+    </div>
+
+    <div class="toggle-row" id="row-toggle-openai">
+      <div>
+        <div class="lbl">Usar key de Neurohackers</div>
+        <div class="sub" id="sub-toggle-openai">Si está activo, los costos los paga Neurohackers (tu key se ignora).</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="usar-plat-openai" checked>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <button class="btn btn-accent" id="btn-save-openai" style="margin-top: 12px;">Guardar OpenAI</button>
+    <span id="openai-saved" class="key-saved hidden" style="margin-left: 10px;">✓ guardado</span>
+  </div>
+
+  <p style="font-size: 12px; color: var(--text-muted); margin-top: var(--space-6); line-height: 1.6;">
+    <strong>Cómo se almacenan:</strong> las keys se cifran en base de datos con AES-256 (pgcrypto + Supabase Vault).
+    Solo las funciones de generación (servidor) pueden desencriptarlas para hacer el llamado a OpenAI/Anthropic.
+    Ni tú ni el admin pueden recuperar la key después de guardarla; solo verán los últimos 4 caracteres.
+    <br><br>
+    <strong>Alcance:</strong> las keys solo se usan para Studio (generación de contenido para redes sociales).
+    El resto de funciones de IA en la plataforma (diagnóstico de productos, etc.) usan las keys de Neurohackers siempre.
+  </p>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/studio/shared/scripts/config.js?v=20260714"></script>
+<script src="/studio/shared/scripts/supabase-client.js?v=20260714"></script>
+<script src="/studio/shared/scripts/utils.js?v=20260714"></script>
+<script src="/studio/shared/scripts/studio-auth.js?v=20260714"></script>
+<script src="/studio/shared/scripts/studio-nav.js?v=20260714"></script>
+<script>
+(async function () {
+  const auth = await window.requireStudioAuth();
+  if (!auth) return;
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => (window.utils?.escapeHtml || ((x) => String(x ?? '')))(s);
+
+  // Soporta dos modos:
+  //   - Cliente puro: edita lo suyo (auth.lead.id)
+  //   - Admin: puede elegir cualquier lead vía ?lead=<id> (o dropdown si no se pasa)
+  const url = new URL(window.location.href);
+  let leadObj = null;
+  let editingAsAdmin = false;
+
+  if (auth.admin && url.searchParams.get('lead')) {
+    editingAsAdmin = true;
+    const leadId = url.searchParams.get('lead');
+    const { data: l } = await window.db.from('leads').select('id, nombre, email').eq('id', leadId).maybeSingle();
+    if (!l) { $('conf-error').textContent = 'Lead no encontrado.'; $('conf-error').classList.remove('hidden'); return; }
+    leadObj = l;
+  } else if (auth.admin && !auth.lead) {
+    // Admin sin lead asociado y sin ?lead: mostrar selector
+    const { data: leads } = await window.db.from('leads').select('id, nombre, email').order('nombre');
+    $('admin-banner-slot').innerHTML = `
+      <div class="admin-banner">
+        <span style="background: var(--accent); padding: 2px 8px; border-radius: 4px; font-family: var(--font-mono); font-size: 11px;">ADMIN</span>
+        <span>Selecciona un cliente para editar sus API keys:</span>
+      </div>
+      <select class="field-input selector-lead" id="sel-lead">
+        <option value="">— Elige un cliente —</option>
+        ${(leads || []).map(l => `<option value="${l.id}">${esc(l.nombre || l.email)}</option>`).join('')}
+      </select>`;
+    $('sel-lead').addEventListener('change', (e) => {
+      if (e.target.value) window.location.href = `/studio/configuracion/index.html?lead=${e.target.value}`;
+    });
+    return;
+  } else if (auth.lead) {
+    leadObj = auth.lead;
+    if (auth.admin) editingAsAdmin = true;
+  } else {
+    $('conf-error').textContent = 'No tienes cuenta de cliente asociada.';
+    $('conf-error').classList.remove('hidden');
+    return;
+  }
+
+  if (editingAsAdmin) {
+    $('admin-banner-slot').innerHTML = `
+      <div class="admin-banner">
+        <span style="background: var(--accent); padding: 2px 8px; border-radius: 4px; font-family: var(--font-mono); font-size: 11px;">ADMIN</span>
+        <span>Editando keys de: <strong>${esc(leadObj.nombre || leadObj.email)}</strong></span>
+        ${url.searchParams.get('lead') ? `<a href="/studio/configuracion/index.html" style="margin-left: auto; color: white; text-decoration: underline; font-size: 12px;">Volver al selector</a>` : ''}
+      </div>`;
+  }
+
+  // Cargar config actual. Ya NO traemos los bytea (encriptados), solo metadatos.
+  const { data: cak } = await window.db.from('cliente_api_keys')
+    .select('lead_id, usar_plataforma_anthropic, usar_plataforma_openai, anthropic_key_last4, openai_key_last4, updated_at')
+    .eq('lead_id', leadObj.id).maybeSingle();
+  if (cak) {
+    if (cak.anthropic_key_last4) $('anthropic-key').placeholder = `sk-ant-...…${cak.anthropic_key_last4}  ✓ guardada (cifrada)`;
+    if (cak.openai_key_last4)    $('openai-key').placeholder    = `sk-...…${cak.openai_key_last4}  ✓ guardada (cifrada)`;
+    $('usar-plat-anthropic').checked = cak.usar_plataforma_anthropic !== false;
+    $('usar-plat-openai').checked    = cak.usar_plataforma_openai !== false;
+  }
+
+  // Solo el admin puede flipear los toggles. Cliente solo pega/borra su key.
+  const puedeFlipearToggles = !!(auth.admin && auth.admin.rol === 'admin');
+  if (!puedeFlipearToggles) {
+    ['usar-plat-anthropic', 'usar-plat-openai'].forEach((id) => {
+      const cb = $(id);
+      cb.disabled = true;
+      cb.parentElement.style.opacity = '0.55';
+      cb.parentElement.style.cursor = 'not-allowed';
+      cb.parentElement.title = 'Solo el admin de Neurohackers puede cambiar quién paga el consumo.';
+    });
+    $('sub-toggle-anthropic').innerHTML = 'Solo el admin de Neurohackers decide quién paga el consumo. Si quieres cambiar esto, contacta al equipo.';
+    $('sub-toggle-openai').innerHTML    = 'Solo el admin de Neurohackers decide quién paga el consumo. Si quieres cambiar esto, contacta al equipo.';
+  }
+
+  async function upsertKey(field, value) {
+    const patch = { lead_id: leadObj.id };
+    if (field === 'anthropic_key') {
+      patch.anthropic_key = value || null;
+      // Solo admin manda el toggle; cliente no lo toca para no disparar el trigger BD
+      if (puedeFlipearToggles) patch.usar_plataforma_anthropic = $('usar-plat-anthropic').checked;
+    } else if (field === 'openai_key') {
+      patch.openai_key = value || null;
+      if (puedeFlipearToggles) patch.usar_plataforma_openai = $('usar-plat-openai').checked;
+    }
+    const { error } = await window.db.from('cliente_api_keys')
+      .upsert(patch, { onConflict: 'lead_id' });
+    if (error) throw error;
+  }
+
+  $('btn-save-anthropic').addEventListener('click', async () => {
+    const btn = $('btn-save-anthropic');
+    btn.disabled = true; btn.textContent = 'Guardando...';
+    try {
+      const v = $('anthropic-key').value.trim();
+      await upsertKey('anthropic_key', v || null);
+      $('anthropic-saved').classList.remove('hidden');
+      window.utils?.toast?.('Anthropic guardado', 'success');
+      setTimeout(() => $('anthropic-saved').classList.add('hidden'), 3500);
+    } catch (e) {
+      window.utils?.toast?.('Error: ' + e.message, 'error');
+    } finally { btn.disabled = false; btn.textContent = 'Guardar Anthropic'; }
+  });
+
+  $('btn-save-openai').addEventListener('click', async () => {
+    const btn = $('btn-save-openai');
+    btn.disabled = true; btn.textContent = 'Guardando...';
+    try {
+      const v = $('openai-key').value.trim();
+      await upsertKey('openai_key', v || null);
+      $('openai-saved').classList.remove('hidden');
+      window.utils?.toast?.('OpenAI guardado', 'success');
+      setTimeout(() => $('openai-saved').classList.add('hidden'), 3500);
+    } catch (e) {
+      window.utils?.toast?.('Error: ' + e.message, 'error');
+    } finally { btn.disabled = false; btn.textContent = 'Guardar OpenAI'; }
+  });
+
+  // Auto-guardar al cambiar los toggles (solo admin tiene esto habilitado)
+  if (puedeFlipearToggles) {
+    $('usar-plat-anthropic').addEventListener('change', async (e) => {
+      try {
+        await window.db.from('cliente_api_keys').upsert(
+          { lead_id: leadObj.id, usar_plataforma_anthropic: e.target.checked },
+          { onConflict: 'lead_id' }
+        );
+        window.utils?.toast?.(`Anthropic: ${e.target.checked ? 'usar plataforma' : 'usar key propia'}`, 'success');
+      } catch (err) { window.utils?.toast?.('Error: ' + err.message, 'error'); e.target.checked = !e.target.checked; }
+    });
+    $('usar-plat-openai').addEventListener('change', async (e) => {
+      try {
+        await window.db.from('cliente_api_keys').upsert(
+          { lead_id: leadObj.id, usar_plataforma_openai: e.target.checked },
+          { onConflict: 'lead_id' }
+        );
+        window.utils?.toast?.(`OpenAI: ${e.target.checked ? 'usar plataforma' : 'usar key propia'}`, 'success');
+      } catch (err) { window.utils?.toast?.('Error: ' + err.message, 'error'); e.target.checked = !e.target.checked; }
+    });
+  }
+})();
+</script>
+
+</body>
+</html>

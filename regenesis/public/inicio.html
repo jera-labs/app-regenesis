@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Neurohackers · Transforma tu mente. Escala tu negocio.</title>
+<meta name="description" content="Neurohackers: programas de transformación personal y crecimiento de negocio, más el CRM todo-en-uno Live Lucky. Cuatro caminos, un solo lugar." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#F5F5F7; --surface:#FFFFFF; --surface-2:#FAFAFA;
+    --border:#D2D2D7; --border-soft:#E5E5EA;
+    --text:#1D1D1F; --text-muted:#86868B;
+    --accent:#D4AF37; --accent-bright:#E5C147; --accent-dark:#B8941F; --accent-soft:#F5E9B8;
+    --radius:14px; --radius-lg:22px;
+    --shadow:0 1px 3px rgba(0,0,0,.04),0 10px 30px rgba(0,0,0,.05);
+    --shadow-hover:0 2px 6px rgba(0,0,0,.06),0 18px 44px rgba(0,0,0,.09);
+    --ease:cubic-bezier(.4,0,.2,1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:'Geist',-apple-system,system-ui,sans-serif;background:var(--bg);color:var(--text);
+    line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+  a{color:inherit;text-decoration:none}
+  .mono{font-family:'Geist Mono',monospace;text-transform:uppercase;letter-spacing:.12em}
+
+  /* NAV */
+  header{position:sticky;top:0;z-index:50;background:rgba(245,245,247,.8);backdrop-filter:saturate(180%) blur(20px);
+    border-bottom:1px solid var(--border-soft)}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:62px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:17px;letter-spacing:-.01em}
+  .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+  .nav-links{display:flex;align-items:center;gap:28px}
+  .nav-links a{font-size:14px;color:var(--text-muted);transition:color .15s var(--ease)}
+  .nav-links a:hover{color:var(--text)}
+  .nav-cta{font-size:14px;font-weight:600;padding:9px 18px;border-radius:980px;background:var(--text);color:#fff !important;
+    transition:transform .15s var(--ease),opacity .15s var(--ease)}
+  .nav-cta:hover{opacity:.88}
+  @media(max-width:720px){.nav-links a:not(.nav-cta){display:none}}
+
+  /* HERO */
+  .hero{padding:96px 0 64px;text-align:center}
+  .eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:12px;font-weight:500;color:var(--accent-dark);
+    background:var(--surface);border:1px solid var(--accent-bright);padding:7px 16px;border-radius:980px;margin-bottom:26px}
+  .eyebrow .pulse{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  h1{font-size:clamp(36px,6.4vw,64px);font-weight:700;letter-spacing:-.035em;line-height:1.04;margin-bottom:22px}
+  h1 .accent{color:var(--accent-dark)}
+  .hero .sub{font-size:clamp(17px,2.2vw,20px);color:var(--text-muted);max-width:620px;margin:0 auto 34px}
+  .cta-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:9px;font-size:16px;font-weight:600;padding:13px 26px;
+    border-radius:980px;cursor:pointer;border:1px solid transparent;transition:transform .15s var(--ease),opacity .15s var(--ease),background .15s var(--ease)}
+  .btn:hover{transform:translateY(-1px)}
+  .btn-primary{background:var(--accent);color:#1D1D1F}
+  .btn-primary:hover{background:var(--accent-bright)}
+  .btn-ghost{background:var(--surface);border-color:var(--border);color:var(--text)}
+  .btn-ghost:hover{background:var(--surface-2)}
+  .hero-note{margin-top:18px;font-size:13px;color:var(--text-muted)}
+
+  /* SECTION TITLES */
+  .sec{padding:64px 0}
+  .sec-head{text-align:center;max-width:640px;margin:0 auto 48px}
+  .sec-head .label{font-size:11px;color:var(--accent-dark);margin-bottom:14px;display:block}
+  .sec-head h2{font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:-.03em;line-height:1.1;margin-bottom:14px}
+  .sec-head p{font-size:17px;color:var(--text-muted)}
+
+  /* SERVICES */
+  .services{display:grid;grid-template-columns:repeat(2,1fr);gap:22px}
+  .svc{position:relative;background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--radius-lg);
+    padding:34px;box-shadow:var(--shadow);transition:transform .2s var(--ease),box-shadow .2s var(--ease),border-color .2s var(--ease);
+    display:flex;flex-direction:column}
+  .svc:hover{transform:translateY(-3px);box-shadow:var(--shadow-hover);border-color:var(--accent-bright)}
+  .svc.feature{border-color:var(--accent-bright);background:linear-gradient(180deg,rgba(212,175,55,.05),var(--surface) 60%)}
+  .svc .tag{position:absolute;top:22px;right:22px;font-size:10px;font-weight:600;color:#1D1D1F;background:var(--accent);
+    padding:5px 12px;border-radius:980px}
+  .svc .ic{width:46px;height:46px;border-radius:13px;background:var(--accent-soft);display:grid;place-items:center;
+    font-size:22px;color:var(--accent-dark);margin-bottom:18px}
+  .svc h3{font-size:21px;font-weight:600;letter-spacing:-.01em;margin-bottom:6px}
+  .svc .who{font-size:12px;color:var(--accent-dark);margin-bottom:12px}
+  .svc p{font-size:15px;color:var(--text-muted);margin-bottom:18px;flex:1}
+  .svc ul{list-style:none;margin-bottom:22px;display:flex;flex-direction:column;gap:8px}
+  .svc li{font-size:14px;color:var(--text);display:flex;gap:9px;align-items:flex-start}
+  .svc li .ck{color:var(--accent-dark);font-weight:700;flex-shrink:0}
+  .svc .foot{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:auto}
+  .svc .price{font-size:14px;color:var(--text-muted)}
+  .svc .price b{font-size:20px;color:var(--text);font-weight:700}
+  .svc .go{font-size:15px;font-weight:600;padding:11px 20px;border-radius:980px;background:var(--text);color:#fff;
+    transition:opacity .15s var(--ease)}
+  .svc .go:hover{opacity:.88}
+  .svc.feature .go{background:var(--accent);color:#1D1D1F}
+  @media(max-width:760px){.services{grid-template-columns:1fr}}
+
+  /* PASOS */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+  .step{text-align:center;padding:8px}
+  .step .n{width:38px;height:38px;border-radius:50%;background:var(--surface);border:1px solid var(--accent-bright);
+    color:var(--accent-dark);font-weight:700;display:grid;place-items:center;margin:0 auto 16px}
+  .step h3{font-size:17px;font-weight:600;margin-bottom:6px}
+  .step p{font-size:14px;color:var(--text-muted)}
+  @media(max-width:680px){.steps{grid-template-columns:1fr;gap:32px}}
+
+  /* CTA BAND */
+  .band{background:var(--text);border-radius:var(--radius-lg);padding:56px 40px;text-align:center;color:#fff}
+  .band h2{font-size:clamp(26px,3.6vw,36px);font-weight:700;letter-spacing:-.03em;margin-bottom:12px}
+  .band p{color:rgba(255,255,255,.7);font-size:17px;margin-bottom:28px;max-width:520px;margin-left:auto;margin-right:auto}
+
+  /* FOOTER */
+  footer{border-top:1px solid var(--border-soft);padding:40px 0;margin-top:64px}
+  .foot-grid{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:18px}
+  .foot-links{display:flex;gap:24px;flex-wrap:wrap}
+  .foot-links a{font-size:14px;color:var(--text-muted);transition:color .15s var(--ease)}
+  .foot-links a:hover{color:var(--text)}
+  .copy{font-size:13px;color:var(--text-muted)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <nav class="nav">
+      <a class="brand" href="#top"><span class="dot"></span> Neurohackers</a>
+      <div class="nav-links">
+        <a href="#servicios">Servicios</a>
+        <a href="#como">Cómo funciona</a>
+        <a href="https://plataforma.neurohackers.cloud/login.html">Acceder</a>
+        <a class="nav-cta" href="https://wa.me/14074088501" target="_blank" rel="noopener">Hablar con el equipo</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<a id="top"></a>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="eyebrow"><span class="pulse"></span> Transformación personal + crecimiento de negocio</div>
+    <h1>Transforma tu mente.<br><span class="accent">Escala tu negocio.</span></h1>
+    <p class="sub">Neurohackers reúne tus programas de transformación y las herramientas para crecer en un solo lugar. Elige el camino que necesitas hoy.</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="#servicios">Ver servicios</a>
+      <a class="btn btn-ghost" href="https://wa.me/14074088501" target="_blank" rel="noopener">Hablar por WhatsApp</a>
+    </div>
+    <div class="hero-note">Acompañamiento real · resultados medibles · una sola plataforma</div>
+  </div>
+</section>
+
+<section class="sec" id="servicios">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="label mono">Nuestros servicios</span>
+      <h2>Cuatro caminos, un solo lugar</h2>
+      <p>Desde la sanación de tu raíz hasta el sistema que hace crecer tu negocio. Escoge dónde empezar.</p>
+    </div>
+
+    <div class="services">
+
+      <!-- 1. Re-Génesis Completo -->
+      <article class="svc feature">
+        <span class="tag">Insignia</span>
+        <div class="ic">◈</div>
+        <h3>Re-Génesis</h3>
+        <div class="who">El programa completo</div>
+        <p>10 semanas de transformación personal profunda, combinadas con el sistema para llevar tu negocio al siguiente nivel.</p>
+        <ul>
+          <li><span class="ck">✓</span> Proceso terapéutico de 70 días guiado</li>
+          <li><span class="ck">✓</span> Módulos de marca, oferta y negocio</li>
+          <li><span class="ck">✓</span> Sesiones en vivo + acompañamiento</li>
+        </ul>
+        <div class="foot">
+          <span class="price">Programa de alto nivel</span>
+          <a class="go" href="https://app.neurohackers.top/widget/form/R44gBGDszvOwYiJ1Gy4s" target="_blank" rel="noopener">Postular →</a>
+        </div>
+      </article>
+
+      <!-- 2. Re-Génesis Terapia -->
+      <article class="svc">
+        <div class="ic">∼</div>
+        <h3>Re-Génesis Terapia</h3>
+        <div class="who">Sana tu raíz</div>
+        <p>El proceso terapéutico de 70 días: epigenética, niño interior, vínculos y heridas. Una pregunta diaria, tu reflexión y análisis personalizado.</p>
+        <ul>
+          <li><span class="ck">✓</span> 10 temas de transformación, semana a semana</li>
+          <li><span class="ck">✓</span> Diario digital con análisis de IA</li>
+          <li><span class="ck">✓</span> Sesiones presenciales, virtuales y grupales</li>
+        </ul>
+        <div class="foot">
+          <span class="price">Acompañamiento 1:1</span>
+          <a class="go" href="https://app.neurohackers.top/widget/form/HKtVZzo97Cdp5ZCXxbDB" target="_blank" rel="noopener">Postular →</a>
+        </div>
+      </article>
+
+      <!-- 3. Re-Génesis Growth -->
+      <article class="svc">
+        <div class="ic">◰</div>
+        <h3>Re-Génesis Growth</h3>
+        <div class="who">Para emprendedores</div>
+        <p>El camino de crecimiento: CRM, comunidad y acompañamiento para atraer clientes y escalar tu negocio, sin pasar por el programa terapéutico.</p>
+        <ul>
+          <li><span class="ck">✓</span> CRM Live Lucky incluido</li>
+          <li><span class="ck">✓</span> Comunidad y formación en Skool</li>
+          <li><span class="ck">✓</span> Estrategia y seguimiento al crecimiento</li>
+        </ul>
+        <div class="foot">
+          <span class="price">Negocio + comunidad</span>
+          <a class="go" href="https://app.neurohackers.top/widget/form/6fKxuX9jNPFmfF2YOczu" target="_blank" rel="noopener">Postular →</a>
+        </div>
+      </article>
+
+      <!-- 4. Live Lucky CRM -->
+      <article class="svc">
+        <div class="ic">▦</div>
+        <h3>Live Lucky CRM</h3>
+        <div class="who">El CRM todo-en-uno</div>
+        <p>Contactos, pipelines, automatizaciones, agenda, WhatsApp y embudos en una sola herramienta. Deja de pagar 6 apps sueltas.</p>
+        <ul>
+          <li><span class="ck">✓</span> Todo tu negocio en un solo panel</li>
+          <li><span class="ck">✓</span> Automatizaciones y WhatsApp integrados</li>
+          <li><span class="ck">✓</span> Tu cuenta se crea sola al registrarte</li>
+        </ul>
+        <div class="foot">
+          <span class="price"><b>60 días</b> gratis</span>
+          <a class="go" href="https://plataforma.neurohackers.cloud/live-lucky/" target="_blank" rel="noopener">Empezar →</a>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="como">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="label mono">Cómo funciona</span>
+      <h2>Empezar es simple</h2>
+      <p>Sin fricción. Eliges tu camino y el equipo te acompaña desde el primer día.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="n">1</div>
+        <h3>Elige tu camino</h3>
+        <p>Transformación, terapia, crecimiento o el CRM. El que necesitas hoy.</p>
+      </div>
+      <div class="step">
+        <div class="n">2</div>
+        <h3>Te acompañamos</h3>
+        <p>Onboarding guiado y acompañamiento real, no te dejamos solo.</p>
+      </div>
+      <div class="step">
+        <div class="n">3</div>
+        <h3>Ves resultados</h3>
+        <p>Avanzas con un sistema medible, paso a paso, en una sola plataforma.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="wrap">
+    <div class="band">
+      <h2>¿No sabes por dónde empezar?</h2>
+      <p>Cuéntanos dónde estás y te ayudamos a elegir el camino correcto para ti o tu negocio.</p>
+      <a class="btn btn-primary" href="https://wa.me/14074088501" target="_blank" rel="noopener">Hablar con el equipo</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <a class="brand" href="#top"><span class="dot"></span> Neurohackers</a>
+      <div class="foot-links">
+        <a href="#servicios">Servicios</a>
+        <a href="#como">Cómo funciona</a>
+        <a href="https://plataforma.neurohackers.cloud/login.html">Acceder</a>
+        <a href="https://wa.me/14074088501" target="_blank" rel="noopener">WhatsApp</a>
+      </div>
+    </div>
+    <p class="copy" style="margin-top:24px;">© Neurohackers. Transformación personal y crecimiento de negocio.</p>
+  </div>
+</footer>
+
+</body>
+</html>

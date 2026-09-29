@@ -1,0 +1,165 @@
+Neurohackers Launch: Team Onboarding and Project Regénesis Strategy
+1 fuente
+·
+May 23, 2026
+Este fragmento presenta la reunión de lanzamiento de Neurohackers, un proyecto liderado por Frank que integra terapia generativa, gestión gerencial y estrategias de ventas. Durante el encuentro, se introducen a los especialistas clave, incluyendo expertos en arquitectura de sistemas, marketing digital y consultoría de alto nivel, quienes trabajarán de forma conjunta para escalar los resultados de sus clientes. El programa central, denominado Regénesis, busca transformar la mentalidad y la estructura operativa de los emprendedores mediante un sistema de diez módulos apoyado en inteligencia artificial y seguimiento automatizado. La sesión establece compromisos inmediatos, como la creación de contenido educativo en la plataforma School y la unificación de la identidad visual de la marca. Finalmente, el equipo discute la logística de onboarding y cierre de ventas a través de herramientas tecnológicas como GoHighLevel para garantizar una experiencia de usuario coherente y efectiva.
+
+¿Cuáles son los roles y responsabilidades de cada nuevo integrante?
+¿En qué consiste el programa Regénesis y sus tres sistemas?
+¿Cómo funciona la tecnología de IA y seguimiento para los clientes?
+Hoy • 5:05 PM
+Puedes darme la transcricpión completa
+
+Debido a la extensa longitud del audio, no me es posible generar la transcripción textual completa palabra por palabra en este mensaje. Sin embargo, a continuación te presento el desglose más detallado y completo de la reunión, abordando cronológicamente todo lo que se conversó:
+1. Bienvenida y Presentación del Equipo La reunión inicia con Frank dando la bienvenida y presentando al equipo de "Neurohackers" para el proyecto Regénesis
+. Se presenta a Paola Segura como consultora experta en gestión de cambio, y a Ronald, experto en mercadeo y ventas por internet
+. Alexander es introducido como el arquitecto de sistemas de información, experto en inteligencia artificial y automatizaciones
+. Paola Canchón se suma como una "closer" de ventas de alto rendimiento, y Tatiana es mencionada como la encargada de la parte administrativa y de logística
+. Los integrantes saludan, hablan un poco de su experiencia y expresan su entusiasmo por emprender en esta visión compartida
+.
+2. Visión y Estructura del Programa "Regénesis" Frank detalla que Regénesis es un proceso estructurado para construir la siguiente versión de las personas y acelerar sus resultados
+. El programa promete a los clientes un incremento tangible de ingresos de $20,000 a $50,000 dólares en un lapso de seis meses
+. La metodología incluye tres sistemas principales: terapia (10 sesiones), estructura gerencial y un laboratorio de ventas
+. El objetivo inicial es vender 25 cupos mensuales, lo cual representará el punto de equilibrio para el proyecto
+. Además, Frank explica que cada miembro del equipo tiene una unidad de negocio (como creación de blogs SEO, mentorías privadas o consultorías) que les permitirá generar ingresos adicionales de forma compartida
+.
+3. Creación de Contenido y Uso de la Plataforma School El equipo debe grabar videos de capacitación para los clientes, los cuales serán alojados en la plataforma "School"
+. Frank hace un tutorial mostrando cómo utilizar la extensión de Loom para grabar las pantallas y organizar los videos en carpetas específicas
+. Acuerdan utilizar un fondo virtual unificado con el logo de Neurohackers en las grabaciones para mantener consistencia y profesionalismo en la marca
+. Frank sugiere que los videos pueden dividirse en temas cortos de 5 a 15 minutos, y pide que la mitad del contenido esté subido ese mismo fin de semana
+. A futuro, estos cursos podrán ser vendidos de manera independiente como productos de bajo costo ("low ticket"), generando utilidades adicionales para los creadores
+.
+4. Demostración de la Aplicación Web de Regénesis Alexander comparte su pantalla para mostrar la aplicación que diseñó para el seguimiento de los clientes
+. Frank explica que la fase de terapia integra el concepto del trabajo de sombras de Carl Jung
+. Para facilitar que los usuarios hablen de temas difíciles, como su infancia o sus padres, la aplicación les pide crear un personaje ficticio al que le queda solo un año de vida
+. Los clientes deben llenar un diario ("journal") respondiendo preguntas diarias desde la perspectiva de ese personaje, y al final obtendrán un libro en formato PDF con su historia
+. El equipo discute formas de interconectar el progreso en esta aplicación con las tareas de los módulos de ventas y gerencia para llevar un mejor seguimiento
+.
+5. Estrategia Comercial, CRM y Onboarding Paola Canchón solicita claridad sobre el proceso para agendar citas y realizar los cobros
+. Frank y Alexander explican el uso del CRM GoHighLevel, mostrando cómo los prospectos diligencian un formulario previo que proporciona información clave para guiar la llamada de ventas
+. Desde la plataforma, Paola enviará enlaces de pago automatizados que configuran opciones de 1, 2, 3 o 4 cuotas
+. Para generar autoridad y confianza, Paola llamará a los prospectos utilizando un número telefónico y un WhatsApp corporativo configurados en Orlando, Estados Unidos
+. Paola también enfatiza la necesidad de definir los pilares y la promesa de valor para adaptar su guion comercial y empezar a contactar prospectos de inmediato
+.
+6. Acuerdos Finales y Próximos Pasos El equipo acuerda establecer mesas de trabajo semanales los días sábados por la mañana para revisar los avances
+. Asimismo, programan una reunión virtual de incorporación ("onboarding") con los clientes para el jueves a las 7:00 p.m. (hora de Orlando), con el fin de presentar formalmente a todos los especialistas
+. Frank se compromete a enviar los correos corporativos y los accesos a Loom y GoHighLevel
+. Finalmente, Frank despide la reunión motivando al equipo a construir este activo juntos, proyectando revisar los frutos financieros alcanzados el 23 de mayo del próximo año
+.
+¿Te gustaría que genere un documento formal (Reporte) con toda esta información organizada para que la tengas guardada o prefieres que la convierta en otro formato, como un audio explicativo?
+¿Cómo puedo ayudarte a generar el reporte formal con el desglose detallado?
+¿Prefieres que convierta este resumen en un audio explicativo para el equipo?
+¿Cuáles son los pilares y la promesa de valor de Regénesis?
+Puedes buscar en el audio y descifrar como sería el sistema que necesita Frank, he creado regenesis pero es solo para la parte de terapia, realmente creo que necesita algo más completo.
+
+El programa "Regénesis" fue concebido por Frank para basarse en tres sistemas o pilares principales: un sistema de terapia, un sistema de estructura gerencial y un sistema de ventas
+. Aunque la aplicación que creaste actualmente maneja de forma excelente la parte de terapia (el "journal" diario, el personaje ficticio y el trabajo de sombras)
+, la conversación revela que el ecosistema necesita evolucionar hacia una plataforma centralizada mucho más robusta.
+A partir de lo discutido por el equipo, aquí te detallo cómo debería ser el sistema completo que necesita Frank:
+1. Un "Success Board" (Tablero de Control Diario) Frank hace énfasis en la necesidad de medir las acciones diarias de los clientes mediante un "success board"
+. Este tablero debe mostrar una lista de tareas que el cliente debe chequear diariamente, como entrar a la plataforma Skool a ver videos, prospectar nuevos clientes, hacer publicaciones en Instagram y actualizar su propio CRM
+. El objetivo es que los mentores puedan entrar y ver exactamente en qué está fallando o estancado el cliente según su nivel de actividad
+.
+2. Centralización o "Hub" del Cliente Se necesita una página principal que consolide todo el ecosistema para que el cliente no perciba los módulos como elementos sueltos
+. El sistema ideal integraría:
+Skool: Para rastrear qué porcentaje de los cursos en video ha consumido el usuario (mediante webhooks o integraciones, aunque se mencionó que Skool tiene limitaciones con su API)
+.
+GoHighLevel: Para que los clientes puedan interactuar con su CRM, conectar su WhatsApp, hacer publicaciones y marcar sus tareas de ventas completadas, todo sin salir de la plataforma principal
+.
+3. Sistema de Diagnóstico Inicial (Assessment) El sistema necesita incorporar un formulario de diagnóstico o calibración durante el proceso de "onboarding"
+. Esto permitirá establecer el "Punto A" del cliente, evaluando cómo se encuentra en su gestión de ventas, su capacidad estratégica y su estado a nivel de desarrollo personal antes de iniciar
+.
+4. Gamificación y Ranking Para motivar a los usuarios y generar adherencia al proceso, el sistema debería contar con un ranking (por ejemplo, un top 3 de los clientes que más han avanzado en el proceso) que estimule la sana competencia
+. Esto se enlaza directamente con el plan de Frank de otorgar placas físicas de reconocimiento cuando los clientes logren generar $5.000, $10.000, $20.000 o más de $50.000 dólares adicionales
+.
+5. Automatización Comercial (Backend del equipo) Para el equipo interno, el sistema de GoHighLevel debe estar perfectamente automatizado con el embudo de ventas. Debe capturar las respuestas de los prospectos sobre sus bloqueos y metas de facturación para que la vendedora (Paola Canchón) las revise antes de llamar
+. Una vez en la llamada, el sistema debe permitir automatizar los enlaces de cobro con opciones de pago en 1, 2, 3 o 4 cuotas y, al confirmarse el pago, habilitar automáticamente la firma de contratos y el ingreso a la plataforma de Regénesis
+.
+En resumen, Frank necesita que tu desarrollo escale de ser únicamente una herramienta de terapia a convertirse en un centro de operaciones integral, donde la reprogramación mental se cruce directamente con las métricas de gerencia y la ejecución de ventas
+.
+¿Qué indicadores debe incluir el Success Board para los clientes?
+¿Cómo se integrarían las mentorías de ventas con el CRM?
+¿Qué funciones de gamificación motivarían más a los usuarios?
+Perfecto, vamos muy bien, se que varios módulos se crearán acá, ya que hay varios profesionales como mencionaba Frank y la idea era también ofrecer estos servicios a estos clientes, cómo visualizas que funcione este plan?
+
+El plan que visualiza Frank para capitalizar el talento de los profesionales del equipo se basa en crear un ecosistema de múltiples unidades de negocio interconectadas, donde cada experto actúa como un socio estratégico
+.
+Este modelo funcionará a través de un embudo de ventas cruzadas (upselling) y se estructurará de la siguiente manera:
+1. Venta de Módulos de Bajo Costo (Low-Ticket) El esfuerzo que están haciendo para grabar los videos y subirlos a la plataforma Skool no solo servirá para atender a los clientes del programa "Regénesis", sino que estos módulos se empaquetarán para venderse de forma independiente
+. Frank propone vender estos cursos cortos (como mentoría de ventas, gerencia u organización de clientes) a precios accesibles, entre $30 y $50 dólares
+. Las ganancias obtenidas por la venta de estos módulos se repartirán directamente entre Frank y el creador del contenido, generando ingresos residuales para todos
+.
+2. El Catálogo Educativo como "Gancho" Comercial Al tener todos estos cursos alojados en Skool, los usuarios se encontrarán con un catálogo educativo sumamente robusto
+. Cuando un cliente que compró un producto básico vea la cantidad de módulos especializados disponibles, percibirá un alto nivel de autoridad en el equipo
+. Esto actuará como un gancho para que decidan comprar otros cursos adicionales o pagar por el programa completo de mentoría
+.
+3. Servicios Privados y Personalizados (High-Ticket) La estrategia principal es que la comunidad de "Neurohackers" sirva como un flujo constante de clientes para los servicios especializados que cada profesional ya ofrece en sus propias empresas. Por cada negocio cerrado con estos clientes, se compartirá una pequeña participación con Frank
+:
+Alexander: Ofrecerá su sistema de creación de blogs para posicionamiento SEO en Google, lo cual es un servicio de pago mensual, además de configuraciones y customizaciones adicionales del CRM GoHighLevel
+. Frank visualiza que Alexander será de los que más facture, ya que todos los clientes necesitarán soporte tecnológico a medida
+.
+Paola Canchón: Ofrecerá mentorías privadas de ventas uno a uno para los clientes que requieran ayuda personalizada para cerrar negocios
+.
+Paola Segura y Ronald: Venderán consultorías directas para estructurar las empresas de los clientes y mentorías especializadas en gestión, marketing y crecimiento corporativo
+.
+En conclusión, la visión de Frank es que todos están construyendo un activo en conjunto
+. El trabajo inicial de grabar los módulos educativos les quitará carga operativa en el servicio al cliente, los posicionará como autoridades en su nicho y les abrirá la puerta para facturar de manera compartida todos los servicios complementarios que los emprendedores necesiten
+.
+¿Qué indicadores medirá el Success Board para los clientes?
+¿Cómo se repartirán las ganancias de los módulos Low-Ticket?
+¿Qué servicios específicos ofrecerá Alexander a través del CRM?
+Teniendo en todo esto, dime que es lo que el cliente final va a recibir?
+
+El cliente final del programa "Regénesis" recibe un ecosistema integral de transformación estructurado en tres sistemas (terapia, gerencia y ventas), diseñado con la promesa central de generarle un incremento en sus ingresos de $20,000 a $50,000 dólares en un periodo de seis meses
+. Aunque el programa se proyecta a seis meses, la fase intensiva dura tres meses, con otros tres meses de acompañamiento de soporte
+.
+A nivel de entregables tangibles y herramientas, esto es todo lo que el cliente recibe:
+1. Aplicación de Terapia y un Libro PDF Autobiográfico El cliente obtiene acceso a la plataforma web de Regénesis para trabajar su mentalidad mediante 10 sesiones enfocadas en sanar bloqueos (epigenética, relación con el dinero, padres, etc.)
+. A través de un diario virtual ("journal"), el cliente responde preguntas diarias encarnando a un personaje ficticio al que le queda un año de vida
+. Como gran entregable de este módulo, el sistema compila sus respuestas y le permite descargar un libro en PDF con su historia y proceso de reprogramación
+.
+2. Sistema de Ventas con CRM (GoHighLevel) Preconfigurado Para la ejecución comercial, se le entrega al cliente una cuenta en el software GoHighLevel completamente preconfigurada
+. Esta cuenta ya viene con las automatizaciones de marketing, la agenda de citas y los embudos listos para que conecten sus redes sociales (como Instagram) y comiencen a prospectar
+. Además, reciben dos meses gratuitos del uso de este sistema antes de tener que pagar la mensualidad de la plataforma
+.
+3. Academia Educativa (Skool) y Laboratorios Prácticos Reciben acceso a un catálogo de cursos en video alojados en la plataforma Skool
+. Aquí pueden consumir módulos cortos y directos sobre ventas, gestión gerencial y marketing, grabados por todos los especialistas del equipo
+. Esto se complementa con mentorías gerenciales y un laboratorio práctico de ventas cada 15 días, donde aplican la teoría directamente a la realidad de sus negocios
+.
+4. Tablero de Control Diario (Success Board) y Diagnóstico Desde el día uno, el cliente completa un formulario de diagnóstico (assessment) para establecer su punto de partida en ventas, gerencia y mentalidad
+. A partir de ahí, se le entrega un "Success Board", que es una lista de chequeo diaria de las acciones que debe cumplir para tener éxito (ver módulos, hacer publicaciones, contactar clientes, actualizar el CRM)
+.
+5. Placas Físicas de Reconocimiento Para gamificar el proceso y mantener la motivación al tope, el programa incluye un sistema de premios. A medida que el cliente demuestra resultados tangibles en ventas, la empresa le envía placas físicas a su domicilio cuando alcanzan los hitos de $5,000, $10,000, $20,000 y más de $50,000 dólares adicionales facturados
+.
+En resumen, el cliente no recibe simplemente un curso o consultoría aislada; adquiere una "capacidad instalada"
+ que mezcla apoyo psicológico, tecnología automatizada y el respaldo constante de un equipo de especialistas listos para guiarlo
+.
+¿Cómo funcionará el ranking de clientes y el sistema de placas?
+¿Qué herramientas de IA se integrarán para facilitar el trabajo del equipo?
+¿Cómo se distribuirán las ganancias de los módulos de bajo costo?
+Puedes analizar que contenido podría tener estas secciones o imaginar como debería estrar construida la plataforma, siento que ahora mismo regenesis se convierte en solo una extensión, además podría pensar en crear algo como: Cuanto estas facturando actualmente, cual es tu meta en los proximos 3 meses, y algo diario opcional por si cierra una venta la suba a la plataforma y se vaya guiando hasta cumplir ese objetivo o con forme se llene vaya motivando con mensajes para seguir y alcanzar o superar la meta, suena bien para completar lo anterior?
+
+Tu idea es excelente y se alinea a la perfección con la visión que discutió el equipo. Transformar la aplicación de un simple módulo de terapia a un verdadero "Hub" o Centro de Operaciones es exactamente lo que Alexander (el arquitecto de sistemas) y Frank visualizaron
+.
+Basado en las fuentes y complementando tus ideas, así debería estructurarse la plataforma centralizada:
+1. Módulo de Onboarding y Diagnóstico (Assessment) Tu propuesta de preguntar "cuánto estás facturando actualmente y cuál es tu meta" encaja perfectamente con el proceso de "calibración" que sugirió Paola Segura para establecer el "Punto A" del cliente
+. De hecho, el formulario de ventas que ya usan en GoHighLevel hace exactamente estas preguntas: indaga cuánto factura actualmente el cliente, qué lo está bloqueando y cuál es su meta de facturación (ej. $50,000)
+. Al integrar este cuestionario directamente en la primera pantalla de tu plataforma, el sistema podrá personalizar la experiencia y trazar la ruta hacia ese objetivo.
+2. Tablero de Control Diario (Success Board) Frank enfatizó la necesidad de un "success board" o lista de chequeo
+. Esta sección sería el núcleo de la operatividad diaria. Aquí el cliente vería sus tareas obligatorias para tener éxito, tales como: entrar a la plataforma Skool a ver un video, prospectar un cliente nuevo, publicar un post en Instagram y actualizar su CRM
+. Si el usuario se estanca, los mentores podrán ver este tablero y decirle exactamente en qué parte del proceso está fallando
+.
+3. Rastreador de Ventas y Sistema de Recompensas (Gamificación) Tu idea de incluir un registro diario opcional para subir las ventas cerradas y recibir mensajes motivacionales es brillante para completar el ecosistema. Esto se conecta directamente con dos elementos clave del programa:
+La Promesa de Valor: El programa promete un incremento de $20,000 a $50,000 dólares en seis meses
+. El sistema puede mostrar una barra de progreso que se vaya llenando con cada venta ingresada, guiándolos hacia esa meta.
+Las Placas Físicas: Frank planea enviar placas físicas a la casa de los clientes cuando alcancen hitos de $5,000, $10,000, $20,000 y $50,000 dólares adicionales
+. Tu rastreador de ventas podría automatizar este proceso: al llegar a la meta, el sistema despliega un mensaje motivacional de celebración y le avisa al equipo de logística que es momento de enviar la placa física.
+Ranking: También se sugirió implementar un "Top 3" de los clientes que más avanzan, para estimular la adherencia mediante la competencia sana
+.
+4. El Módulo de Terapia y Reprogramación (Lo que ya tienes) La sección que ya construiste se mantendría como un pilar fundamental. Los clientes seguirán haciendo sus 10 sesiones de trabajo de sombras, creando su personaje ficticio con un año de vida y llenando su "journal" diario para descargar finalmente su libro autobiográfico en PDF
+. La clave ahora será que, si el sistema detecta un bloqueo en el Rastreador de Ventas, le sugiera repasar temas de mentalidad, conectando por ejemplo cómo la relación con sus padres afecta su administración del negocio
+.
+5. Ecosistema de Integraciones (Skool y GoHighLevel) Para que no se sienta como una extensión más, la plataforma debe ser la ventana única del usuario
+. Alexander mencionó el objetivo de integrar webhooks o conexiones para que, desde tu sistema, el usuario pueda ver qué porcentaje de los cursos de Skool ha completado y realizar acciones rápidas de su CRM (GoHighLevel), como agendar citas o conectar su WhatsApp, todo sin salir de tu aplicación
+.
+Construir la plataforma con estas secciones solucionaría la preocupación del equipo de que los clientes no vean los módulos de terapia, gerencia y ventas como "cosas sueltas", sino como un proceso estructurado y articulado

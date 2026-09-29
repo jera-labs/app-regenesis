@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Iniciar sesión · Neurohackers</title>
+  <script src="/shared/turbo.min.js?v=20260797"></script>
+  <link rel="stylesheet" href="/shared/styles.css?v=20260797">
+</head>
+<body class="auth-body">
+
+<main class="auth-shell">
+  <div class="auth-form-wrap">
+    <a href="https://neurohackers.cloud/" class="auth-brand" aria-label="Neurohackers">
+      <div class="auth-brand-mark">N</div>
+      <span class="auth-brand-name">Neurohackers</span>
+    </a>
+
+    <h1 class="auth-title">Entra a tu plataforma</h1>
+    <p class="auth-sub">Tus credenciales son las mismas que usas en neurohackers.cloud.</p>
+
+    <div id="error-banner" class="auth-error hidden"></div>
+
+    <form id="login-form" class="auth-form" novalidate>
+      <div class="auth-field">
+        <label class="auth-label" for="email">Email</label>
+        <input class="auth-input" type="email" id="email" required autocomplete="email" placeholder="tu@email.com" spellcheck="false" autocapitalize="off">
+      </div>
+      <div class="auth-field">
+        <label class="auth-label" for="password">Contraseña</label>
+        <input class="auth-input" type="password" id="password" required autocomplete="current-password" placeholder="••••••••">
+      </div>
+      <button type="submit" id="submit-btn" class="auth-submit">Entrar</button>
+    </form>
+
+    <p class="auth-foot">
+      ¿Olvidaste tu contraseña? Escribe a <strong>Frank</strong> o <strong>Alex</strong>.<br>
+      <a href="https://neurohackers.cloud/">Volver a Re-Génesis →</a>
+    </p>
+  </div>
+
+  <aside class="auth-aside">
+    <div class="auth-aside-inner">
+      <span class="auth-aside-eyebrow">PROGRAMA · 6 MESES</span>
+      <h2 class="auth-aside-title">Una acción al día.<br>Acompañada por expertos.</h2>
+      <p class="auth-aside-text">Tus productos, tu marca y tu estado emocional, en un solo lugar. Re-Génesis vive aquí como uno de los módulos.</p>
+      <ul class="auth-aside-list">
+        <li>Diagnóstico estratégico de cada producto en 30 segundos</li>
+        <li>Tu trabajo emocional sincronizado con tus tareas</li>
+      </ul>
+    </div>
+  </aside>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/shared/scripts/config.js?v=20260797"></script>
+<script src="/shared/scripts/supabase-client.js?v=20260797"></script>
+  <script src="/shared/scripts/cache.js?v=20260797"></script>
+<script src="/shared/scripts/event-tracker.js?v=20260797"></script>
+<script>
+  const form = document.getElementById('login-form');
+  const errBanner = document.getElementById('error-banner');
+  const submitBtn = document.getElementById('submit-btn');
+  // Solo aceptamos paths internos en ?next= (un valor externo tipo
+  // https://evil.com permitiría phishing post-login con open redirect).
+  const nextOverride = (() => {
+    const n = new URLSearchParams(location.search).get('next');
+    if (!n) return null;
+    if (n.startsWith('//') || n.includes('://') || n.startsWith('\\')) return null;
+    return n;
+  })();
+
+  const errParam = new URLSearchParams(location.search).get('error');
+  if (errParam === 'no-lead') {
+    errBanner.textContent = 'Tu cuenta no está vinculada a un programa activo. Escribe a Frank o Alex.';
+    errBanner.classList.remove('hidden');
+  }
+
+  // Si es admin, su home por defecto es /admin/. Si es cliente puro, /index.html.
+  async function resolverDestino(email) {
+    if (nextOverride) return nextOverride;
+    try {
+      const { data: adm } = await db.from('usuarios_admin').select('rol').eq('email', email).eq('activo', true).maybeSingle();
+      if (adm?.rol) return 'admin/index.html';
+    } catch (_) {}
+    return 'index.html';
+  }
+
+  // Si el usuario tiene password_temporal=true en su metadata, lo forzamos a
+  // cambiarla antes de entrar a su dashboard. Esto evita andar mandando
+  // contraseñas por email y permite que el admin entregue temporales.
+  async function destinoConGate(session) {
+    const tieneTemp = !!session?.user?.user_metadata?.password_temporal;
+    if (tieneTemp) {
+      const next = encodeURIComponent(await resolverDestino(session.user.email));
+      return 'cambiar-password.html?next=' + next;
+    }
+    return await resolverDestino(session.user.email);
+  }
+
+  db.auth.getSession().then(async ({ data: { session } }) => {
+    if (session) location.href = await destinoConGate(session);
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errBanner.classList.add('hidden');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner"></span> Entrando...';
+
+    const email = document.getElementById('email').value.trim().toLowerCase();
+    const password = document.getElementById('password').value;
+
+    const { data, error } = await db.auth.signInWithPassword({ email, password });
+    if (error) {
+      errBanner.textContent = error.message === 'Invalid login credentials'
+        ? 'Email o contraseña incorrectos.'
+        : error.message;
+      errBanner.classList.remove('hidden');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Entrar';
+      return;
+    }
+    location.href = await destinoConGate(data.session);
+  });
+</script>
+
+
+</body>
+</html>

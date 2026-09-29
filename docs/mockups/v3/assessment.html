@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Assessment · Neurohackers</title>
+  <link rel="stylesheet" href="shared/styles.css">
+</head>
+<body>
+
+<header class="app-header">
+  <div class="app-header-inner">
+    <div class="brand">
+      <div class="brand-logo">N</div>
+      <span>Neurohackers</span>
+    </div>
+    <div style="margin-left: auto; font-size: var(--text-sm); color: var(--text-muted);">Paso 2 de 3 · Diagnóstico</div>
+  </div>
+</header>
+
+<main class="container">
+
+  <section style="margin-bottom: var(--space-8);">
+    <span class="eyebrow">DIAGNÓSTICO · 4 MIN</span>
+    <h1 class="greeting" style="font-size: var(--text-4xl);">Cuéntanos dónde estás.</h1>
+    <p style="font-size: var(--text-md); color: var(--text-muted); line-height: 1.6; margin-top: var(--space-3);">
+      Estas respuestas son tu Punto A. La IA las usa para personalizar tu ruta y darte tareas específicas, no genéricas.
+    </p>
+  </section>
+
+  <!-- PROGRESO -->
+  <div class="progress mb-6"><div class="progress-fill" style="width: 50%"></div></div>
+  <div class="text-muted mb-8" style="font-size: var(--text-xs); display: flex; justify-content: space-between;">
+    <span>4 de 8 preguntas</span><span>50%</span>
+  </div>
+
+  <!-- PREGUNTA -->
+  <section style="margin-bottom: var(--space-6);">
+    <span class="eyebrow">PREGUNTA 5 · TU META</span>
+    <h2 style="font-size: var(--text-xl); font-weight: 600; line-height: 1.35; margin: var(--space-2) 0 var(--space-5);">
+      ¿Cuál es tu meta de facturación mensual al cierre del programa?
+    </h2>
+
+    <div class="field">
+      <input class="field-input" type="number" value="35000" style="font-size: var(--text-2xl); font-weight: 600; padding: var(--space-4);">
+    </div>
+    <p class="text-muted" style="font-size: var(--text-sm); margin-top: var(--space-2);">
+      El programa promete <strong>+$20K a +$50K</strong> en 6 meses. Tu meta personal puede ser más conservadora o más ambiciosa.
+    </p>
+  </section>
+
+  <section style="margin-bottom: var(--space-6);">
+    <span class="eyebrow">PREGUNTA 6 · TU BLOQUEO</span>
+    <h2 style="font-size: var(--text-xl); font-weight: 600; line-height: 1.35; margin: var(--space-2) 0 var(--space-5);">
+      ¿Qué es lo que más te bloquea para llegar a esa meta?
+    </h2>
+
+    <div class="field">
+      <textarea class="field-input field-textarea" placeholder="Sé honesto: si fuera obvio ya lo habrías resuelto.">No logro cerrar más de 2 ventas por semana aunque tengo flujo de leads. Algo se cae en el momento de pedir el cierre.</textarea>
+    </div>
+  </section>
+
+  <!-- NAV -->
+  <div style="display: flex; align-items: center; justify-content: space-between; padding-top: var(--space-6); border-top: 1px solid var(--border-soft);">
+    <button class="btn btn-ghost">← Atrás</button>
+    <a href="validacion-producto.html" class="btn btn-accent btn-lg">Continuar · siguiente paso</a>
+  </div>
+
+</main>
+
+<div data-preview-nav data-active="assessment"></div>
+<script src="shared/nav.js"></script>
+
+</body>
+</html>

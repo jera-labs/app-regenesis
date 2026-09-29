@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ventas · Neurohackers Platform</title>
+  <link rel="stylesheet" href="../shared/styles.css">
+</head>
+<body>
+
+<div data-nav data-active="sales" data-base="../"></div>
+
+<main class="container">
+
+  <section style="margin-bottom: var(--space-8);">
+    <div class="eyebrow">VENTAS · MES DE MAYO</div>
+    <h1 class="display">$7,800 cerrados.<br><span class="mark-accent">22%</span> de tu meta.</h1>
+    <p class="section-sub">
+      Te faltan <strong>$27,200</strong> en los próximos 5 meses para alcanzar tu compromiso.
+      Vas adelantado 8% respecto al ritmo esperado.
+    </p>
+  </section>
+
+  <!-- TRACKER PRINCIPAL CON HITOS -->
+  <div class="tracker-card mb-8">
+    <div class="tracker-meta">
+      <div>
+        <div class="card-meta">META: 6 MESES</div>
+        <div class="tracker-amount">
+          $7,800
+          <span class="tracker-amount-goal">/ $35,000</span>
+        </div>
+      </div>
+      <div style="text-align: right;">
+        <div class="card-meta">PRÓXIMO HITO</div>
+        <div style="font-size: var(--text-xl); font-weight: 600; margin-top: 4px; color: var(--accent-dark);">$10,000 · Plata</div>
+      </div>
+    </div>
+
+    <div class="progress progress-thick progress-with-glow mt-4">
+      <div class="progress-fill" style="width: 22%"></div>
+    </div>
+
+    <div class="tracker-milestones">
+      <div class="tracker-milestone reached">
+        <div class="tracker-milestone-dot">●</div>
+        <div class="tracker-milestone-amount">$5K · Bronce ✓</div>
+      </div>
+      <div class="tracker-milestone">
+        <div class="tracker-milestone-dot">●</div>
+        <div class="tracker-milestone-amount">$10K · Plata</div>
+      </div>
+      <div class="tracker-milestone">
+        <div class="tracker-milestone-dot">●</div>
+        <div class="tracker-milestone-amount">$20K · Oro</div>
+      </div>
+      <div class="tracker-milestone">
+        <div class="tracker-milestone-dot">●</div>
+        <div class="tracker-milestone-amount">$50K · Platino</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPIs SECUNDARIOS -->
+  <div class="grid grid-4 mb-8">
+    <div class="card card-padded">
+      <div class="stat-block">
+        <span class="stat-label">CIERRES · MES</span>
+        <span class="stat-num">3</span>
+      </div>
+    </div>
+    <div class="card card-padded">
+      <div class="stat-block">
+        <span class="stat-label">TICKET PROMEDIO</span>
+        <span class="stat-num">$2,600</span>
+      </div>
+    </div>
+    <div class="card card-padded">
+      <div class="stat-block">
+        <span class="stat-label">CONVERSIÓN</span>
+        <span class="stat-num">21%</span>
+        <span class="stat-delta stat-delta-up" style="margin-top: 4px;">▲ +4 pts</span>
+      </div>
+    </div>
+    <div class="card card-padded">
+      <div class="stat-block">
+        <span class="stat-label">DÍAS DESDE ÚLTIMA</span>
+        <span class="stat-num">2</span>
+        <span class="text-muted" style="font-size: var(--text-xs); margin-top: 4px;">cierre con Carla M.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="layout-with-sidebar">
+
+    <!-- COLUMNA PRINCIPAL: HISTORIAL + REGISTRAR -->
+    <div>
+
+      <!-- REGISTRAR VENTA NUEVA -->
+      <div class="card card-padded-lg mb-6" style="border-top: 3px solid var(--accent);">
+        <div class="card-meta">REGISTRAR VENTA</div>
+        <h2 style="font-size: var(--text-2xl); font-weight: 600; margin: var(--space-2) 0 var(--space-5);">¿Cerraste algo hoy?</h2>
+
+        <div class="grid grid-3" style="gap: var(--space-4); margin-bottom: var(--space-5);">
+          <div class="field" style="margin: 0;">
+            <label class="field-label">Cliente</label>
+            <input class="field-input" type="text" placeholder="Nombre o empresa">
+          </div>
+          <div class="field" style="margin: 0;">
+            <label class="field-label">Monto (USD)</label>
+            <input class="field-input" type="number" placeholder="$">
+          </div>
+          <div class="field" style="margin: 0;">
+            <label class="field-label">Tipo de servicio</label>
+            <input class="field-input" type="text" placeholder="Consultoría · Setup · etc">
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <span class="text-muted" style="font-size: var(--text-xs);">
+            Al registrar, actualizamos tu barra y notificamos a Tatiana si llegas a un hito.
+          </span>
+          <button class="btn btn-primary btn-lg">Registrar venta</button>
+        </div>
+      </div>
+
+      <!-- HISTORIAL -->
+      <div class="card card-padded-lg">
+        <div class="card-header">
+          <h2 style="font-size: var(--text-xl); font-weight: 600;">Tus cierres de mayo</h2>
+          <span class="card-meta">3 VENTAS · $7,800</span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-5);">
+
+          <div style="display: flex; align-items: center; gap: var(--space-4); padding: var(--space-4); background: var(--surface-2); border-radius: var(--radius-md);">
+            <div style="width: 44px; height: 44px; border-radius: 50%; background: var(--accent-gradient); display: grid; place-items: center; color: var(--text-on-accent); font-weight: 700;">CM</div>
+            <div style="flex: 1;">
+              <div style="font-weight: 600;">Carla M.</div>
+              <div class="text-muted" style="font-size: var(--text-sm);">Consultoría 3 meses · 24 mayo</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: var(--text-xl); font-weight: 600;">$2,800</div>
+              <div class="text-muted" style="font-size: var(--text-xs);">hace 2 días</div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: var(--space-4); padding: var(--space-4); background: var(--surface-2); border-radius: var(--radius-md);">
+            <div style="width: 44px; height: 44px; border-radius: 50%; background: var(--accent-gradient); display: grid; place-items: center; color: var(--text-on-accent); font-weight: 700;">DP</div>
+            <div style="flex: 1;">
+              <div style="font-weight: 600;">Diego P.</div>
+              <div class="text-muted" style="font-size: var(--text-sm);">Setup + retainer · 21 mayo</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: var(--text-xl); font-weight: 600;">$3,500</div>
+              <div class="text-muted" style="font-size: var(--text-xs);">hace 5 días</div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: var(--space-4); padding: var(--space-4); background: var(--surface-2); border-radius: var(--radius-md);">
+            <div style="width: 44px; height: 44px; border-radius: 50%; background: var(--accent-gradient); display: grid; place-items: center; color: var(--text-on-accent); font-weight: 700;">LR</div>
+            <div style="flex: 1;">
+              <div style="font-weight: 600;">Lucía R.</div>
+              <div class="text-muted" style="font-size: var(--text-sm);">Audit + roadmap · 20 mayo · primer cierre del mes 🎉</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: var(--text-xl); font-weight: 600;">$1,500</div>
+              <div class="text-muted" style="font-size: var(--text-xs);">hace 6 días</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside>
+
+      <!-- HITO ALCANZADO -->
+      <div class="sidebar-card" style="background: var(--accent-gradient-soft); border: 1px solid rgba(212,175,55,0.3);">
+        <div style="text-align: center;">
+          <div style="font-size: 48px; margin-bottom: var(--space-2);">🏅</div>
+          <div class="card-meta" style="color: var(--accent-deeper);">HITO ALCANZADO</div>
+          <div style="font-size: var(--text-xl); font-weight: 700; margin: var(--space-2) 0;">$5,000 · BRONCE</div>
+          <p style="font-size: var(--text-sm); color: var(--text); line-height: 1.5;">
+            Tu placa física sale esta semana hacia tu dirección en Medellín. Tatiana ya recibió el aviso.
+          </p>
+        </div>
+      </div>
+
+      <!-- RANKING -->
+      <div class="sidebar-card">
+        <div class="sidebar-card-header">
+          <div class="sidebar-card-title">Ranking del mes</div>
+          <span class="card-meta">25 ACTIVOS</span>
+        </div>
+        <div class="rank-list">
+          <div class="rank-item">
+            <div class="rank-num">1</div>
+            <div class="rank-avatar">DS</div>
+            <div class="rank-body">
+              <div class="rank-name">Damaris S.</div>
+              <div class="rank-meta">$18,500</div>
+            </div>
+          </div>
+          <div class="rank-item">
+            <div class="rank-num">2</div>
+            <div class="rank-avatar">AC</div>
+            <div class="rank-body">
+              <div class="rank-name">Arlin C.</div>
+              <div class="rank-meta">$12,300</div>
+            </div>
+          </div>
+          <div class="rank-item">
+            <div class="rank-num">3</div>
+            <div class="rank-avatar">AG</div>
+            <div class="rank-body">
+              <div class="rank-name">Tú (Alex)</div>
+              <div class="rank-meta">$7,800 · subiste 2 posiciones</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONEXIÓN CON RE-GÉNESIS -->
+      <div class="sidebar-card">
+        <div class="card-meta">CONEXIÓN CON TU TERAPIA</div>
+        <p style="font-size: var(--text-sm); color: var(--text); line-height: 1.55; margin-top: var(--space-2);">
+          La IA detectó que tus cierres bajaron cuando Mateo entró a "Niño Interior". Es normal: estás moviendo algo profundo.
+        </p>
+        <a href="regenesis.html" style="display: inline-block; margin-top: var(--space-3); font-size: var(--text-xs); color: var(--accent-dark); font-weight: 600;">Ver tu pregunta de hoy →</a>
+      </div>
+
+    </aside>
+
+  </div>
+
+</main>
+
+<script src="../shared/nav.js"></script>
+<div data-preview-nav data-active="sales" data-base="../"></div>
+
+</body>
+</html>

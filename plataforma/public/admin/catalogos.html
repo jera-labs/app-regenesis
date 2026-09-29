@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Catálogos · Admin · Neurohackers</title>
+  <script src="/shared/turbo.min.js?v=20260797"></script>
+  <link rel="stylesheet" href="/shared/styles.css?v=20260797">
+  <style>
+    .etiqueta-card { display: grid; grid-template-columns: auto 1fr auto; gap: var(--space-4); padding: var(--space-4); background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); margin-bottom: var(--space-2); align-items: center; }
+    .etiqueta-icon { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; color: #FFF; font-weight: 700; font-size: 16px; }
+    .etiqueta-meta { display: flex; gap: var(--space-3); margin-top: 4px; flex-wrap: wrap; }
+    .etiqueta-tag { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+    .transicion-row { display: grid; grid-template-columns: 1fr auto 1fr auto; gap: var(--space-2); padding: var(--space-2) var(--space-3); align-items: center; font-size: var(--text-sm); border-bottom: 1px solid var(--border-soft); }
+    .transicion-row:last-child { border-bottom: 0; }
+  </style>
+</head>
+<body class="with-sidebar admin-mode">
+
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<script>(function(){try{var c=localStorage.getItem("nav-cache-admin-v4");var w=document.getElementById("sidebar-wrapper");if(c&&w&&!w.firstChild)w.innerHTML=c;}catch(e){}})();</script>
+<div data-nav data-active="admin-catalogos" data-base="../"></div>
+
+<div class="admin-strip">
+  <div class="admin-strip-inner">
+    <span class="admin-strip-dot"></span>
+    <span>CATÁLOGOS · SOLO ADMIN PLENO</span>
+    <span style="opacity: 0.5;">·</span>
+    <a href="index.html">Volver</a>
+  </div>
+</div>
+
+<main class="container-wide" id="main" style="max-width: 1080px;">
+
+  <section style="margin-bottom: var(--space-6);">
+    <span class="eyebrow">CONFIGURACIÓN DE NEGOCIO</span>
+    <h1 class="greeting-lg">Catálogos.</h1>
+    <p class="lead">Etiquetas operativas y matriz de transiciones de estado. Cambios aplican a todo el equipo de inmediato.</p>
+  </section>
+
+  <div id="no-admin" class="empty hidden">
+    <div class="empty-icon">○</div>
+    <h3 class="empty-title">Solo admin pleno</h3>
+    <a href="index.html" class="btn btn-secondary btn-lg mt-3">Volver</a>
+  </div>
+
+  <div id="contenido" class="hidden">
+    <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-5); padding-bottom: var(--space-3); border-bottom: 1px solid var(--border-soft); flex-wrap: wrap;">
+      <button class="filter-chip active" data-sec="etiquetas">Etiquetas</button>
+      <button class="filter-chip" data-sec="columnas">Columnas pipeline</button>
+      <button class="filter-chip" data-sec="transiciones">Transiciones de estado</button>
+    </div>
+
+    <!-- SEC: ETIQUETAS -->
+    <section id="sec-etiquetas">
+      <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-5); flex-wrap: wrap;">
+        <button class="btn btn-accent" id="btn-nueva-etiqueta">+ Nueva etiqueta</button>
+        <button class="btn btn-secondary" id="btn-toggle-inactivas">Mostrar inactivas</button>
+      </div>
+      <div id="lista-etiquetas"></div>
+    </section>
+
+    <!-- SEC: COLUMNAS PIPELINE -->
+    <section id="sec-columnas" class="hidden">
+      <p class="text-muted" style="font-size: var(--text-sm); margin-bottom: var(--space-4);">
+        Cada columna del pipeline kanban. Asigna qué estados aparecen en cada una. Reordena con el campo "orden".
+      </p>
+      <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-4); flex-wrap: wrap;">
+        <button class="btn btn-accent" id="btn-nueva-columna">+ Nueva columna</button>
+      </div>
+      <div id="lista-columnas"></div>
+    </section>
+
+    <!-- SEC: TRANSICIONES -->
+    <section id="sec-transiciones" class="hidden">
+      <p class="text-muted" style="font-size: var(--text-sm); margin-bottom: var(--space-4);">
+        Cada fila define una transición legal del pipeline. Editar requiere SQL (es lógica crítica). Si necesitas agregar/cambiar transiciones, pide ayuda a Alex.
+      </p>
+      <div class="card">
+        <div id="lista-transiciones"></div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- MODAL ETIQUETA -->
+<div class="modal-backdrop hidden" id="modal">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="modal-titulo">Nueva etiqueta</span>
+      <button class="modal-close" data-close>✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="form-etiqueta">
+        <div class="field">
+          <label class="field-label">Slug interno *</label>
+          <input class="field-input" id="f-slug" required pattern="[a-z0-9_]+" maxlength="40" placeholder="potencial_caso_exito">
+          <div class="field-help">Minúsculas, números, guión bajo. No editable después.</div>
+        </div>
+        <div class="field">
+          <label class="field-label">Nombre visible *</label>
+          <input class="field-input" id="f-nombre" required maxlength="60" placeholder="Potencial caso de éxito">
+        </div>
+        <div class="field">
+          <label class="field-label">Descripción</label>
+          <textarea class="field-input field-textarea" id="f-descripcion"></textarea>
+        </div>
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-3);">
+          <div class="field">
+            <label class="field-label">Categoría</label>
+            <input class="field-input" id="f-categoria" placeholder="origen | hito | marketing | oportunidad | alerta | especial">
+          </div>
+          <div class="field">
+            <label class="field-label">Ícono</label>
+            <input class="field-input" id="f-icono" maxlength="2" placeholder="◇">
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+          <div class="field">
+            <label class="field-label">Color (hex)</label>
+            <input class="field-input" id="f-color" type="text" pattern="#[0-9A-Fa-f]{6}" placeholder="#D4AF37">
+          </div>
+          <div class="field">
+            <label class="field-label">Orden display</label>
+            <input class="field-input" id="f-orden" type="number" min="0" value="0">
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">Grupo de exclusividad (opcional)</label>
+          <input class="field-input" id="f-exclusividad" placeholder="ej. salud_cliente">
+          <div class="field-help">Etiquetas del mismo grupo se reemplazan entre sí al aplicarse.</div>
+        </div>
+        <div style="background: var(--surface-2); padding: var(--space-3); border-radius: var(--radius-sm); margin-top: var(--space-3); display: flex; align-items: center; gap: var(--space-3);">
+          <input type="checkbox" id="f-visible-cliente">
+          <label for="f-visible-cliente" style="font-size: var(--text-sm); cursor: pointer;">
+            <strong>Visible al cliente</strong>
+            <div class="text-muted" style="font-size: var(--text-xs); margin-top: 2px;">El cliente la ve en su perfil. Úsala solo para etiquetas positivas (VIP, caso éxito).</div>
+          </label>
+        </div>
+      </form>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancelar</button>
+      <button class="btn btn-accent" id="btn-guardar">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL COLUMNA -->
+<div class="modal-backdrop hidden" id="modal-col">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="modal-col-titulo">Nueva columna</span>
+      <button class="modal-close" data-close-col>✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="form-col">
+        <div class="field">
+          <label class="field-label">Slug *</label>
+          <input class="field-input" id="fc-slug" required pattern="[a-z0-9_-]+" maxlength="40" placeholder="onboarding">
+          <div class="field-help">Identificador interno. No editable después.</div>
+        </div>
+        <div class="field">
+          <label class="field-label">Nombre visible *</label>
+          <input class="field-input" id="fc-nombre" required maxlength="60" placeholder="Onboarding">
+        </div>
+        <div class="field">
+          <label class="field-label">Descripción</label>
+          <input class="field-input" id="fc-descripcion" maxlength="200">
+        </div>
+        <div class="field">
+          <label class="field-label">Estados que aparecen en esta columna *</label>
+          <div id="fc-estados-checks" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: var(--space-3); background: var(--surface-2); border-radius: var(--radius-sm); max-height: 280px; overflow-y: auto;"></div>
+          <div class="field-help">Un cliente con estado X aparece en la(s) columna(s) que lo incluyen.</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+          <div class="field">
+            <label class="field-label">Color (hex)</label>
+            <input class="field-input" id="fc-color" type="text" pattern="#[0-9A-Fa-f]{6}" placeholder="#10B981">
+          </div>
+          <div class="field">
+            <label class="field-label">Orden</label>
+            <input class="field-input" id="fc-orden" type="number" min="0" value="0">
+            <div class="field-help">Menor = primero (izquierda).</div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close-col>Cancelar</button>
+      <button class="btn btn-accent" id="btn-guardar-col">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/shared/scripts/config.js?v=20260797"></script>
+<script src="/shared/scripts/supabase-client.js?v=20260797"></script>
+  <script src="/shared/scripts/cache.js?v=20260797"></script>
+<script src="/shared/scripts/utils.js?v=20260797"></script>
+<script src="/shared/scripts/auth.js?v=20260797"></script>
+  <script src="/shared/scripts/event-tracker.js?v=20260797"></script>
+<script src="/shared/scripts/admin-gate.js?v=20260797"></script>
+<script src="/shared/scripts/equipo.js?v=20260797"></script>
+<script src="/shared/scripts/estados.js?v=20260797"></script>
+<script src="/shared/scripts/pipeline.js?v=20260797"></script>
+<script src="/shared/nav.js?v=20260797"></script>
+<script>
+(async function () {
+  const auth = await window.requireAdmin();
+  if (!auth) return;
+
+  const yo = await window.equipoApi.miRol();
+  if (!yo || yo.rol !== 'admin') {
+    document.getElementById('no-admin').classList.remove('hidden');
+    document.getElementById('main').style.opacity = '1';
+    return;
+  }
+  document.getElementById('contenido').classList.remove('hidden');
+
+  // Tabs
+  document.querySelectorAll('[data-sec]').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('[data-sec]').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      document.getElementById('sec-etiquetas').classList.toggle('hidden', t.dataset.sec !== 'etiquetas');
+      document.getElementById('sec-columnas').classList.toggle('hidden', t.dataset.sec !== 'columnas');
+      document.getElementById('sec-transiciones').classList.toggle('hidden', t.dataset.sec !== 'transiciones');
+      if (t.dataset.sec === 'transiciones') cargarTransiciones();
+      if (t.dataset.sec === 'columnas') cargarColumnas();
+    });
+  });
+
+  // ===== ETIQUETAS =====
+  let etiquetas = [];
+  let mostrarInactivas = false;
+  let editandoId = null;
+
+  async function cargarEtiquetas() {
+    etiquetas = await window.estadosApi.listarEtiquetasCatalogo(false);
+    pintar();
+  }
+
+  function pintar() {
+    const visibles = mostrarInactivas ? etiquetas : etiquetas.filter(e => e.activa);
+    const cont = document.getElementById('lista-etiquetas');
+    if (visibles.length === 0) {
+      cont.innerHTML = '<p class="text-muted">Sin etiquetas.</p>';
+      return;
+    }
+    cont.innerHTML = visibles.map(e => `
+      <div class="etiqueta-card" style="${e.activa ? '' : 'opacity: 0.55;'}">
+        <div class="etiqueta-icon" style="background: ${e.color};">${e.icono || '◇'}</div>
+        <div>
+          <div style="font-weight: 600; font-size: var(--text-md);">${window.utils.escapeHtml(e.nombre)}</div>
+          <div class="text-muted" style="font-size: var(--text-xs); font-family: var(--font-mono);">${window.utils.escapeHtml(e.slug)}</div>
+          ${e.descripcion ? `<div class="text-muted" style="font-size: var(--text-sm); margin-top: 4px;">${window.utils.escapeHtml(e.descripcion)}</div>` : ''}
+          <div class="etiqueta-meta">
+            <span class="etiqueta-tag">${e.categoria}</span>
+            ${e.visible_cliente ? '<span class="etiqueta-tag" style="color: var(--accent-deeper);">VISIBLE_CLIENTE</span>' : ''}
+            ${e.exclusividad_grupo ? `<span class="etiqueta-tag">exclusivo: ${e.exclusividad_grupo}</span>` : ''}
+            ${!e.activa ? '<span class="etiqueta-tag" style="color: var(--error);">INACTIVA</span>' : ''}
+          </div>
+        </div>
+        <div style="display: flex; gap: var(--space-2);">
+          <button class="btn btn-secondary btn-sm" data-edit="${e.id}">Editar</button>
+          <button class="btn btn-ghost btn-sm" data-toggle="${e.id}" data-to="${!e.activa}" style="color: ${e.activa ? 'var(--error)' : 'var(--accent-deeper)'};">${e.activa ? 'Desactivar' : 'Reactivar'}</button>
+        </div>
+      </div>`).join('');
+
+    cont.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => abrirModal(etiquetas.find(x => x.id === b.dataset.edit))));
+    cont.querySelectorAll('[data-toggle]').forEach(b => b.addEventListener('click', async () => {
+      try {
+        await window.estadosApi.actualizarEtiqueta(b.dataset.toggle, { activa: b.dataset.to === 'true' });
+        window.utils.toast('Etiqueta actualizada', 'success');
+        await cargarEtiquetas();
+      } catch (err) { window.utils.toast('Error: ' + err.message, 'error'); }
+    }));
+  }
+
+  function abrirModal(et = null) {
+    editandoId = et?.id || null;
+    document.getElementById('modal-titulo').textContent = et ? 'Editar etiqueta' : 'Nueva etiqueta';
+    document.getElementById('f-slug').value = et?.slug || '';
+    document.getElementById('f-slug').disabled = !!et;
+    document.getElementById('f-nombre').value = et?.nombre || '';
+    document.getElementById('f-descripcion').value = et?.descripcion || '';
+    document.getElementById('f-categoria').value = et?.categoria || 'general';
+    document.getElementById('f-icono').value = et?.icono || '◇';
+    document.getElementById('f-color').value = et?.color || '#86868B';
+    document.getElementById('f-orden').value = et?.orden || 0;
+    document.getElementById('f-exclusividad').value = et?.exclusividad_grupo || '';
+    document.getElementById('f-visible-cliente').checked = !!et?.visible_cliente;
+    const m = document.getElementById('modal');
+    m.classList.remove('hidden');
+    requestAnimationFrame(() => m.classList.add('show'));
+  }
+  function cerrarModal() {
+    const m = document.getElementById('modal');
+    m.classList.remove('show');
+    setTimeout(() => m.classList.add('hidden'), 200);
+  }
+  document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', cerrarModal));
+  document.getElementById('btn-nueva-etiqueta').addEventListener('click', () => abrirModal());
+  document.getElementById('btn-toggle-inactivas').addEventListener('click', (e) => {
+    mostrarInactivas = !mostrarInactivas;
+    e.target.textContent = mostrarInactivas ? 'Ocultar inactivas' : 'Mostrar inactivas';
+    pintar();
+  });
+  document.getElementById('btn-guardar').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const datos = {
+      slug: document.getElementById('f-slug').value,
+      nombre: document.getElementById('f-nombre').value.trim(),
+      descripcion: document.getElementById('f-descripcion').value.trim(),
+      categoria: document.getElementById('f-categoria').value.trim() || 'general',
+      color: document.getElementById('f-color').value.trim() || '#86868B',
+      icono: document.getElementById('f-icono').value.trim() || '◇',
+      orden: Number(document.getElementById('f-orden').value) || 0,
+      exclusividad_grupo: document.getElementById('f-exclusividad').value.trim() || null,
+      visible_cliente: document.getElementById('f-visible-cliente').checked,
+    };
+    if (!datos.nombre) { window.utils.toast('Nombre requerido', 'error'); return; }
+    try {
+      if (editandoId) await window.estadosApi.actualizarEtiqueta(editandoId, datos);
+      else {
+        if (!datos.slug) { window.utils.toast('Slug requerido', 'error'); return; }
+        await window.estadosApi.crearEtiqueta(datos);
+      }
+      window.utils.toast('Etiqueta guardada', 'success');
+      cerrarModal();
+      await cargarEtiquetas();
+    } catch (err) { window.utils.toast('Error: ' + err.message, 'error'); }
+  });
+
+  // ===== TRANSICIONES =====
+  async function cargarTransiciones() {
+    const data = await window.estadosApi.listarTodasTransiciones();
+    document.getElementById('lista-transiciones').innerHTML = data.map(t => `
+      <div class="transicion-row">
+        <span>${window.estadosApi.badgeEstado(t.estado_desde)}</span>
+        <span style="color: var(--text-muted); font-size: 18px;">→</span>
+        <span>${window.estadosApi.badgeEstado(t.estado_hacia)}</span>
+        <span style="font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-muted); text-align: right;">
+          ${(t.permitido_por_roles || []).join(', ')}
+          ${t.requiere_motivo ? ' · motivo' : ''}
+          ${t.requiere_categoria_churn ? ' · churn' : ''}
+          ${!t.activa ? ' · INACTIVA' : ''}
+        </span>
+      </div>
+    `).join('');
+  }
+
+  // ===== COLUMNAS PIPELINE =====
+  let columnas = [];
+  let editandoColId = null;
+
+  async function cargarColumnas() {
+    columnas = await window.pipelineApi.listarColumnas(false);
+    pintarColumnas();
+  }
+
+  function pintarColumnas() {
+    const cont = document.getElementById('lista-columnas');
+    if (columnas.length === 0) {
+      cont.innerHTML = '<p class="text-muted">Sin columnas. Crea la primera.</p>';
+      return;
+    }
+    cont.innerHTML = columnas.map(c => `
+      <div class="etiqueta-card" style="${c.activa ? '' : 'opacity: 0.55;'}">
+        <div class="etiqueta-icon" style="background: ${c.color};">${c.icono || (c.orden || 0)}</div>
+        <div>
+          <div style="font-weight: 600; font-size: var(--text-md);">${window.utils.escapeHtml(c.nombre)}</div>
+          <div class="text-muted" style="font-size: var(--text-xs); font-family: var(--font-mono);">${window.utils.escapeHtml(c.slug)} · orden ${c.orden}</div>
+          ${c.descripcion ? `<div class="text-muted" style="font-size: var(--text-sm); margin-top: 4px;">${window.utils.escapeHtml(c.descripcion)}</div>` : ''}
+          <div class="etiqueta-meta">
+            <span class="etiqueta-tag">${(c.estados || []).length} estado${(c.estados || []).length === 1 ? '' : 's'}: ${(c.estados || []).map(e => window.estadosApi.label(e)).join(', ').slice(0, 80)}${(c.estados || []).join(',').length > 80 ? '...' : ''}</span>
+            ${!c.activa ? '<span class="etiqueta-tag" style="color: var(--error);">INACTIVA</span>' : ''}
+          </div>
+        </div>
+        <div style="display: flex; gap: var(--space-2);">
+          <button class="btn btn-secondary btn-sm" data-edit-col="${c.id}">Editar</button>
+          <button class="btn btn-ghost btn-sm" data-del-col="${c.id}" style="color: var(--error);">Eliminar</button>
+        </div>
+      </div>
+    `).join('');
+    cont.querySelectorAll('[data-edit-col]').forEach(b => b.addEventListener('click', () => abrirModalCol(columnas.find(x => x.id === b.dataset.editCol))));
+    cont.querySelectorAll('[data-del-col]').forEach(b => b.addEventListener('click', async () => {
+      if (!confirm('¿Eliminar esta columna? Los clientes con esos estados desaparecen del pipeline hasta que asignes esos estados a otra columna.')) return;
+      try {
+        await window.pipelineApi.eliminarColumna(b.dataset.delCol);
+        window.utils.toast('Columna eliminada', 'success');
+        await cargarColumnas();
+      } catch (err) { window.utils.toast('Error: ' + err.message, 'error'); }
+    }));
+  }
+
+  function abrirModalCol(col = null) {
+    editandoColId = col?.id || null;
+    document.getElementById('modal-col-titulo').textContent = col ? 'Editar columna' : 'Nueva columna';
+    document.getElementById('fc-slug').value = col?.slug || '';
+    document.getElementById('fc-slug').disabled = !!col;
+    document.getElementById('fc-nombre').value = col?.nombre || '';
+    document.getElementById('fc-descripcion').value = col?.descripcion || '';
+    document.getElementById('fc-color').value = col?.color || '#86868B';
+    document.getElementById('fc-orden').value = col?.orden ?? 0;
+
+    // Pintar checkboxes de estados disponibles
+    const todos = Object.keys(window.estadosApi.ESTADO_LABEL);
+    const seleccionados = new Set(col?.estados || []);
+    document.getElementById('fc-estados-checks').innerHTML = todos.map(slug => `
+      <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: var(--text-xs); padding: 4px;">
+        <input type="checkbox" value="${slug}" ${seleccionados.has(slug) ? 'checked' : ''}>
+        ${window.estadosApi.label(slug)}
+      </label>
+    `).join('');
+
+    const m = document.getElementById('modal-col');
+    m.classList.remove('hidden');
+    requestAnimationFrame(() => m.classList.add('show'));
+  }
+  function cerrarModalCol() {
+    const m = document.getElementById('modal-col');
+    m.classList.remove('show');
+    setTimeout(() => m.classList.add('hidden'), 200);
+  }
+  document.querySelectorAll('[data-close-col]').forEach(b => b.addEventListener('click', cerrarModalCol));
+  document.getElementById('btn-nueva-columna').addEventListener('click', () => abrirModalCol());
+
+  document.getElementById('btn-guardar-col').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const estados = Array.from(document.querySelectorAll('#fc-estados-checks input:checked')).map(i => i.value);
+    if (estados.length === 0) { window.utils.toast('Selecciona al menos 1 estado', 'error'); return; }
+    const datos = {
+      nombre: document.getElementById('fc-nombre').value.trim(),
+      descripcion: document.getElementById('fc-descripcion').value.trim() || null,
+      estados,
+      color: document.getElementById('fc-color').value.trim() || '#86868B',
+      orden: Number(document.getElementById('fc-orden').value) || 0,
+    };
+    try {
+      if (editandoColId) await window.pipelineApi.actualizarColumna(editandoColId, datos);
+      else {
+        const slug = document.getElementById('fc-slug').value;
+        if (!slug) { window.utils.toast('Slug requerido', 'error'); return; }
+        await window.pipelineApi.crearColumna({ slug, ...datos });
+      }
+      window.utils.toast('Columna guardada', 'success');
+      cerrarModalCol();
+      await cargarColumnas();
+    } catch (err) { window.utils.toast('Error: ' + err.message, 'error'); }
+  });
+
+  await cargarEtiquetas();
+  document.getElementById('main').style.opacity = '1';
+})();
+</script>
+
+
+</body>
+</html>

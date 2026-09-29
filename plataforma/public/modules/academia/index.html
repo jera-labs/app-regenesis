@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Academia · Neurohackers</title>
+  <script src="/shared/turbo.min.js?v=20260797"></script>
+  <link rel="stylesheet" href="/shared/styles.css?v=20260797">
+  <style>
+    .aca-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--space-4); }
+    .aca-card { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); overflow: hidden; display: flex; flex-direction: column; transition: box-shadow 200ms, transform 200ms; }
+    .aca-card:hover { box-shadow: var(--shadow-card-hover); transform: translateY(-2px); }
+    .aca-cover { aspect-ratio: 16/9; background: linear-gradient(135deg, var(--surface-3), var(--surface-2)); display: grid; place-items: center; color: var(--text-muted); font-size: 32px; }
+    .aca-body { padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2); flex: 1; }
+    .aca-name { font-weight: 600; font-size: var(--text-md); }
+    .aca-desc { font-size: var(--text-sm); color: var(--text-muted); flex: 1; }
+    .aca-meta { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+    .aca-bar { height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
+    .aca-fill { height: 100%; background: linear-gradient(90deg, var(--accent-bright), var(--accent-dark)); transition: width 250ms; }
+    .aca-empty { padding: var(--space-12); text-align: center; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<div data-nav data-active="academia" data-base="../../"></div>
+
+<main class="container" id="main" style="opacity:0; transition: opacity 200ms;">
+  <section style="margin-bottom: var(--space-6);">
+    <span class="eyebrow">ACADEMIA</span>
+    <h1 class="greeting-lg">Tus cursos.</h1>
+    <p class="lead">Aprende a tu ritmo. Tu avance se guarda automáticamente: puedes retomar donde lo dejaste.</p>
+  </section>
+
+  <div class="aca-grid" id="cursos-root"></div>
+</main>
+
+<script src="/shared/scripts/config.js?v=20260797"></script>
+<script src="/shared/scripts/supabase-client.js?v=20260797"></script>
+<script src="/shared/scripts/cache.js?v=20260797"></script>
+<script src="/shared/scripts/utils.js?v=20260797"></script>
+<script src="/shared/scripts/auth.js?v=20260797"></script>
+<script src="/shared/scripts/event-tracker.js?v=20260797"></script>
+<script src="/shared/scripts/academia.js?v=20260797"></script>
+<script src="/shared/nav.js?v=20260797"></script>
+<script>
+(async function () {
+  const esc = (s) => (window.utils?.escapeHtml ? window.utils.escapeHtml(s) : String(s ?? ''));
+  const { session, lead } = (await window.requireAuth()) || {};
+  if (!session) return;
+  const root = document.getElementById('cursos-root');
+
+  try {
+    const cursos = await window.academiaApi.listarCursos();
+    const progreso = lead ? await window.academiaApi.progresoDelLead(lead.id) : [];
+    const completadasPorCurso = {}; const vistasPorCurso = {};
+    progreso.forEach(p => {
+      if (p.completado_at) completadasPorCurso[p.curso_id] = (completadasPorCurso[p.curso_id] || 0) + 1;
+      if (p.pct_visto > 0) vistasPorCurso[p.curso_id] = (vistasPorCurso[p.curso_id] || 0) + 1;
+    });
+
+    if (!cursos.length) {
+      root.innerHTML = '<div class="aca-empty">Aún no hay cursos publicados. Vuelve pronto.</div>';
+    } else {
+      const cards = await Promise.all(cursos.map(async (c) => {
+        const lecciones = await window.academiaApi.listarLecciones(c.id);
+        const total = lecciones.length || 0;
+        const hechas = completadasPorCurso[c.id] || 0;
+        const pct = total ? Math.round((hechas / total) * 100) : 0;
+        const empezado = (vistasPorCurso[c.id] || 0) > 0;
+        return `
+          <a class="aca-card" href="/modules/academia/curso.html?c=${encodeURIComponent(c.slug)}" data-turbo="false">
+            <div class="aca-cover">▦</div>
+            <div class="aca-body">
+              <div class="aca-name">${esc(c.nombre)}</div>
+              <div class="aca-desc">${esc(c.descripcion || '')}</div>
+              <div class="aca-meta">${total} ${total === 1 ? 'lección' : 'lecciones'} · ${hechas}/${total} completas</div>
+              <div class="aca-bar"><div class="aca-fill" style="width:${pct}%"></div></div>
+              <div class="btn ${empezado ? 'btn-secondary' : 'btn-primary'}" style="margin-top:6px; text-align:center;">${empezado ? 'Continuar' : 'Empezar'}</div>
+            </div>
+          </a>`;
+      }));
+      root.innerHTML = cards.join('');
+    }
+  } catch (e) {
+    root.innerHTML = '<div class="aca-empty">No se pudo cargar la academia. Intenta recargar.</div>';
+    console.warn('[academia] index', e?.message || e);
+  }
+
+  document.getElementById('main').style.opacity = '1';
+})();
+</script>
+</body>
+</html>

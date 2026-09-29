@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Neurohackers Platform · v3 (Coach del día)</title>
+  <link rel="stylesheet" href="shared/styles.css">
+  <style>
+    body { background: linear-gradient(180deg, #FFFFFF 0%, var(--bg) 70%); }
+    .hero { padding: var(--space-20) var(--space-5) var(--space-12); max-width: 760px; margin: 0 auto; text-align: center; }
+    .filosofia {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: var(--space-12) var(--space-5);
+    }
+    .compare { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); margin-top: var(--space-6); }
+    @media (max-width: 720px) { .compare { grid-template-columns: 1fr; } }
+    .compare-side {
+      padding: var(--space-5);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-soft);
+    }
+    .compare-side.before { background: var(--surface-2); }
+    .compare-side.after { background: var(--accent-soft-bg); border-color: rgba(212,175,55,0.3); }
+    .preview-tile {
+      display: flex;
+      flex-direction: column;
+      background: var(--surface);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      transition: var(--transition-fast);
+      aspect-ratio: 16/11;
+    }
+    .preview-tile:hover { border-color: var(--border); box-shadow: var(--shadow-md); }
+    .preview-tile-thumb {
+      flex: 1;
+      background: var(--surface-2);
+      display: grid; place-items: center;
+      position: relative;
+    }
+    .preview-tile-thumb-emoji { font-size: 32px; opacity: 0.4; }
+    .preview-tile-thumb-label {
+      position: absolute;
+      bottom: var(--space-3);
+      left: var(--space-3);
+      font-family: var(--font-mono);
+      font-size: var(--text-3xs);
+      letter-spacing: 1.2px;
+      color: var(--text-faint);
+      text-transform: uppercase;
+    }
+    .preview-tile-body { padding: var(--space-3) var(--space-4); border-top: 1px solid var(--border-soft); }
+    .preview-tile-title { font-weight: 600; font-size: var(--text-sm); }
+    .preview-tile-sub { font-size: var(--text-xs); color: var(--text-muted); margin-top: 2px; line-height: 1.5; }
+  </style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="brand" style="display: inline-flex; margin-bottom: var(--space-6);">
+    <div class="brand-logo">N</div>
+    <span>Neurohackers <span style="font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: 1px; color: var(--text-muted); text-transform: uppercase; font-weight: 500; margin-left: 6px;">v3 · COACH</span></span>
+  </div>
+
+  <span class="eyebrow eyebrow-accent">PROPUESTA RADICAL · ORIENTADA A RESULTADOS</span>
+  <h1 style="font-size: var(--text-5xl); font-weight: 600; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: var(--space-4);">El cliente no tiene una plataforma.<br>Tiene un coach.</h1>
+  <p style="font-size: var(--text-lg); color: var(--text-muted); line-height: 1.55; margin-bottom: var(--space-6); max-width: 620px; margin-left: auto; margin-right: auto;">
+    Cada mañana entra y ve 3 acciones específicas con nombres reales, leads reales, montos reales. Cero módulos en la cara. La IA hace el trabajo del coach 1-on-1 que el equipo no puede dar a 25 clientes a la vez.
+  </p>
+
+  <a href="hub.html" class="btn btn-accent btn-xl">Ver el Hub coach →</a>
+</section>
+
+<!-- FILOSOFÍA -->
+<section class="filosofia">
+  <div class="section-h">
+    <span class="section-h-title">Por qué v3 (la diferencia)</span>
+    <span class="section-h-meta">REPLANTEO ESTRUCTURAL</span>
+  </div>
+
+  <div class="compare">
+    <div class="compare-side before">
+      <span class="eyebrow">v2 · MENÚ DE MÓDULOS</span>
+      <div style="font-weight: 600; font-size: var(--text-md); margin: 4px 0 var(--space-3);">"Aquí están tus 6 módulos, elige"</div>
+      <ul style="display: flex; flex-direction: column; gap: var(--space-2); font-size: var(--text-sm); color: var(--text-muted); line-height: 1.55;">
+        <li>• Cliente entra, ve 6 cards de expertos</li>
+        <li>• Tiene que decidir qué hacer hoy</li>
+        <li>• Tareas genéricas ("publica un post")</li>
+        <li>• Resultado depende del cliente</li>
+      </ul>
+    </div>
+    <div class="compare-side after">
+      <span class="eyebrow eyebrow-accent">v3 · COACH DEL DÍA</span>
+      <div style="font-weight: 600; font-size: var(--text-md); margin: 4px 0 var(--space-3);">"Hoy haces estas 3 cosas exactas"</div>
+      <ul style="display: flex; flex-direction: column; gap: var(--space-2); font-size: var(--text-sm); color: var(--text); line-height: 1.55;">
+        <li>✓ Cliente entra, ve 3 acciones del día</li>
+        <li>✓ IA decide qué hacer y por qué</li>
+        <li>✓ Tareas con nombres reales ("llama a Carla")</li>
+        <li>✓ Resultado se mueve sí o sí</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- PANTALLAS -->
+<section style="max-width: 1120px; margin: 0 auto; padding: var(--space-8) var(--space-5);">
+
+  <div class="section-h">
+    <span class="section-h-title">Flujo del cliente</span>
+    <span class="section-h-meta">8 PANTALLAS</span>
+  </div>
+
+  <!-- HUB destacado -->
+  <a href="hub.html" class="preview-tile" style="aspect-ratio: 21/10; margin-bottom: var(--space-4);">
+    <div class="preview-tile-thumb" style="background: var(--accent-soft-bg);">
+      <div style="text-align: center;">
+        <div style="font-size: 32px; opacity: 0.6;">◐</div>
+        <div style="font-size: var(--text-lg); font-weight: 600; margin-top: var(--space-2); color: var(--accent-deeper);">EL HUB · COACH DEL DÍA</div>
+        <div class="text-muted" style="font-size: var(--text-xs); margin-top: 4px;">Lo primero que ve el cliente · 3 acciones · cero saturación</div>
+      </div>
+    </div>
+  </a>
+
+  <div class="grid grid-3 mb-4">
+    <a href="assessment.html" class="preview-tile">
+      <div class="preview-tile-thumb">
+        <div class="preview-tile-thumb-emoji">▤</div>
+        <span class="preview-tile-thumb-label">ASSESSMENT</span>
+      </div>
+      <div class="preview-tile-body">
+        <div class="preview-tile-title">Diagnóstico</div>
+        <div class="preview-tile-sub">Punto A · meta · bloqueo</div>
+      </div>
+    </a>
+    <a href="validacion-producto.html" class="preview-tile">
+      <div class="preview-tile-thumb" style="background: var(--accent-soft-bg);">
+        <div class="preview-tile-thumb-emoji" style="color: var(--accent-dark); opacity: 0.6;">✦</div>
+        <span class="preview-tile-thumb-label">VALIDACIÓN IA · NUEVO</span>
+      </div>
+      <div class="preview-tile-body">
+        <div class="preview-tile-title">Validar oferta con IA</div>
+        <div class="preview-tile-sub">Pega tu sales page · reporte en 90s</div>
+      </div>
+    </a>
+    <a href="modules/regenesis-dia.html" class="preview-tile">
+      <div class="preview-tile-thumb">
+        <div class="preview-tile-thumb-emoji">◈</div>
+        <span class="preview-tile-thumb-label">RE-GÉNESIS DEL DÍA</span>
+      </div>
+      <div class="preview-tile-body">
+        <div class="preview-tile-title">Re-Génesis (vista día)</div>
+        <div class="preview-tile-sub">Pregunta · respuesta · cierre IA</div>
+      </div>
+    </a>
+  </div>
+
+  <div class="grid grid-2 mb-4">
+    <a href="modules/ruta.html" class="preview-tile">
+      <div class="preview-tile-thumb">
+        <div class="preview-tile-thumb-emoji">↗</div>
+        <span class="preview-tile-thumb-label">MI RUTA · 5 FASES</span>
+      </div>
+      <div class="preview-tile-body">
+        <div class="preview-tile-title">Tu ruta de 6 meses</div>
+        <div class="preview-tile-sub">5 fases universales · tácticas personalizadas</div>
+      </div>
+    </a>
+    <a href="mas.html" class="preview-tile">
+      <div class="preview-tile-thumb">
+        <div class="preview-tile-thumb-emoji">▦</div>
+        <span class="preview-tile-thumb-label">MÁS · TODO LO DEMÁS</span>
+      </div>
+      <div class="preview-tile-body">
+        <div class="preview-tile-title">Menú "Más"</div>
+        <div class="preview-tile-sub">Ventas · Expertos · CRM · Skool · Recursos</div>
+      </div>
+    </a>
+  </div>
+
+</section>
+
+<!-- LO QUE CAMBIA RESPECTO A v2 -->
+<section class="filosofia">
+  <div class="card" style="padding: var(--space-6);">
+    <span class="eyebrow">QUÉ CAMBIA OPERATIVAMENTE</span>
+    <h2 style="font-size: var(--text-xl); font-weight: 600; margin: var(--space-2) 0 var(--space-5);">4 saltos importantes</h2>
+
+    <div style="display: flex; flex-direction: column; gap: var(--space-4);">
+      <div style="display: grid; grid-template-columns: 32px 1fr; gap: var(--space-3);">
+        <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--accent-soft-bg); color: var(--accent-deeper); display: grid; place-items: center; font-weight: 700; font-size: var(--text-xs);">1</div>
+        <div>
+          <div style="font-weight: 600; font-size: var(--text-sm);">Validación IA del producto antes de empezar</div>
+          <p class="text-muted" style="font-size: var(--text-sm); line-height: 1.55; margin-top: 4px;">
+            Cliente pega su sales page. La IA devuelve scores (claridad, precio, ICP), 3 cosas que ya tiene bien y 3 ajustes específicos. Esto sube transformación real y NO requiere humano del equipo.
+          </p>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 32px 1fr; gap: var(--space-3);">
+        <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--accent-soft-bg); color: var(--accent-deeper); display: grid; place-items: center; font-weight: 700; font-size: var(--text-xs);">2</div>
+        <div>
+          <div style="font-weight: 600; font-size: var(--text-sm);">Acciones con nombres reales, no tareas genéricas</div>
+          <p class="text-muted" style="font-size: var(--text-sm); line-height: 1.55; margin-top: 4px;">
+            En vez de "haz outbound", aparece "envía mensaje a estos 20 leads (lista ya filtrada por ICP)" o "llama a Carla M., lleva 9 días esperándote". Cada acción tiene contexto real del cliente.
+          </p>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 32px 1fr; gap: var(--space-3);">
+        <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--accent-soft-bg); color: var(--accent-deeper); display: grid; place-items: center; font-weight: 700; font-size: var(--text-xs);">3</div>
+        <div>
+          <div style="font-weight: 600; font-size: var(--text-sm);">Botón "Hacerlo por mí" para acciones automatizables</div>
+          <p class="text-muted" style="font-size: var(--text-sm); line-height: 1.55; margin-top: 4px;">
+            Outbound masivo, follow-ups por email, mover etapa en CRM: el cliente puede delegar a la IA con un click. Llamadas y sesiones siguen siendo personales.
+          </p>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 32px 1fr; gap: var(--space-3);">
+        <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--accent-soft-bg); color: var(--accent-deeper); display: grid; place-items: center; font-weight: 700; font-size: var(--text-xs);">4</div>
+        <div>
+          <div style="font-weight: 600; font-size: var(--text-sm);">Re-Génesis siempre es 1 de las 3 acciones del día</div>
+          <p class="text-muted" style="font-size: var(--text-sm); line-height: 1.55; margin-top: 4px;">
+            La disciplina mental no se negocia. Cada día, el cliente trabaja su pregunta. La IA conecta sutilmente el reto operativo del día con la pregunta de Re-Génesis.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DECISIONES PARA FRANK -->
+<section class="filosofia">
+  <div class="card" style="padding: var(--space-6); border-left: 3px solid var(--accent);">
+    <span class="eyebrow eyebrow-accent">DECISIONES PENDIENTES PARA FRANK</span>
+    <h2 style="font-size: var(--text-xl); font-weight: 600; margin: var(--space-2) 0 var(--space-4);">3 conversaciones antes de codear</h2>
+    <ol style="counter-reset: q; list-style: none;">
+      <li style="counter-increment: q; padding: var(--space-3) 0; border-bottom: 1px solid var(--border-soft); display: grid; grid-template-columns: 28px 1fr; gap: var(--space-3);">
+        <div style="width: 22px; height: 22px; border-radius: 50%; background: var(--accent-soft-bg); color: var(--accent-deeper); display: grid; place-items: center; font-weight: 700; font-size: var(--text-2xs);">1</div>
+        <div>
+          <div style="font-weight: 600; font-size: var(--text-sm); margin-bottom: 4px;">¿Va con v2 (menú de módulos) o v3 (coach del día)?</div>
+          <p class="text-muted" style="font-size: var(--text-sm); line-height: 1.55;">v2 es más cercano a una "plataforma" tradicional. v3 es más ambicioso, más coach, más resultado. La decisión define el alcance técnico real.</p>
+        </div>
+      </li>
+      <li style="counter-increment: q; padding: var(--space-3) 0; border-bottom: 1px solid var(--border-soft); display: grid; grid-template-columns: 28px 1fr; gap: var(--space-3);">
+        <div style="width: 22px; height: 22px; border-radius: 50%; background: var(--accent-soft-bg); color: var(--accent-deeper); display: grid; place-items: center; font-weight: 700; font-size: var(--text-2xs);">2</div>
+        <div>
+          <div style="font-weight: 600; font-size: var(--text-sm); margin-bottom: 4px;">Validación IA del producto · ¿lo incluimos en V1?</div>
+          <p class="text-muted" style="font-size: var(--text-sm); line-height: 1.55;">Es la pieza que sube transformación. Pero requiere prompt fino y testing. Si arrancamos sin esto, el cliente entra al programa sin diagnóstico de su oferta.</p>
+        </div>
+      </li>
+      <li style="counter-increment: q; padding: var(--space-3) 0; display: grid; grid-template-columns: 28px 1fr; gap: var(--space-3);">
+        <div style="width: 22px; height: 22px; border-radius: 50%; background: var(--accent-soft-bg); color: var(--accent-deeper); display: grid; place-items: center; font-weight: 700; font-size: var(--text-2xs);">3</div>
+        <div>
+          <div style="font-weight: 600; font-size: var(--text-sm); margin-bottom: 4px;">"Hacerlo por mí" automatizado · ¿qué tan profundo?</div>
+          <p class="text-muted" style="font-size: var(--text-sm); line-height: 1.55;">Empezamos con "copiar mensaje y abrir LinkedIn" (manual asistido) o ¿full auto donde la IA envía solita por API? Lo segundo necesita tokens y permisos del cliente.</p>
+        </div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<div style="text-align: center; padding: var(--space-12) 0; border-top: 1px solid var(--border-soft);">
+  <p class="text-muted" style="font-size: var(--text-xs);">
+    Neurohackers Platform · maqueta v3 (coach del día) · construida por Alex con Claude · mayo 2026
+  </p>
+  <p class="text-muted mt-2" style="font-size: var(--text-3xs);">
+    Para comparar con la versión anterior: <a href="../v2/index.html" style="color: var(--accent-deeper); font-weight: 600;">ver maqueta v2</a>
+  </p>
+</div>
+
+<div data-preview-nav data-active="index"></div>
+<script src="shared/nav.js"></script>
+
+</body>
+</html>

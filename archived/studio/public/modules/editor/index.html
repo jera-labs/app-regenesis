@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Editor · Studio</title>
+  <link rel="stylesheet" href="/studio/shared/styles.css?v=20260714">
+  <style>
+    /* Editor full-screen: esconder sidebar pero mantener wrapper para Turbo */
+    #sidebar-wrapper, .sidebar, .topbar-burger, .sidebar-overlay { display: none !important; }
+    body.with-sidebar { padding-left: 0 !important; }
+    body { margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+    .editor-bar { background: #1D1D1F; color: white; padding: 12px 20px; display: flex; align-items: center; gap: var(--space-4); }
+    .editor-bar h1 { margin: 0; font-size: 14px; font-weight: 500; flex: 1; }
+    .editor-bar .btn { padding: 6px 14px; font-size: 12px; }
+    .editor-wrap { flex: 1; display: grid; grid-template-columns: 200px 1fr 240px; gap: 0; min-height: 0; }
+    .editor-tools { background: #2A2A2D; color: white; padding: var(--space-4); overflow-y: auto; }
+    .editor-tools h3 { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,.5); margin: 0 0 var(--space-3); font-family: var(--font-mono); }
+    .tool-btn { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px; background: transparent; border: 1px solid rgba(255,255,255,.1); color: white; border-radius: 6px; cursor: pointer; margin-bottom: 6px; font-size: 13px; text-align: left; }
+    .tool-btn:hover { background: rgba(255,255,255,.05); border-color: var(--accent); }
+    .canvas-area { background: #F5F5F7; display: flex; align-items: center; justify-content: center; padding: var(--space-5); overflow: hidden; position: relative; }
+    .canvas-container { background: white; box-shadow: 0 8px 32px rgba(0,0,0,.15); position: relative; max-width: 90%; max-height: 85vh; aspect-ratio: 1/1; }
+    .canvas-container canvas { display: block; width: 100% !important; height: 100% !important; }
+    .editor-side { background: var(--surface); padding: var(--space-4); overflow-y: auto; border-left: 1px solid var(--border-soft); }
+    .editor-side h3 { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); font-family: var(--font-mono); margin: 0 0 var(--space-3); }
+    .prop-group { margin-bottom: var(--space-4); padding-bottom: var(--space-3); border-bottom: 1px solid var(--border-soft); }
+    .prop-group label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 4px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 1px; }
+    .prop-group input, .prop-group select, .prop-group textarea { width: 100%; padding: 6px 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; }
+    .prop-group .color-row { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; }
+    .prop-group .color-row button { width: 100%; aspect-ratio: 1; border-radius: 50%; border: 2px solid var(--border); cursor: pointer; padding: 0; }
+    .prompt-edit { width: 100%; min-height: 80px; padding: 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; font-family: inherit; }
+
+    @media (max-width: 920px) {
+      .editor-wrap { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; }
+      .editor-tools { display: flex; flex-wrap: wrap; max-height: 100px; padding: 8px; }
+      .editor-tools h3 { display: none; }
+      .editor-side { max-height: 200px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Wrapper persistente para Turbo. Hidden via CSS arriba.
+     Sin este wrapper, al venir desde otra página el sidebar viejo
+     seguiría pintado y al volver tendría que re-pintarse (parpadeo). -->
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+
+<div class="editor-bar">
+  <a href="/studio/modules/instagram/index.html" data-turbo="false" style="color: rgba(255,255,255,.7); text-decoration: none;" id="link-volver">← Volver</a>
+  <h1 id="titulo">Editor de imagen</h1>
+  <button class="btn btn-secondary" id="btn-regen">↻ Regenerar IA</button>
+  <button class="btn btn-secondary" id="btn-descargar">↓ Descargar PNG</button>
+  <button class="btn btn-accent" id="btn-guardar">Guardar</button>
+  <a href="/studio/modules/instagram/index.html" data-turbo="false" id="btn-cerrar" style="background: rgba(255,255,255,.1); color: white; padding: 6px 14px; border-radius: 6px; text-decoration: none; font-size: 12px;" title="Cerrar editor">✕ Cerrar editor</a>
+</div>
+
+<div class="editor-wrap">
+  <!-- Tools izquierda -->
+  <div class="editor-tools">
+    <h3>Elementos</h3>
+    <button class="tool-btn" id="add-text">+ Texto</button>
+    <button class="tool-btn" id="add-rect">+ Rectángulo</button>
+    <button class="tool-btn" id="add-circle">+ Círculo</button>
+    <button class="tool-btn" id="add-image">+ Imagen</button>
+
+    <h3 style="margin-top: var(--space-4);">Plantillas</h3>
+    <button class="tool-btn" data-template="post-simple">Post simple</button>
+    <button class="tool-btn" data-template="cita">Cita / Testimonio</button>
+    <button class="tool-btn" data-template="tip">Tip</button>
+    <button class="tool-btn" data-template="promo">Promo / oferta</button>
+
+    <h3 style="margin-top: var(--space-4);">Acciones</h3>
+    <button class="tool-btn" id="duplicate-selected">⎘ Duplicar selección</button>
+    <button class="tool-btn" id="send-to-back">⇩ Enviar al fondo</button>
+    <button class="tool-btn" id="send-backward">↓ Bajar una capa</button>
+    <button class="tool-btn" id="bring-forward">↑ Subir una capa</button>
+    <button class="tool-btn" id="bring-to-front">⇧ Traer al frente</button>
+    <button class="tool-btn" id="delete-selected">🗑 Borrar selección</button>
+    <button class="tool-btn" id="clear-overlay">Limpiar overlay</button>
+  </div>
+
+  <!-- Canvas -->
+  <div class="canvas-area">
+    <div class="canvas-container" id="canvas-container">
+      <canvas id="canvas" width="1024" height="1024"></canvas>
+    </div>
+  </div>
+
+  <!-- Propiedades -->
+  <div class="editor-side">
+    <h3>Propiedades del elemento</h3>
+    <div id="props" style="color: var(--text-muted); font-size: 13px;">
+      Selecciona un elemento para editar sus propiedades.
+    </div>
+
+    <h3 style="margin-top: var(--space-5);">Prompt de la imagen IA</h3>
+    <textarea class="prompt-edit" id="prompt-actual" placeholder="Prompt actual..."></textarea>
+    <button class="btn btn-accent" style="margin-top: 8px; width: 100%; font-size: 12px;" id="btn-regen-prompt">Regenerar con este prompt</button>
+  </div>
+</div>
+
+<!-- Modal subir imagen -->
+<input type="file" id="file-upload" accept="image/*" style="display: none;">
+
+<script src="https://cdn.jsdelivr.net/npm/fabric@5.3.0/dist/fabric.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/studio/shared/scripts/config.js?v=20260714"></script>
+<script src="/studio/shared/scripts/supabase-client.js?v=20260714"></script>
+<script src="/studio/shared/scripts/utils.js?v=20260714"></script>
+<script src="/studio/shared/scripts/studio-auth.js?v=20260714"></script>
+<script src="/studio/shared/scripts/studio-contenido.js?v=20260714"></script>
+<script>
+(async function () {
+  const auth = await window.requireStudioAuth();
+  if (!auth) return;
+
+  const params = new URLSearchParams(window.location.search);
+  const contenidoId = params.get('id');
+  if (!contenidoId) {
+    document.body.innerHTML = '<p style="padding: 40px; text-align: center;">Falta parámetro ?id=<contenido_id></p>';
+    return;
+  }
+
+  const $ = (id) => document.getElementById(id);
+  const canvas = new fabric.Canvas('canvas', {
+    backgroundColor: '#ffffff',
+    preserveObjectStacking: true,
+  });
+
+  // Cargar contenido
+  const { data: c } = await window.db.from('contenido_generado')
+    .select('id, lead_id, canal, hook, cuerpo, imagen_url, imagen_canvas_state, imagen_prompt, producto:producto_id (nombre)')
+    .eq('id', contenidoId).single();
+
+  if (!c) {
+    document.body.innerHTML = '<p style="padding: 40px;">Contenido no encontrado</p>';
+    return;
+  }
+
+  // Apuntar "Volver" y "Cerrar" al canal correcto según la pieza.
+  // Fallback a instagram si la pieza no tiene canal o es uno no soportado.
+  const CANAL_URL = {
+    instagram: '/studio/modules/instagram/index.html',
+    linkedin:  '/studio/modules/linkedin/index.html',
+    facebook:  '/studio/modules/facebook/index.html',
+  };
+  const urlVolver = CANAL_URL[c.canal] || CANAL_URL.instagram;
+  $('link-volver').href = urlVolver;
+  $('btn-cerrar').href  = urlVolver;
+
+  $('titulo').textContent = `${c.producto?.nombre || 'Editor'} · ${c.hook ? c.hook.slice(0,60) : ''}`;
+  $('prompt-actual').value = c.imagen_prompt || '';
+
+  // Ajusta canvas + contenedor al aspect ratio de una imagen base (1024², 1536×1024, 1024×1536)
+  function fitCanvasToImage(img) {
+    const w = img.width || 1024;
+    const h = img.height || 1024;
+    canvas.setDimensions({ width: w, height: h });
+    const container = document.getElementById('canvas-container');
+    if (container) container.style.aspectRatio = `${w} / ${h}`;
+  }
+
+  // Si hay state canvas guardado, cargarlo
+  if (c.imagen_canvas_state) {
+    canvas.loadFromJSON(c.imagen_canvas_state, () => {
+      // intentar leer dimensiones del state guardado
+      const w = c.imagen_canvas_state.width || canvas.getWidth() || 1024;
+      const h = c.imagen_canvas_state.height || canvas.getHeight() || 1024;
+      canvas.setDimensions({ width: w, height: h });
+      const container = document.getElementById('canvas-container');
+      if (container) container.style.aspectRatio = `${w} / ${h}`;
+      canvas.renderAll();
+    });
+  } else if (c.imagen_url) {
+    fabric.Image.fromURL(c.imagen_url, (img) => {
+      fitCanvasToImage(img);
+      img.set({ left: 0, top: 0, selectable: false, evented: false });
+      canvas.add(img);
+      canvas.sendToBack(img);
+      canvas.renderAll();
+    }, { crossOrigin: 'anonymous' });
+  }
+
+  // Selección → mostrar propiedades
+  canvas.on('selection:created', mostrarProps);
+  canvas.on('selection:updated', mostrarProps);
+  canvas.on('selection:cleared', () => {
+    $('props').innerHTML = 'Selecciona un elemento para editar sus propiedades.';
+  });
+
+  function mostrarProps(e) {
+    const obj = canvas.getActiveObject();
+    if (!obj) return;
+    let html = '';
+    if (obj.type === 'i-text' || obj.type === 'text') {
+      html += `
+        <div class="prop-group">
+          <label>Texto</label>
+          <textarea id="p-text" rows="3">${obj.text || ''}</textarea>
+        </div>
+        <div class="prop-group">
+          <label>Tamaño</label>
+          <input type="number" id="p-size" value="${obj.fontSize || 32}" min="8" max="200">
+        </div>
+        <div class="prop-group">
+          <label>Color</label>
+          <input type="color" id="p-color" value="${obj.fill || '#000000'}">
+        </div>
+        <div class="prop-group">
+          <label>Fuente</label>
+          <select id="p-font">
+            <option ${obj.fontFamily === 'Geist' ? 'selected' : ''}>Geist</option>
+            <option ${obj.fontFamily === 'serif' ? 'selected' : ''}>serif</option>
+            <option ${obj.fontFamily === 'monospace' ? 'selected' : ''}>monospace</option>
+            <option ${obj.fontFamily === 'Georgia' ? 'selected' : ''}>Georgia</option>
+            <option ${obj.fontFamily === 'Arial' ? 'selected' : ''}>Arial</option>
+          </select>
+        </div>
+      `;
+    } else if (obj.type === 'rect' || obj.type === 'circle') {
+      html += `
+        <div class="prop-group">
+          <label>Color de relleno</label>
+          <input type="color" id="p-fill" value="${obj.fill || '#D4AF37'}">
+        </div>
+        <div class="prop-group">
+          <label>Opacidad</label>
+          <input type="range" id="p-opacity" min="0" max="1" step="0.05" value="${obj.opacity || 1}">
+        </div>
+      `;
+    }
+    $('props').innerHTML = html;
+
+    if ($('p-text')) $('p-text').addEventListener('input', e => { obj.set('text', e.target.value); canvas.renderAll(); });
+    if ($('p-size')) $('p-size').addEventListener('input', e => { obj.set('fontSize', +e.target.value); canvas.renderAll(); });
+    if ($('p-color')) $('p-color').addEventListener('input', e => { obj.set('fill', e.target.value); canvas.renderAll(); });
+    if ($('p-font')) $('p-font').addEventListener('change', e => { obj.set('fontFamily', e.target.value); canvas.renderAll(); });
+    if ($('p-fill')) $('p-fill').addEventListener('input', e => { obj.set('fill', e.target.value); canvas.renderAll(); });
+    if ($('p-opacity')) $('p-opacity').addEventListener('input', e => { obj.set('opacity', +e.target.value); canvas.renderAll(); });
+  }
+
+  $('add-text').addEventListener('click', () => {
+    const t = new fabric.IText(c.hook?.slice(0, 50) || 'Tu texto aquí', {
+      left: 60, top: 60, fontSize: 48, fill: '#1D1D1F', fontFamily: 'Geist', fontWeight: 600,
+    });
+    canvas.add(t); canvas.setActiveObject(t);
+  });
+  $('add-rect').addEventListener('click', () => {
+    const r = new fabric.Rect({ left: 100, top: 100, width: 200, height: 100, fill: '#D4AF37' });
+    canvas.add(r); canvas.setActiveObject(r);
+  });
+  $('add-circle').addEventListener('click', () => {
+    const c2 = new fabric.Circle({ left: 100, top: 100, radius: 60, fill: '#D4AF37' });
+    canvas.add(c2); canvas.setActiveObject(c2);
+  });
+  $('add-image').addEventListener('click', () => $('file-upload').click());
+  $('file-upload').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      fabric.Image.fromURL(ev.target.result, (img) => {
+        img.scaleToWidth(300);
+        canvas.add(img); canvas.setActiveObject(img);
+      });
+    };
+    reader.readAsDataURL(file);
+  });
+  $('delete-selected').addEventListener('click', () => {
+    const obj = canvas.getActiveObject();
+    if (obj) canvas.remove(obj);
+  });
+  $('clear-overlay').addEventListener('click', () => {
+    if (!confirm('Borrar todo el overlay (mantener solo la imagen IA)?')) return;
+    const objs = canvas.getObjects();
+    objs.slice(1).forEach(o => canvas.remove(o));
+  });
+
+  // Duplicar (clone the selected element con offset)
+  $('duplicate-selected').addEventListener('click', () => {
+    const obj = canvas.getActiveObject();
+    if (!obj) { window.utils?.toast?.('Selecciona algo primero', 'error'); return; }
+    obj.clone((cloned) => {
+      cloned.set({ left: (obj.left || 0) + 30, top: (obj.top || 0) + 30 });
+      canvas.add(cloned);
+      canvas.setActiveObject(cloned);
+      canvas.renderAll();
+    });
+  });
+
+  // Z-order: fondo / -1 / +1 / frente. NUNCA mover detrás de la imagen base (índice 0).
+  function imagenBaseIndex() {
+    const objs = canvas.getObjects();
+    return objs.length > 0 && objs[0].type === 'image' && !objs[0].selectable ? 0 : -1;
+  }
+  $('send-to-back').addEventListener('click', () => {
+    const obj = canvas.getActiveObject();
+    if (!obj) return;
+    const baseIdx = imagenBaseIndex();
+    if (baseIdx === 0) {
+      canvas.moveTo(obj, 1);  // justo encima de la base, debajo de todo lo demás
+    } else {
+      canvas.sendToBack(obj);
+    }
+    canvas.renderAll();
+  });
+  $('send-backward').addEventListener('click', () => {
+    const obj = canvas.getActiveObject();
+    if (!obj) return;
+    canvas.sendBackwards(obj);
+    // Evitar pasar detrás de la imagen base
+    const baseIdx = imagenBaseIndex();
+    if (baseIdx === 0 && canvas.getObjects().indexOf(obj) < 1) canvas.moveTo(obj, 1);
+    canvas.renderAll();
+  });
+  $('bring-forward').addEventListener('click', () => {
+    const obj = canvas.getActiveObject();
+    if (!obj) return;
+    canvas.bringForward(obj);
+    canvas.renderAll();
+  });
+  $('bring-to-front').addEventListener('click', () => {
+    const obj = canvas.getActiveObject();
+    if (!obj) return;
+    canvas.bringToFront(obj);
+    canvas.renderAll();
+  });
+
+  // Plantillas (acumulativas: ya no borran lo existente, sólo agregan con offset)
+  document.querySelectorAll('[data-template]').forEach(b => b.addEventListener('click', () => aplicarTemplate(b.dataset.template)));
+
+  function aplicarTemplate(name) {
+    // Offset variable según cuántos elementos ya hay encima de la imagen base
+    const baseIdx = imagenBaseIndex();
+    const extra = Math.max(0, canvas.getObjects().length - (baseIdx === 0 ? 1 : 0));
+    const off = (extra % 6) * 30;  // cicla cada 6 para no salirse del canvas
+
+    if (name === 'post-simple') {
+      const t = new fabric.IText(c.hook || 'Tu título aquí', {
+        left: 60 + off, top: 800 - off, fontSize: 56, fill: '#fff', fontFamily: 'Geist', fontWeight: 700,
+        shadow: 'rgba(0,0,0,0.5) 2px 2px 6px', width: 904,
+      });
+      canvas.add(t); canvas.setActiveObject(t);
+    } else if (name === 'cita') {
+      const rect = new fabric.Rect({ left: 60 + off, top: 200 + off, width: 904, height: 400, fill: 'rgba(0,0,0,0.55)', rx: 16, ry: 16 });
+      const q = new fabric.IText(`"${(c.cuerpo || c.hook || '').slice(0, 200)}"`, {
+        left: 100 + off, top: 240 + off, width: 824, fontSize: 36, fill: '#fff', fontFamily: 'Georgia', fontStyle: 'italic',
+      });
+      canvas.add(rect); canvas.add(q); canvas.setActiveObject(q);
+    } else if (name === 'tip') {
+      const t1 = new fabric.IText('TIP', { left: 60 + off, top: 60 + off, fontSize: 24, fill: '#D4AF37', fontFamily: 'monospace', fontWeight: 700 });
+      const t2 = new fabric.IText(c.hook || 'Tu tip aquí', { left: 60 + off, top: 100 + off, fontSize: 64, fill: '#1D1D1F', fontFamily: 'Geist', fontWeight: 700, width: 904 });
+      canvas.add(t1); canvas.add(t2); canvas.setActiveObject(t2);
+    } else if (name === 'promo') {
+      const t1 = new fabric.IText(c.producto?.nombre || 'PRODUCTO', { left: 60 + off, top: 60 + off, fontSize: 28, fill: '#fff', fontFamily: 'Geist', fontWeight: 700, backgroundColor: '#D4AF37' });
+      const t2 = new fabric.IText(c.cta || 'CTA aquí', { left: 60 + off, top: 850 - off, fontSize: 36, fill: '#fff', fontFamily: 'Geist', fontWeight: 600, backgroundColor: 'rgba(212,175,55,0.9)' });
+      canvas.add(t1); canvas.add(t2); canvas.setActiveObject(t2);
+    }
+    canvas.renderAll();
+  }
+
+  $('btn-guardar').addEventListener('click', async () => {
+    const btn = $('btn-guardar');
+    btn.disabled = true; btn.textContent = 'Guardando...';
+    try {
+      const dataUrl = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 1 });
+      // Subir a Storage como nueva versión
+      const blob = await (await fetch(dataUrl)).blob();
+      const ts = new Date().toISOString().replace(/[:.]/g, '-');
+      const path = `${c.lead_id}/${contenidoId}/${ts}-edit.png`;
+      const url = `${window.NEURO_CONFIG.SUPABASE_URL}/storage/v1/object/contenido-imagenes/${path}`;
+      const { data: { session } } = await window.db.auth.getSession();
+      const upRes = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          'Content-Type': 'image/png',
+          'x-upsert': 'true',
+        },
+        body: blob,
+      });
+      if (!upRes.ok) throw new Error('Upload: ' + await upRes.text());
+      const publicUrl = `${window.NEURO_CONFIG.SUPABASE_URL}/storage/v1/object/public/contenido-imagenes/${path}`;
+      await window.db.from('contenido_generado').update({
+        imagen_url: publicUrl,
+        imagen_path: path,
+        imagen_canvas_state: canvas.toJSON(),
+      }).eq('id', contenidoId);
+      window.utils?.toast('Guardado', 'success');
+    } catch (e) {
+      window.utils?.toast('Error: ' + e.message, 'error');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Guardar';
+    }
+  });
+
+  $('btn-descargar').addEventListener('click', () => {
+    const a = document.createElement('a');
+    a.href = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 1 });
+    a.download = `post-${(c.hook || 'imagen').slice(0,30).replace(/[^a-z0-9]/gi,'-')}.png`;
+    a.click();
+  });
+
+  $('btn-regen').addEventListener('click', () => regenerarIA());
+  $('btn-regen-prompt').addEventListener('click', () => regenerarIA($('prompt-actual').value));
+
+  async function regenerarIA(promptCustom) {
+    if (!confirm('¿Regenerar la imagen IA? (esto reemplaza la imagen base, el overlay se mantiene)')) return;
+    const btn = $('btn-regen');
+    btn.disabled = true; btn.textContent = 'Generando...';
+    try {
+      const r = await window.studioContenidoApi.generarImagen(contenidoId, promptCustom);
+      // Reemplazar imagen base (primer objeto del canvas)
+      const oldBase = canvas.getObjects()[0];
+      if (oldBase && oldBase.type === 'image') canvas.remove(oldBase);
+      fabric.Image.fromURL(r.url, (img) => {
+        fitCanvasToImage(img);
+        img.set({ left: 0, top: 0, selectable: false, evented: false });
+        canvas.add(img);
+        canvas.sendToBack(img);
+        canvas.renderAll();
+      }, { crossOrigin: 'anonymous' });
+      $('prompt-actual').value = r.prompt_usado || '';
+      window.utils?.toast('Imagen regenerada', 'success');
+    } catch (e) {
+      window.utils?.toast('Error: ' + e.message, 'error');
+    } finally {
+      btn.disabled = false; btn.textContent = '↻ Regenerar IA';
+    }
+  }
+})();
+</script>
+
+</body>
+</html>

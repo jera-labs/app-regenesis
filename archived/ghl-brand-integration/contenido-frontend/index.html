@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Contenido · Neurohackers</title>
+  <script src="/shared/turbo.min.js?v=20260637"></script>
+  <link rel="stylesheet" href="/shared/styles.css?v=20260637">
+  <style>
+    .hero-ghl {
+      background: linear-gradient(135deg, rgba(212,175,55,0.10), rgba(212,175,55,0.02));
+      border: 1px solid var(--accent-soft);
+      border-radius: var(--radius-md);
+      padding: var(--space-7) var(--space-6);
+      margin-bottom: var(--space-6);
+    }
+    .hero-ghl h2 { margin: 0 0 var(--space-2); font-size: var(--text-xl); letter-spacing: -0.02em; }
+    .hero-ghl .lead-row { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; margin-top: var(--space-4); }
+    .pill-status {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: var(--font-mono); font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
+      padding: 4px 10px; border-radius: 999px;
+    }
+    .pill-status.ok { background: #D1FAE5; color: #065F46; }
+    .pill-status.pendiente { background: #FEF3C7; color: #92400E; }
+    .pill-status.bloqueado { background: #FEE2E2; color: #991B1B; }
+
+    .paso { display: grid; grid-template-columns: 48px 1fr auto; gap: var(--space-4); align-items: center; padding: var(--space-4); background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); margin-bottom: var(--space-3); }
+    .paso-num { width: 36px; height: 36px; border-radius: 50%; background: var(--surface-2); display: grid; place-items: center; font-weight: 700; font-size: var(--text-md); color: var(--text-muted); }
+    .paso.done .paso-num { background: linear-gradient(135deg, var(--accent-bright), var(--accent-dark)); color: #1D1D1F; }
+    .paso-info h3 { margin: 0 0 4px; font-size: var(--text-md); font-weight: 600; }
+    .paso-info p { margin: 0; font-size: var(--text-sm); color: var(--text-muted); line-height: 1.5; }
+    .paso-cta { white-space: nowrap; }
+
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); margin-top: var(--space-6); }
+    @media (max-width: 760px) { .info-grid { grid-template-columns: 1fr; } }
+    .info-card { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); padding: var(--space-5); }
+    .info-card h4 { margin: 0 0 var(--space-2); font-size: var(--text-md); }
+    .info-card p { font-size: var(--text-sm); color: var(--text-muted); line-height: 1.55; margin: 0 0 var(--space-3); }
+    .info-card .field-mono { font-family: var(--font-mono); font-size: 12px; color: var(--text); padding: 8px 12px; background: var(--surface-2); border-radius: 6px; display: inline-block; }
+  </style>
+</head>
+<body>
+
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<div data-nav data-active="contenido" data-base="../../"></div>
+
+<main class="container" id="main">
+
+  <div class="crumb">
+    <a href="../../index.html">Hoy</a><span>·</span><span>Contenido</span>
+  </div>
+
+  <section style="margin-bottom: var(--space-6);">
+    <span class="eyebrow">CONTENIDO PARA REDES</span>
+    <h1 class="greeting-lg">Tu calendario vive en GHL.</h1>
+    <p class="lead">Aquí en Neurohackers definimos tu DNA: voz, valores, ICP, productos y diagnóstico profundo. Eso se sincroniza al Brand Panel de GoHighLevel y allá generas, programas y publicas con su Social Planner (Instagram, LinkedIn, Facebook, TikTok, YouTube, Threads y más).</p>
+  </section>
+
+  <div class="hero-ghl" id="hero">
+    <h2>Tu Brand Panel en GHL</h2>
+    <p style="margin: 0; color: var(--text-muted); font-size: var(--text-sm);">El cuestionario que llenaste en <a href="../dna/index.html"><strong>Mi DNA</strong></a> alimenta automáticamente tu Brand Panel de GHL. Mientras más completo tu DNA, mejor el contenido que Content AI genera para ti.</p>
+    <div class="lead-row" id="status-row">
+      <span class="pill-status pendiente" id="pill-dna">DNA: cargando…</span>
+      <span class="pill-status pendiente" id="pill-sync">Sync GHL: cargando…</span>
+      <span class="pill-status pendiente" id="pill-ghl">Sub-account GHL: cargando…</span>
+    </div>
+  </div>
+
+  <h3 style="font-family: var(--font-mono); font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); margin: var(--space-6) 0 var(--space-3);">Tu flujo de contenido</h3>
+
+  <div class="paso" id="paso-1">
+    <div class="paso-num">1</div>
+    <div class="paso-info">
+      <h3>Completa tu DNA en Neurohackers</h3>
+      <p>4 capas: datos personales, esencia (voz, valores, palabras prohibidas), negocio (modelo, números, competidores) y diagnóstico profundo. Cada producto con su ICP y promesa propia.</p>
+    </div>
+    <div class="paso-cta">
+      <a href="../dna/index.html" class="btn btn-secondary btn-sm" id="btn-ir-dna">Ir a Mi DNA</a>
+    </div>
+  </div>
+
+  <div class="paso" id="paso-2">
+    <div class="paso-num">2</div>
+    <div class="paso-info">
+      <h3>Sincroniza al Brand Panel de GHL</h3>
+      <p>Un clic envía tu DNA al Brand Panel del Social Planner de GHL. Tu nombre, USP, ICP, dolor del cliente, promesa, voz y CTA quedan listos para que Content AI los use al generar posts.</p>
+    </div>
+    <div class="paso-cta">
+      <button class="btn btn-accent btn-sm" id="btn-sync" disabled>Sincronizar ahora</button>
+    </div>
+  </div>
+
+  <div class="paso" id="paso-3">
+    <div class="paso-num">3</div>
+    <div class="paso-info">
+      <h3>Genera, programa y publica en GHL</h3>
+      <p>Con tu Brand Panel cargado, abre el Social Planner de GHL y genera posts con Content AI ya conociendo tu voz. Programa, encola, recurrente, publica en hasta 10 redes. Todo en GHL.</p>
+    </div>
+    <div class="paso-cta">
+      <a href="#" class="btn btn-accent btn-sm" id="btn-abrir-ghl" target="_blank" rel="noopener">Abrir Social Planner</a>
+    </div>
+  </div>
+
+  <div class="info-grid">
+    <div class="info-card">
+      <h4>¿Por qué no editor propio?</h4>
+      <p>Frank ya paga GHL Agency. Su Social Planner publica nativamente en 10 redes con AI propio, calendario, cola perenne, RSS y CSV bulk. Construir nuestro propio editor sería duplicar lo que GHL ya hace mejor.</p>
+      <p style="margin: 0;"><strong>Lo que sí es nuestro:</strong> el DNA del cliente. GHL tiene un brand panel básico; nosotros tenemos 60+ campos incluyendo diagnóstico emocional, palabras prohibidas, productos con ICP propio. Eso es lo que sincronizamos.</p>
+    </div>
+    <div class="info-card">
+      <h4>Tu sub-account GHL</h4>
+      <p>Si el equipo de Neurohackers todavía no te creó la sub-account, no te preocupes: cuando esté lista te llegará el acceso a tu correo. Mientras tanto, sigue llenando tu DNA.</p>
+      <div id="sub-info" style="margin-top: var(--space-2);"></div>
+    </div>
+  </div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/shared/scripts/config.js?v=20260637"></script>
+<script src="/shared/scripts/supabase-client.js?v=20260637"></script>
+<script src="/shared/scripts/utils.js?v=20260637"></script>
+<script src="/shared/scripts/auth.js?v=20260637"></script>
+<script src="/shared/scripts/perfil.js?v=20260637"></script>
+<script src="/shared/nav.js?v=20260639"></script>
+<script>
+(async function () {
+  const { session, lead } = await window.requireAuth() || {};
+  if (!session) return;
+
+  const $ = (id) => document.getElementById(id);
+
+  // Cargar perfil completo (para sacar el score del DNA) y datos GHL del lead
+  const [perfil, leadFull] = await Promise.all([
+    window.perfilApi.cargarPerfilCompleto(lead.id, lead),
+    window.db.from('leads').select('ghl_sub_location_id, ghl_sub_location_url, ghl_brand_synced_at').eq('id', lead.id).maybeSingle().then(r => r.data),
+  ]);
+
+  const dnaScore = perfil?.score_global || 0;
+  const subId    = leadFull?.ghl_sub_location_id;
+  const subUrl   = leadFull?.ghl_sub_location_url;
+  const lastSync = leadFull?.ghl_brand_synced_at;
+
+  // === Pill DNA ===
+  const pillDna = $('pill-dna');
+  if (dnaScore >= 80) {
+    pillDna.textContent = `DNA: ${dnaScore}% ✓`;
+    pillDna.classList.remove('pendiente'); pillDna.classList.add('ok');
+    $('paso-1').classList.add('done');
+  } else {
+    pillDna.textContent = `DNA: ${dnaScore}% (incompleto)`;
+  }
+
+  // === Pill sub-account GHL ===
+  const pillGhl = $('pill-ghl');
+  if (subId && subUrl) {
+    pillGhl.textContent = 'GHL: conectada ✓';
+    pillGhl.classList.remove('pendiente'); pillGhl.classList.add('ok');
+    $('btn-abrir-ghl').href = subUrl;
+    $('btn-abrir-ghl').classList.remove('btn-accent');
+    $('btn-abrir-ghl').classList.add('btn-accent');
+    $('sub-info').innerHTML = `<span class="field-mono">${window.utils.escapeHtml(subId)}</span>`;
+  } else {
+    pillGhl.textContent = 'GHL: pendiente (avísale al equipo)';
+    pillGhl.classList.remove('pendiente'); pillGhl.classList.add('bloqueado');
+    $('btn-abrir-ghl').href = '#';
+    $('btn-abrir-ghl').style.opacity = '0.45';
+    $('btn-abrir-ghl').style.pointerEvents = 'none';
+    $('btn-abrir-ghl').textContent = 'Pendiente';
+    $('sub-info').innerHTML = '<p style="font-size: 12px; color: var(--text-muted); margin: 0;">Aún no se ha creado tu sub-account. Frank o el equipo lo gestionarán.</p>';
+  }
+
+  // === Pill sync + paso 2 ===
+  const pillSync = $('pill-sync');
+  const btnSync  = $('btn-sync');
+  if (!subId) {
+    pillSync.textContent = 'Sync: requiere sub-account GHL';
+    pillSync.classList.remove('pendiente'); pillSync.classList.add('bloqueado');
+    btnSync.disabled = true;
+    btnSync.title = 'Primero el equipo debe crear tu sub-account en GHL';
+  } else if (dnaScore < 40) {
+    pillSync.textContent = 'Sync: completa más tu DNA primero';
+    pillSync.classList.remove('pendiente'); pillSync.classList.add('bloqueado');
+    btnSync.disabled = true;
+    btnSync.title = 'Llena al menos el 40% de tu DNA antes de sincronizar';
+  } else {
+    btnSync.disabled = false;
+    if (lastSync) {
+      const fmt = new Date(lastSync).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+      pillSync.textContent = `Sync: última ${fmt}`;
+      pillSync.classList.remove('pendiente'); pillSync.classList.add('ok');
+      $('paso-2').classList.add('done');
+    } else {
+      pillSync.textContent = 'Sync: nunca sincronizado';
+    }
+  }
+
+  // === Acción sync ===
+  btnSync.addEventListener('click', async () => {
+    btnSync.disabled = true; btnSync.textContent = 'Sincronizando…';
+    try {
+      const { data: { session: s } } = await window.db.auth.getSession();
+      const cfg = window.NEURO_CONFIG;
+      const res = await fetch(`${cfg.SUPABASE_URL}/functions/v1/sync-dna-to-ghl-brand-panel`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${s.access_token}`,
+        },
+        body: JSON.stringify({ lead_id: lead.id }),
+      });
+      const body = await res.json();
+      if (!res.ok || !body.ok) throw new Error(body?.error || `HTTP ${res.status}`);
+      window.utils.toast('Brand Panel actualizado en GHL', 'success');
+      setTimeout(() => window.location.reload(), 800);
+    } catch (e) {
+      window.utils.toast('Error: ' + (e.message || String(e)), 'error');
+      btnSync.disabled = false; btnSync.textContent = 'Sincronizar ahora';
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Seguimiento · Admin · Neurohackers</title>
+  <script src="/shared/turbo.min.js?v=20260797"></script>
+  <link rel="stylesheet" href="/shared/styles.css?v=20260797">
+  <style>
+    /* === Layout === */
+    .seg-grid { display: grid; grid-template-columns: 1fr 360px; gap: var(--space-5); margin-top: var(--space-4); }
+    @media (max-width: 1100px) { .seg-grid { grid-template-columns: 1fr; } }
+
+    /* === Selector cliente === */
+    .seg-cliente-bar {
+      display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap;
+      padding: var(--space-4); background: var(--surface); border: 1px solid var(--border-soft);
+      border-radius: var(--radius-md); margin-bottom: var(--space-4);
+    }
+    .seg-cliente-bar label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; }
+    .seg-cliente-bar select { flex: 1; min-width: 280px; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; background: var(--surface); }
+    .seg-vacio { padding: var(--space-12) var(--space-6); text-align: center; color: var(--text-muted); background: var(--surface); border: 1px dashed var(--border); border-radius: var(--radius-md); }
+
+    /* === KPIs === */
+    .seg-kpis { display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--space-3); margin-bottom: var(--space-5); }
+    @media (max-width: 1100px) { .seg-kpis { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 640px) { .seg-kpis { grid-template-columns: repeat(2, 1fr); } }
+    .seg-kpi { padding: var(--space-3) var(--space-4); background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); }
+    .seg-kpi-label { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 1.3px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+    .seg-kpi-num { font-size: 20px; font-weight: 600; line-height: 1; }
+    .seg-kpi-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+    .seg-kpi.warn .seg-kpi-num { color: var(--accent-dark); }
+    .seg-kpi.alerta .seg-kpi-num { color: var(--error); }
+    .seg-kpi.ok .seg-kpi-num { color: var(--success); }
+
+    /* === Filtros === */
+    .seg-filtros { display: flex; gap: 6px; margin-bottom: var(--space-3); flex-wrap: wrap; }
+    .seg-chip { padding: 6px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-full); font-size: 12px; cursor: pointer; transition: var(--transition-fast); color: var(--text-muted); }
+    .seg-chip:hover { border-color: var(--text); color: var(--text); }
+    .seg-chip.active { background: var(--text); color: var(--surface); border-color: var(--text); }
+    .seg-chip-count { font-family: var(--font-mono); font-size: 10px; opacity: 0.7; margin-left: 4px; }
+
+    /* === Timeline === */
+    .seg-timeline { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); max-height: 70vh; overflow-y: auto; }
+    .seg-event { display: grid; grid-template-columns: 28px 1fr auto; gap: var(--space-3); padding: var(--space-4); border-bottom: 1px solid var(--border-soft); align-items: flex-start; }
+    .seg-event:last-child { border-bottom: 0; }
+    .seg-event:hover { background: var(--surface-2); }
+    .seg-event-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; background: var(--surface-3); }
+    .seg-event-titulo { font-size: 13.5px; font-weight: 600; margin-bottom: 2px; }
+    .seg-event-meta { font-size: 11.5px; color: var(--text-muted); line-height: 1.5; }
+    .seg-event-cuerpo { font-size: 12.5px; color: var(--text); margin-top: 6px; padding: 8px 10px; background: var(--surface-2); border-radius: var(--radius-sm); border-left: 2px solid var(--border); max-height: 80px; overflow: hidden; position: relative; }
+    .seg-event-cuerpo.expandido { max-height: none; }
+    .seg-event-time { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); white-space: nowrap; text-align: right; line-height: 1.4; }
+    .seg-event-time strong { color: var(--text); font-weight: 600; }
+
+    /* Colores por categoría */
+    .seg-event-cat-login .seg-event-icon { background: #DCFCE7; color: #166534; }
+    .seg-event-cat-reflexion .seg-event-icon { background: #FEF3C7; color: #92400E; }
+    .seg-event-cat-ia .seg-event-icon { background: #DBEAFE; color: #1E40AF; }
+    .seg-event-cat-pago .seg-event-icon { background: #D1FAE5; color: #065F46; }
+    .seg-event-cat-estado .seg-event-icon { background: #E0E7FF; color: #3730A3; }
+    .seg-event-cat-sesion .seg-event-icon { background: #FCE7F3; color: #9F1239; }
+    .seg-event-cat-nota .seg-event-icon { background: #F5E9B8; color: #B8941F; }
+    .seg-event-cat-webhook .seg-event-icon { background: #F3F4F6; color: #6B7280; }
+    .seg-event-cat-etiqueta .seg-event-icon { background: #FEF9C3; color: #854D0E; }
+    .seg-event-cat-testimonio .seg-event-icon { background: #E9D5FF; color: #6B21A8; }
+    .seg-event-cat-notif .seg-event-icon { background: #FEE2E2; color: #991B1B; }
+    .seg-event-cat-personaje .seg-event-icon { background: #FCE7F3; color: #831843; }
+
+    /* === Sidebar derecho === */
+    .seg-card { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); padding: var(--space-4); margin-bottom: var(--space-3); }
+    .seg-card-titulo { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: var(--space-3); display: flex; align-items: center; justify-content: space-between; }
+    .seg-card-titulo span { color: var(--text-muted); font-weight: 400; }
+
+    .seg-proxima { padding: 10px 12px; background: var(--surface-2); border-radius: var(--radius-sm); margin-bottom: 6px; border-left: 3px solid var(--border); }
+    .seg-proxima.pago { border-left-color: #10B981; }
+    .seg-proxima.notif { border-left-color: #F59E0B; }
+    .seg-proxima.sesion { border-left-color: #EC4899; }
+    .seg-proxima.atrasado { border-left-color: #DC2626; background: #FEF2F2; }
+    .seg-proxima-titulo { font-size: 12.5px; font-weight: 600; line-height: 1.4; }
+    .seg-proxima-meta { font-size: 11px; color: var(--text-muted); margin-top: 3px; font-family: var(--font-mono); }
+
+    /* Notas */
+    .seg-nota { padding: 10px 12px; background: var(--surface-2); border-radius: var(--radius-sm); margin-bottom: 6px; position: relative; }
+    .seg-nota.pinned { background: var(--accent-soft); }
+    .seg-nota-cuerpo { font-size: 12.5px; line-height: 1.5; white-space: pre-wrap; word-wrap: break-word; }
+    .seg-nota-meta { font-size: 10px; color: var(--text-muted); margin-top: 4px; font-family: var(--font-mono); display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .seg-nota-acciones { display: flex; gap: 4px; }
+    .seg-nota-btn { background: transparent; border: 0; cursor: pointer; color: var(--text-muted); font-size: 12px; padding: 2px 6px; border-radius: 3px; }
+    .seg-nota-btn:hover { background: var(--surface-3); color: var(--text); }
+
+    .seg-nueva-nota { display: flex; flex-direction: column; gap: 6px; margin-top: var(--space-3); }
+    .seg-nueva-nota textarea { width: 100%; min-height: 60px; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: inherit; font-size: 12.5px; resize: vertical; }
+    .seg-nueva-nota-bar { display: flex; align-items: center; gap: 6px; justify-content: space-between; }
+    .seg-nueva-nota select { padding: 4px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--surface); }
+
+    /* Etiquetas chips */
+    .seg-etiqs { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: var(--space-3); }
+    .seg-etiq { padding: 3px 9px; border-radius: var(--radius-full); font-size: 10.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+    .seg-etiq-x { cursor: pointer; opacity: 0.6; font-size: 13px; line-height: 1; }
+    .seg-etiq-x:hover { opacity: 1; }
+
+    /* Acciones rápidas */
+    .seg-accion { display: block; width: 100%; padding: 8px 10px; background: var(--surface-2); border: 1px solid var(--border-soft); border-radius: var(--radius-sm); cursor: pointer; font-size: 12.5px; text-align: left; margin-bottom: 4px; transition: var(--transition-fast); color: var(--text); }
+    .seg-accion:hover { background: var(--surface-3); border-color: var(--border); }
+
+    /* Modal genérico para acciones */
+    .seg-modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: center; justify-content: center; padding: var(--space-4); }
+    .seg-modal-backdrop.visible { display: flex; }
+    .seg-modal { background: var(--surface); border-radius: var(--radius-md); max-width: 480px; width: 100%; max-height: 80vh; display: flex; flex-direction: column; }
+    .seg-modal-head { padding: var(--space-4); border-bottom: 1px solid var(--border-soft); display: flex; justify-content: space-between; align-items: center; }
+    .seg-modal-body { padding: var(--space-4); overflow-y: auto; }
+    .seg-modal-foot { padding: var(--space-4); border-top: 1px solid var(--border-soft); display: flex; gap: var(--space-2); justify-content: flex-end; }
+
+    /* Loader */
+    .seg-loader { text-align: center; padding: var(--space-12); color: var(--text-muted); font-size: 12.5px; }
+    .seg-loader::before { content: ''; display: inline-block; width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--text); border-radius: 50%; animation: seg-spin 0.8s linear infinite; margin-right: 8px; vertical-align: middle; }
+    @keyframes seg-spin { to { transform: rotate(360deg); } }
+
+    /* Alertas */
+    .seg-alerta { padding: 10px 12px; border-radius: var(--radius-sm); margin-bottom: 6px; border-left: 3px solid var(--border); background: var(--surface-2); position: relative; }
+    .seg-alerta.sev-info { border-left-color: #3B82F6; }
+    .seg-alerta.sev-warn { border-left-color: #F59E0B; background: #FFFBEB; }
+    .seg-alerta.sev-alerta { border-left-color: #DC2626; background: #FEF2F2; }
+    .seg-alerta.sev-critica { border-left-color: #7F1D1D; background: #FEE2E2; }
+    .seg-alerta-titulo { font-size: 12.5px; font-weight: 600; }
+    .seg-alerta-meta { font-size: 11px; color: var(--text-muted); margin-top: 3px; font-family: var(--font-mono); }
+    .seg-alerta-acciones { display: flex; gap: 4px; margin-top: 6px; }
+    .seg-alerta-btn { background: transparent; border: 1px solid var(--border); cursor: pointer; font-size: 10.5px; padding: 3px 8px; border-radius: 3px; color: var(--text-muted); }
+    .seg-alerta-btn:hover { background: var(--surface); color: var(--text); }
+
+    /* Realtime dot pulse */
+    @keyframes seg-pulse {
+      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+      70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+    #seg-realtime-dot.dot-off { background: #9CA3AF !important; animation: none !important; }
+
+    /* Toast realtime */
+    .seg-toast { position: fixed; bottom: 24px; right: 24px; background: var(--text); color: var(--surface); padding: 10px 16px; border-radius: var(--radius-sm); font-size: 13px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 999; opacity: 0; transform: translateY(10px); transition: opacity 0.2s, transform 0.2s; pointer-events: none; max-width: 320px; }
+    .seg-toast.visible { opacity: 1; transform: translateY(0); }
+    .seg-toast.accent { background: var(--accent-dark); }
+  </style>
+</head>
+<body class="with-sidebar admin-mode">
+
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<script>(function(){try{var c=localStorage.getItem("nav-cache-admin-v4");var w=document.getElementById("sidebar-wrapper");if(c&&w&&!w.firstChild)w.innerHTML=c;}catch(e){}})();</script>
+<div data-nav data-active="admin-seguimiento" data-base="../"></div>
+
+<div class="admin-strip">
+  <div class="admin-strip-inner">
+    <span class="admin-strip-dot"></span>
+    <span>SEGUIMIENTO · TIMELINE Y ACCIONES POR CLIENTE</span>
+    <span style="opacity: 0.5;">·</span>
+    <a href="index.html">Volver</a>
+  </div>
+</div>
+
+<main class="container-wide" id="main">
+
+  <section style="margin-bottom: var(--space-5);">
+    <div>
+      <span class="eyebrow">SEGUIMIENTO 360</span>
+      <h1 class="greeting-lg">Qué hizo, qué hace, qué viene.</h1>
+      <p class="lead">Bitácora unificada por cliente. Cada login, reflexión, pago, sesión y mensaje pendiente, en orden cronológico.</p>
+    </div>
+  </section>
+
+  <!-- Selector de cliente -->
+  <div class="seg-cliente-bar">
+    <label for="seg-select">Cliente:</label>
+    <select id="seg-select"><option value="">Cargando clientes…</option></select>
+    <span id="seg-conexion" style="font-family: var(--font-mono); font-size: 10px; color: var(--text-muted);"></span>
+  </div>
+
+  <!-- Vacío inicial -->
+  <div class="seg-vacio" id="seg-vacio">
+    <div style="font-size: 32px; margin-bottom: var(--space-3);">◰</div>
+    <div>Selecciona un cliente para ver su seguimiento completo.</div>
+  </div>
+
+  <!-- Contenido principal (se muestra al seleccionar cliente) -->
+  <div id="seg-contenido" style="display: none;">
+
+    <!-- KPIs -->
+    <div class="seg-kpis" id="seg-kpis"></div>
+
+    <!-- Etiquetas + acciones rápidas inline -->
+    <div class="seg-etiqs" id="seg-etiqs"></div>
+
+    <div class="seg-grid">
+
+      <!-- Timeline (izquierda) -->
+      <div>
+        <div class="seg-filtros" id="seg-filtros"></div>
+        <div class="seg-timeline" id="seg-timeline">
+          <div class="seg-loader">Cargando timeline…</div>
+        </div>
+      </div>
+
+      <!-- Sidebar derecho -->
+      <aside>
+
+        <!-- Alertas activas (Fase C) -->
+        <div class="seg-card" id="seg-card-alertas">
+          <div class="seg-card-titulo">
+            <span>Alertas activas <span id="seg-alertas-count">—</span></span>
+            <span id="seg-realtime-dot" title="Realtime activo" style="display: inline-block; width: 7px; height: 7px; background: #10B981; border-radius: 50%; animation: seg-pulse 2s infinite;"></span>
+          </div>
+          <div id="seg-alertas"><div class="seg-loader" style="padding: var(--space-2);">Cargando…</div></div>
+        </div>
+
+        <!-- Próximas acciones -->
+        <div class="seg-card">
+          <div class="seg-card-titulo">Próximas acciones <span id="seg-proximas-count">—</span></div>
+          <div id="seg-proximas"><div class="seg-loader" style="padding: var(--space-4);">Cargando…</div></div>
+        </div>
+
+        <!-- Acciones rápidas -->
+        <div class="seg-card">
+          <div class="seg-card-titulo">Acciones rápidas</div>
+          <button class="seg-accion" id="seg-act-reasignar">→ Reasignar mentor</button>
+          <button class="seg-accion" id="seg-act-etiqueta">+ Agregar etiqueta</button>
+          <button class="seg-accion" id="seg-act-recordatorio">⏰ Crear recordatorio</button>
+          <a class="seg-accion" id="seg-act-ver-perfil" href="#" style="text-decoration: none;">▸ Abrir perfil completo</a>
+        </div>
+
+        <!-- Notas del equipo -->
+        <div class="seg-card">
+          <div class="seg-card-titulo">Notas del equipo <span id="seg-notas-count">—</span></div>
+          <div id="seg-notas"><div class="seg-loader" style="padding: var(--space-2);">Cargando…</div></div>
+          <div class="seg-nueva-nota">
+            <textarea id="seg-nueva-nota-text" placeholder="Agregar nota… (Cmd+Enter para guardar)"></textarea>
+            <div class="seg-nueva-nota-bar">
+              <select id="seg-nueva-nota-tipo">
+                <option value="general">General</option>
+                <option value="llamada">Llamada</option>
+                <option value="seguimiento">Seguimiento</option>
+                <option value="alerta">Alerta</option>
+                <option value="contexto">Contexto</option>
+              </select>
+              <label style="font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 4px;">
+                <input type="checkbox" id="seg-nueva-nota-pin"> Fijar
+              </label>
+              <button class="btn btn-accent btn-sm" id="seg-nueva-nota-btn" style="padding: 5px 12px; font-size: 11.5px;">Guardar</button>
+            </div>
+          </div>
+        </div>
+
+      </aside>
+    </div>
+  </div>
+
+</main>
+
+<!-- Toast realtime -->
+<div class="seg-toast" id="seg-toast">—</div>
+
+<!-- Modal genérico para acciones rápidas -->
+<div class="seg-modal-backdrop" id="seg-modal-backdrop">
+  <div class="seg-modal">
+    <div class="seg-modal-head">
+      <strong id="seg-modal-titulo">—</strong>
+      <button class="btn btn-ghost btn-sm" id="seg-modal-cerrar">✕</button>
+    </div>
+    <div class="seg-modal-body" id="seg-modal-body"></div>
+    <div class="seg-modal-foot" id="seg-modal-foot"></div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/shared/scripts/config.js?v=20260797"></script>
+<script src="/shared/scripts/supabase-client.js?v=20260797"></script>
+  <script src="/shared/scripts/cache.js?v=20260797"></script>
+<script src="/shared/scripts/utils.js?v=20260797"></script>
+<script src="/shared/scripts/auth.js?v=20260797"></script>
+  <script src="/shared/scripts/event-tracker.js?v=20260797"></script>
+<script src="/shared/scripts/admin-gate.js?v=20260797"></script>
+<script src="/shared/scripts/estados.js?v=20260797"></script>
+<script src="/shared/scripts/crm.js?v=20260797"></script>
+<script src="/shared/scripts/pipeline.js?v=20260797"></script>
+<script src="/shared/scripts/equipo.js?v=20260797"></script>
+<script src="/shared/scripts/seguimiento.js?v=20260797"></script>
+<script src="/shared/nav.js?v=20260797"></script>
+
+<script>
+  (async function init() {
+    if (typeof window.requireAdmin === 'function') {
+      const ok = await window.requireAdmin();
+      if (!ok) return;
+    }
+    if (typeof window.seguimientoInit === 'function') {
+      await window.seguimientoInit();
+    } else {
+      console.error('[seguimiento] seguimiento.js no expuso seguimientoInit');
+    }
+  })();
+</script>
+
+</body>
+</html>

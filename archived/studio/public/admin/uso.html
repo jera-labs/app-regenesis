@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <script src="/studio/shared/turbo.min.js?v=20260714"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Costo / Uso · Studio · Neurohackers</title>
+  <link rel="stylesheet" href="/studio/shared/styles.css?v=20260714">
+  <style>
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-3); margin-bottom: var(--space-5); }
+    .kpi-card { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); padding: var(--space-4); }
+    .kpi-num { font-size: var(--text-2xl); font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+    .kpi-label { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); text-transform: uppercase; margin-top: 4px; }
+    .uso-table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); overflow: hidden; }
+    .uso-table th, .uso-table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border-soft); font-size: var(--text-sm); }
+    .uso-table th { background: var(--surface-2); font-weight: 600; font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); text-transform: uppercase; }
+    .uso-table tr:last-child td { border-bottom: 0; }
+    .num { font-variant-numeric: tabular-nums; font-family: var(--font-mono); text-align: right; }
+    .badge-key { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 10px; font-family: var(--font-mono); text-transform: uppercase; }
+    .badge-key.plat { background: var(--accent-soft); color: var(--accent-dark); }
+    .badge-key.own  { background: #DBEAFE; color: #1E40AF; }
+    .tab-pills { display: flex; gap: 6px; margin-bottom: var(--space-4); }
+    .tab-pills .filter-chip.active { background: var(--accent); color: white; }
+    .seccion { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); padding: var(--space-4); margin-bottom: var(--space-4); }
+    .seccion h3 { margin: 0 0 var(--space-3); font-size: var(--text-md); }
+  </style>
+</head>
+<body>
+
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<div data-studio-nav data-active="mi-uso"></div>
+
+<div class="admin-strip" style="background: #1D1D1F;">
+  <div class="admin-strip-inner">
+    <span class="admin-strip-dot" style="background: var(--accent);"></span>
+    <span id="strip-titulo">COSTO / USO DEL STUDIO</span>
+    <span style="opacity: 0.5;">·</span>
+    <a href="/studio/index.html">Inicio</a>
+  </div>
+</div>
+
+<main class="container-wide" id="main">
+
+  <section style="margin-bottom: var(--space-4);">
+    <span class="eyebrow" id="eyebrow">CONSUMO</span>
+    <h1 class="greeting-lg" id="titulo">Tu consumo en Studio.</h1>
+    <p class="lead" id="lead">Costo acumulado de generación de texto (Anthropic) e imagen (OpenAI).</p>
+  </section>
+
+  <div class="tab-pills" id="tabs"></div>
+
+  <div id="contenido">
+    <p style="color: var(--text-muted); padding: var(--space-4);">Cargando...</p>
+  </div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/studio/shared/scripts/config.js?v=20260714"></script>
+<script src="/studio/shared/scripts/supabase-client.js?v=20260714"></script>
+<script src="/studio/shared/scripts/utils.js?v=20260714"></script>
+<script src="/studio/shared/scripts/studio-auth.js?v=20260714"></script>
+<script src="/studio/shared/scripts/studio-nav.js?v=20260714"></script>
+<script>
+(async function () {
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => (window.utils?.escapeHtml || ((x) => String(x ?? '')))(s);
+  const auth = await window.requireStudioAuth();
+  if (!auth) return;
+  const { lead, admin } = auth;
+  const isFullAdmin = admin?.rol === 'admin';
+
+  // Hash decide vista: #cliente o #todos (admin)
+  function vistaActual() {
+    const h = (window.location.hash || '').replace('#', '');
+    if (!isFullAdmin) return 'cliente';
+    if (h === 'cliente') return 'cliente';
+    return 'todos';
+  }
+
+  function pintarTabs() {
+    const v = vistaActual();
+    $('tabs').innerHTML = '';
+    if (lead) {
+      $('tabs').innerHTML += `<button class="filter-chip ${v === 'cliente' ? 'active' : ''}" data-vista="cliente">Mi consumo</button>`;
+    }
+    if (isFullAdmin) {
+      $('tabs').innerHTML += `<button class="filter-chip ${v === 'todos' ? 'active' : ''}" data-vista="todos">Todos los clientes (solo key plataforma)</button>`;
+    }
+    document.querySelectorAll('[data-vista]').forEach(b => b.addEventListener('click', () => {
+      window.location.hash = b.dataset.vista;
+      render();
+    }));
+  }
+
+  async function vistaCliente() {
+    if (!lead) { $('contenido').innerHTML = '<p style="color: var(--text-muted);">No tienes cuenta de cliente.</p>'; return; }
+    $('eyebrow').textContent = 'TU CONSUMO';
+    $('titulo').textContent = 'Tu consumo en Studio.';
+    $('lead').textContent = 'Todo el contenido que has generado, sin importar si pagó la plataforma o tú con tu propia API key.';
+
+    const { data, error } = await window.db.from('contenido_generado')
+      .select('canal, formato, estado, generado_costo_usd, imagen_costo_usd, imagen_intentos, costo_a_plataforma_anthropic, costo_a_plataforma_openai')
+      .eq('lead_id', lead.id);
+    if (error) { $('contenido').innerHTML = `<p style="color:#900;">Error: ${esc(error.message)}</p>`; return; }
+
+    let piezas = data.length;
+    let txt_plat = 0, txt_own = 0, img_plat = 0, img_own = 0;
+    let imgsCount = 0;
+    let porCanal = {};
+    (data || []).forEach(r => {
+      const tx = Number(r.generado_costo_usd || 0);
+      const im = Number(r.imagen_costo_usd || 0);
+      if (r.costo_a_plataforma_anthropic !== false) txt_plat += tx; else txt_own += tx;
+      if (r.costo_a_plataforma_openai !== false) img_plat += im; else img_own += im;
+      imgsCount += Number(r.imagen_intentos || 0);
+      porCanal[r.canal] = (porCanal[r.canal] || 0) + 1;
+    });
+
+    const totalPlat = txt_plat + img_plat;
+    const totalOwn  = txt_own + img_own;
+
+    $('contenido').innerHTML = `
+      <div class="kpi-grid">
+        <div class="kpi-card"><div class="kpi-num">${piezas}</div><div class="kpi-label">Piezas generadas</div></div>
+        <div class="kpi-card"><div class="kpi-num">${imgsCount}</div><div class="kpi-label">Imágenes generadas</div></div>
+        <div class="kpi-card"><div class="kpi-num">$${totalOwn.toFixed(3)}</div><div class="kpi-label">USD pagado por TI (key propia)</div></div>
+        <div class="kpi-card"><div class="kpi-num">$${totalPlat.toFixed(3)}</div><div class="kpi-label">USD pagado por Neurohackers</div></div>
+      </div>
+
+      <div class="seccion">
+        <h3>Desglose</h3>
+        <table class="uso-table">
+          <thead><tr><th>Concepto</th><th class="num">Plataforma</th><th class="num">Tu key</th><th class="num">Total</th></tr></thead>
+          <tbody>
+            <tr><td>Texto (Anthropic Claude)</td><td class="num">$${txt_plat.toFixed(4)}</td><td class="num">$${txt_own.toFixed(4)}</td><td class="num"><strong>$${(txt_plat+txt_own).toFixed(4)}</strong></td></tr>
+            <tr><td>Imagen (OpenAI gpt-image-2)</td><td class="num">$${img_plat.toFixed(4)}</td><td class="num">$${img_own.toFixed(4)}</td><td class="num"><strong>$${(img_plat+img_own).toFixed(4)}</strong></td></tr>
+            <tr><td><strong>Total</strong></td><td class="num"><strong>$${totalPlat.toFixed(4)}</strong></td><td class="num"><strong>$${totalOwn.toFixed(4)}</strong></td><td class="num"><strong>$${(totalPlat+totalOwn).toFixed(4)}</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="seccion">
+        <h3>Por canal</h3>
+        <table class="uso-table">
+          <thead><tr><th>Canal</th><th class="num">Piezas</th></tr></thead>
+          <tbody>
+            ${Object.entries(porCanal).sort((a,b)=>b[1]-a[1]).map(([c, n]) => `<tr><td>${esc(c || '?')}</td><td class="num">${n}</td></tr>`).join('') || '<tr><td colspan="2" style="text-align:center;color:var(--text-muted);">Sin datos</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+
+      <p style="font-size: 12px; color: var(--text-muted); margin-top: var(--space-4);">
+        Configura quién paga (plataforma o tú) en <a href="/studio/configuracion/index.html">Configuración · API keys</a>.
+      </p>`;
+  }
+
+  async function vistaTodos() {
+    $('eyebrow').textContent = 'TODOS LOS CLIENTES';
+    $('titulo').textContent = 'Consumo a cargo de Neurohackers.';
+    $('lead').textContent = 'Costo total que la plataforma está pagando por generación de contenido. Los clientes que usan su propia key NO aparecen acá (su costo va a su cuenta).';
+
+    const { data, error } = await window.db.from('contenido_generado')
+      .select('lead_id, generado_costo_usd, imagen_costo_usd, imagen_intentos, costo_a_plataforma_anthropic, costo_a_plataforma_openai, lead:lead_id (nombre, email)');
+    if (error) { $('contenido').innerHTML = `<p style="color:#900;">Error: ${esc(error.message)}</p>`; return; }
+
+    let porCliente = new Map();
+    let totalTxt = 0, totalImg = 0, totalImgs = 0;
+    (data || []).forEach(r => {
+      const tx = r.costo_a_plataforma_anthropic !== false ? Number(r.generado_costo_usd || 0) : 0;
+      const im = r.costo_a_plataforma_openai    !== false ? Number(r.imagen_costo_usd   || 0) : 0;
+      const ic = r.costo_a_plataforma_openai    !== false ? Number(r.imagen_intentos    || 0) : 0;
+      if (tx === 0 && im === 0) return;  // pieza pagada 100% por cliente, no se muestra al admin
+
+      const k = r.lead_id;
+      const e = porCliente.get(k) || { nombre: r.lead?.nombre || r.lead?.email || '?', email: r.lead?.email || '', txt: 0, img: 0, imgs: 0, piezas: 0 };
+      e.txt += tx; e.img += im; e.imgs += ic; e.piezas += 1;
+      porCliente.set(k, e);
+      totalTxt += tx; totalImg += im; totalImgs += ic;
+    });
+
+    const total = totalTxt + totalImg;
+
+    $('contenido').innerHTML = `
+      <div class="kpi-grid">
+        <div class="kpi-card"><div class="kpi-num">$${total.toFixed(2)}</div><div class="kpi-label">USD total · plataforma paga</div></div>
+        <div class="kpi-card"><div class="kpi-num">$${totalTxt.toFixed(2)}</div><div class="kpi-label">Texto · Anthropic</div></div>
+        <div class="kpi-card"><div class="kpi-num">$${totalImg.toFixed(2)}</div><div class="kpi-label">Imagen · OpenAI</div></div>
+        <div class="kpi-card"><div class="kpi-num">${porCliente.size}</div><div class="kpi-label">Clientes usando plataforma</div></div>
+      </div>
+
+      <div class="seccion">
+        <h3>Por cliente (solo lo que pagó la plataforma)</h3>
+        ${porCliente.size === 0 ? `<p style="color: var(--text-muted);">Aún no hay consumo con key de plataforma.</p>` : `
+          <table class="uso-table">
+            <thead><tr>
+              <th>Cliente</th><th>Email</th>
+              <th class="num">Piezas</th><th class="num">Imágenes</th>
+              <th class="num">Texto USD</th><th class="num">Imagen USD</th><th class="num">Total USD</th>
+            </tr></thead>
+            <tbody>
+              ${[...porCliente.values()].sort((a,b)=>(b.txt+b.img)-(a.txt+a.img)).map(f => `
+                <tr>
+                  <td>${esc(f.nombre)}</td>
+                  <td>${esc(f.email)}</td>
+                  <td class="num">${f.piezas}</td>
+                  <td class="num">${f.imgs}</td>
+                  <td class="num">$${f.txt.toFixed(4)}</td>
+                  <td class="num">$${f.img.toFixed(4)}</td>
+                  <td class="num"><strong>$${(f.txt+f.img).toFixed(4)}</strong></td>
+                </tr>`).join('')}
+            </tbody>
+          </table>`}
+      </div>`;
+  }
+
+  async function render() {
+    pintarTabs();
+    const v = vistaActual();
+    if (v === 'cliente') await vistaCliente();
+    else await vistaTodos();
+  }
+
+  await render();
+  window.addEventListener('hashchange', render);
+})();
+</script>
+
+</body>
+</html>

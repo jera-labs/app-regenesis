@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Neurohackers · Hoy</title>
+  <script src="/shared/turbo.min.js?v=20260797"></script>
+  <link rel="stylesheet" href="/shared/styles.css?v=20260797">
+</head>
+<body>
+
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<div data-nav data-active="hoy" data-base="./"></div>
+
+<main class="container" id="main">
+
+  <!-- Hola + fase (se llena por JS) -->
+  <section style="margin-bottom: var(--space-8);">
+    <span class="eyebrow" id="hoy-eyebrow">CARGANDO...</span>
+    <h1 class="greeting-lg" id="hoy-saludo">Cargando tu día.</h1>
+    <p class="lead" id="hoy-intro">Estamos preparando lo que tienes que hacer hoy.</p>
+  </section>
+
+  <!-- Progreso compacto -->
+  <div class="progress-strip">
+    <div class="progress-strip-item">
+      <span class="progress-strip-num" id="kpi-productos">-</span>
+      <span class="progress-strip-label">Productos · catálogo</span>
+    </div>
+    <div class="progress-strip-divider"></div>
+    <div class="progress-strip-item">
+      <span class="progress-strip-num" id="kpi-fase">Fase 01</span>
+      <span class="progress-strip-label" id="kpi-fase-label">Configura tu marca</span>
+    </div>
+    <div class="progress-strip-divider"></div>
+    <div class="progress-strip-item">
+      <span class="progress-strip-num" id="kpi-regenesis">-</span>
+      <span class="progress-strip-label">Re-Génesis · tema actual</span>
+    </div>
+  </div>
+
+  <!-- 3 acciones del día (dinámicas según estado del cliente) -->
+  <div class="section-h">
+    <span class="section-h-title">Tus acciones de hoy</span>
+    <span class="section-h-meta">TU SIGUIENTE PASO</span>
+  </div>
+
+  <div id="acciones-container">
+    <!-- Pintado por JS -->
+  </div>
+
+  <!-- Tu equipo (visible si el cliente tiene gente asignada) -->
+  <section id="equipo-section" style="margin-top: var(--space-12); display: none;">
+    <div class="section-h">
+      <span class="section-h-title">Tu equipo Neurohackers</span>
+      <span class="section-h-meta">QUIÉN TE ACOMPAÑA</span>
+    </div>
+    <div class="grid grid-3" id="equipo-grid"></div>
+  </section>
+
+  <!-- Atajos -->
+  <div class="atajos">
+    <a href="modules/marca-oferta/index.html" class="atajo">▦ Mis productos</a>
+    <a href="https://neurohackers.cloud/" class="atajo" target="_blank">◌ Re-Génesis</a>
+    <a href="mas.html" class="atajo">+ Más módulos</a>
+    <a href="#" id="logout-link" class="atajo">↪ Salir</a>
+  </div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/shared/scripts/config.js?v=20260797"></script>
+<script src="/shared/scripts/supabase-client.js?v=20260797"></script>
+  <script src="/shared/scripts/cache.js?v=20260797"></script>
+<script src="/shared/scripts/utils.js?v=20260797"></script>
+<script src="/shared/scripts/auth.js?v=20260797"></script>
+  <script src="/shared/scripts/event-tracker.js?v=20260797"></script>
+  <script src="/shared/scripts/nps.js?v=20260797"></script>
+<script src="/shared/scripts/productos.js?v=20260797"></script>
+<script src="/shared/scripts/esencia.js?v=20260797"></script>
+<script src="/shared/scripts/equipo.js?v=20260797"></script>
+<script src="/shared/scripts/perfil.js?v=20260797"></script>
+<script src="/shared/nav.js?v=20260797"></script>
+<script>
+(async function () {
+  const { session, lead } = await window.requireAuth() || {};
+  if (!session) return;
+  // Guarda contra race: requireAuth puede haber redirigido a admin/index.html
+  // pero el script sigue corriendo unos ms. Si no hay lead, abortar limpio.
+  if (!lead) return;
+
+  // Productos del cliente
+  let productos = [];
+  try {
+    productos = await window.productosApi.listarPorLead(lead.id);
+  } catch (e) {
+    console.error('Error productos:', e);
+  }
+
+  // Perfil completo del cliente (4 capas)
+  let perfil = null;
+  try {
+    perfil = await window.perfilApi?.cargarPerfilCompleto(lead.id, lead);
+  } catch (e) { console.error('Error perfil:', e); }
+  const perfilGlobal = perfil?.score_global || 0;
+  const esenciaScore = perfil?.capas?.esencia?.score || 0;
+
+  const nombre = (lead.nombre || session.user.email.split('@')[0]).split(' ')[0];
+  const hoy = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+  document.getElementById('hoy-eyebrow').textContent = `${hoy.toUpperCase()} · BUEN DÍA, ${nombre.toUpperCase()}`;
+
+  const auditados = productos.filter(p => p.salud_score !== null).length;
+  const tieneProductos = productos.length > 0;
+
+  // El título dinámico se setea al FINAL, una vez sepamos cuántas acciones se
+  // pintaron realmente. Aquí solo dejamos el contexto preparatorio.
+  // (Se ajusta más abajo con setSaludoSegunCount)
+
+  // KPIs
+  document.getElementById('kpi-productos').textContent = productos.length;
+  if (lead.tema_actual_orden) {
+    document.getElementById('kpi-regenesis').textContent = `Tema ${lead.tema_actual_orden}`;
+  } else {
+    document.getElementById('kpi-regenesis').textContent = 'Calentamiento';
+  }
+
+  if (tieneProductos) {
+    document.getElementById('kpi-fase').textContent = 'Fase 02';
+    document.getElementById('kpi-fase-label').textContent = 'Activa tu tráfico';
+  }
+
+  // Acciones dinámicas
+  const cont = document.getElementById('acciones-container');
+  cont.innerHTML = '';
+
+  // Si el perfil global está bajo, esa es siempre la acción 1
+  if (perfilGlobal < 50) {
+    const capaPriority = perfil
+      ? (perfil.capas.esencia.score < 50 ? 'esencia'
+        : perfil.capas.negocio.score < 50 ? 'negocio'
+        : perfil.capas.datos.score < 50 ? 'datos'
+        : 'diagnostico')
+      : 'esencia';
+    const detalle = perfilGlobal === 0
+      ? 'No conocemos tu negocio ni tu voz todavía. Sin esto, todo lo que generamos para ti sale genérico.'
+      : `Tu DNA está al ${perfilGlobal}% completo. Cada capa que llenas mejora lo que el programa escribe, prioriza y propone por ti.`;
+    cont.innerHTML += `
+      <div class="action">
+        <div class="action-num">1</div>
+        <div class="action-body">
+          <h3 class="action-title">Completa tu DNA para que el programa te conozca</h3>
+          <p class="action-detail">${detalle}</p>
+          <span class="action-meta">
+            <span>FUNDAMENTO</span><span class="action-meta-dot"></span>
+            <span>SIGUIENTE: ${capaPriority.toUpperCase()}</span><span class="action-meta-dot"></span>
+            <span>${perfilGlobal}% GLOBAL</span>
+          </span>
+        </div>
+        <div class="action-cta">
+          <a href="modules/dna/index.html" class="btn btn-accent btn-sm">${perfilGlobal === 0 ? 'Empezar' : 'Continuar'}</a>
+        </div>
+      </div>`;
+  }
+
+  if (!tieneProductos) {
+    cont.innerHTML += `
+      <div class="action">
+        <div class="action-num">${cont.children.length + 1}</div>
+        <div class="action-body">
+          <h3 class="action-title">Agrega tu primer producto o servicio</h3>
+          <p class="action-detail">Si tienes una oferta ya, regístrala en 2 minutos. Si no la tienes clara, te ayudamos a empaquetar un MVP paso a paso.</p>
+          <span class="action-meta">
+            <span>BLOQUEANTE</span><span class="action-meta-dot"></span>
+            <span>~2 MIN</span>
+          </span>
+        </div>
+        <div class="action-cta">
+          <a href="modules/marca-oferta/index.html" class="btn btn-accent btn-sm">Empezar</a>
+        </div>
+      </div>
+    `;
+  } else {
+    // 1. Auditar el primer producto sin auditar (si hay)
+    const noAuditado = productos.find(p => p.salud_score === null);
+    if (noAuditado) {
+      cont.innerHTML += `
+        <div class="action">
+          <div class="action-num">${cont.children.length + 1}</div>
+          <div class="action-body">
+            <h3 class="action-title">Diagnostica "${window.utils.escapeHtml(noAuditado.nombre)}"</h3>
+            <p class="action-detail">Toma 30 segundos. Revisamos tu producto a fondo y te dejamos 3 tareas concretas para mejorarlo, todas accionables hoy.</p>
+            <span class="action-meta">
+              <span>PRODUCTO · ${window.utils.escapeHtml(window.utils.tipoLabel(noAuditado.tipo))}</span>
+              <span class="action-meta-dot"></span><span>~30 SEG</span>
+            </span>
+          </div>
+          <div class="action-cta">
+            <a href="modules/marca-oferta/producto.html?id=${noAuditado.id}" class="btn btn-accent btn-sm">Diagnosticar ahora</a>
+          </div>
+        </div>
+      `;
+    }
+
+    // 2. Mostrar primera tarea de mayor prioridad de algún producto auditado
+    const conTareas = productos.find(p => p.auditoria_tareas && p.auditoria_tareas.tareas);
+    if (conTareas) {
+      const tareasArr = conTareas.auditoria_tareas.tareas || [];
+      const tareaAlta = tareasArr.find(t => t.prioridad === 'alta') || tareasArr[0];
+      if (tareaAlta) {
+        cont.innerHTML += `
+          <div class="action">
+            <div class="action-num">${cont.children.length + 1}</div>
+            <div class="action-body">
+              <h3 class="action-title">${window.utils.escapeHtml(tareaAlta.titulo)}</h3>
+              <p class="action-detail">${window.utils.escapeHtml(tareaAlta.detalle)}</p>
+              <span class="action-meta">
+                <span>PRODUCTO · ${window.utils.escapeHtml(conTareas.nombre)}</span>
+                <span class="action-meta-dot"></span>
+                <span>${tareaAlta.esfuerzo_min ?? '?'}MIN · ${(tareaAlta.prioridad || 'media').toUpperCase()}</span>
+              </span>
+            </div>
+            <div class="action-cta">
+              <a href="modules/marca-oferta/producto.html?id=${conTareas.id}" class="btn btn-secondary btn-sm">Ver detalle</a>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // 3. Re-Génesis si está activo
+    if (lead.tema_actual_orden) {
+      cont.innerHTML += `
+        <div class="action">
+          <div class="action-num">${cont.children.length + 1}</div>
+          <div class="action-body">
+            <h3 class="action-title">Tu pregunta de hoy en Re-Génesis</h3>
+            <p class="action-detail">Continúa tu trabajo emocional. Lo que cierres allá lo conectamos con las tareas de tu negocio.</p>
+            <span class="action-meta">
+              <span>RE-GÉNESIS · TEMA ${lead.tema_actual_orden}</span>
+              <span class="action-meta-dot"></span><span>~10 MIN</span>
+            </span>
+          </div>
+          <div class="action-cta">
+            <a href="https://neurohackers.cloud/" target="_blank" class="btn btn-secondary btn-sm">Abrir Re-Génesis</a>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  // ===== Título dinámico según el número REAL de acciones pintadas =====
+  // Antes era hardcoded "3 cosas por hacer" aunque hubiera 0, 1 o 2.
+  (function setSaludoSegunCount() {
+    const n = cont.children.length;
+    const saludo = document.getElementById('hoy-saludo');
+    const intro = document.getElementById('hoy-intro');
+
+    if (!tieneProductos) {
+      saludo.textContent = 'Empezamos por tu oferta.';
+      intro.textContent = 'Antes de poder darte tareas y generar contenido específico para ti, necesitamos conocer tus productos o servicios. Agrega el primero y empezamos.';
+      return;
+    }
+    if (auditados < productos.length) {
+      saludo.textContent = `Tienes ${productos.length - auditados} producto(s) por diagnosticar.`;
+      intro.textContent = 'Podemos diagnosticarlos en 30 segundos y dejarte tareas concretas. Eso desbloquea el contenido y el resto del sistema.';
+      return;
+    }
+    if (n === 0) {
+      saludo.textContent = 'Estás al día.';
+      intro.textContent = 'No tienes acciones pendientes ahora mismo. Aprovecha para revisar tu cola de contenido o pulir tu DNA.';
+      cont.innerHTML = `
+        <div class="action" style="opacity: 0.85;">
+          <div class="action-num">·</div>
+          <div class="action-body">
+            <h3 class="action-title">Nada urgente hoy</h3>
+            <p class="action-detail">Cuando tengas más productos, tareas pendientes o tu programa Re-Génesis avance, aquí aparecerán las acciones priorizadas por el sistema.</p>
+            <span class="action-meta"><span>SIN PENDIENTES</span></span>
+          </div>
+          <div class="action-cta">
+            <a href="modules/marca-oferta/index.html" class="btn btn-secondary btn-sm">Mis productos</a>
+          </div>
+        </div>`;
+      return;
+    }
+    saludo.textContent = n === 1
+      ? 'Hoy hay 1 cosa por hacer.'
+      : `Hoy hay ${n} cosas por hacer.`;
+    intro.textContent = 'Elegidas según tus productos y tu estado del programa. Ninguna es relleno.';
+  })();
+
+  document.getElementById('logout-link').addEventListener('click', (e) => {
+    e.preventDefault();
+    window.signOut();
+  });
+
+  // Tu equipo (asignaciones del cliente)
+  try {
+    const asignaciones = await window.equipoApi.asignacionesDelLead(lead.id);
+    if (asignaciones && asignaciones.length > 0) {
+      document.getElementById('equipo-section').style.display = 'block';
+      document.getElementById('equipo-grid').innerHTML = asignaciones.map(a => {
+        const u = a.usuario_admin || {};
+        const r = a.rol_funcional || {};
+        const ini = (u.nombre || u.email || '?').trim().split(/[\s@]/).filter(Boolean)
+          .slice(0, 2).map(x => x[0]).join('').toUpperCase();
+        return `
+          <div class="card" style="display: flex; gap: var(--space-3); align-items: center;">
+            <div style="width: 44px; height: 44px; border-radius: 50%; background: ${r.color || '#86868B'}; color: #FFF; display: grid; place-items: center; font-weight: 700; font-size: 14px; flex-shrink: 0;">${ini}</div>
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-weight: 600; font-size: var(--text-sm);">${window.utils.escapeHtml(u.nombre || u.email || '?')}</div>
+              <div style="font-size: var(--text-xs); color: var(--text-muted);">${window.utils.escapeHtml(r.nombre || '?')}</div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+  } catch (e) { console.warn('No pude cargar equipo asignado:', e); }
+
+  document.getElementById('main').style.opacity = '1';
+})();
+</script>
+
+
+</body>
+</html>

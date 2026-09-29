@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Automatizaciones · Admin · Neurohackers</title>
+  <script src="/shared/turbo.min.js?v=20260797"></script>
+  <link rel="stylesheet" href="/shared/styles.css?v=20260797">
+  <style>
+    .auto-kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-3); margin-bottom: var(--space-6); }
+    @media (max-width: 760px) { .auto-kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+    .auto-kpi { padding: var(--space-5); background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); }
+    .auto-kpi-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
+    .auto-kpi-num { font-size: var(--text-2xl); font-weight: 600; letter-spacing: -0.02em; margin-top: 4px; line-height: 1.1; }
+
+    .regla-card {
+      background: var(--surface); border: 1px solid var(--border-soft);
+      border-radius: var(--radius-md); padding: var(--space-4);
+      display: grid; grid-template-columns: auto 1fr auto auto; gap: var(--space-3);
+      align-items: center; margin-bottom: var(--space-2);
+    }
+    .regla-card.activa { border-left: 3px solid var(--success); }
+    .regla-card.inactiva { opacity: 0.7; }
+    .regla-nombre { font-weight: 600; font-size: var(--text-md); }
+    .regla-desc { font-size: var(--text-xs); color: var(--text-muted); margin-top: 2px; }
+    .regla-meta { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+
+    .toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: var(--border); border-radius: 999px; transition: 250ms; }
+    .toggle-slider::before { content: ''; position: absolute; height: 18px; width: 18px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: 250ms; }
+    .toggle-switch input:checked + .toggle-slider { background: var(--success); }
+    .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+    .cola-row { display: grid; grid-template-columns: 140px 1fr 130px 110px 80px; gap: var(--space-3); padding: var(--space-3); background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-sm); margin-bottom: 4px; align-items: center; font-size: var(--text-sm); }
+    .cola-row.fallida { border-left: 3px solid var(--error); }
+    .cola-row .err { font-size: var(--text-xs); color: var(--error); font-family: var(--font-mono); margin-top: 2px; word-break: break-all; }
+
+    .config-banner {
+      background: linear-gradient(135deg, #FEF3C715, #F5E9B815);
+      border: 1px solid var(--accent-soft);
+      border-radius: var(--radius-md);
+      padding: var(--space-4);
+      margin-bottom: var(--space-5);
+      display: flex; gap: var(--space-3); align-items: flex-start;
+    }
+  </style>
+</head>
+<body class="with-sidebar admin-mode">
+
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<script>(function(){try{var c=localStorage.getItem("nav-cache-admin-v4");var w=document.getElementById("sidebar-wrapper");if(c&&w&&!w.firstChild)w.innerHTML=c;}catch(e){}})();</script>
+<div data-nav data-active="admin-automatizaciones" data-base="../"></div>
+
+<div class="admin-strip">
+  <div class="admin-strip-inner">
+    <span class="admin-strip-dot"></span>
+    <span>AUTOMATIZACIONES · CICLO DE VIDA</span>
+    <span style="opacity: 0.5;">·</span>
+    <a href="index.html">Volver</a>
+    <span style="opacity: 0.5;">·</span>
+    <a href="dashboards.html">Dashboards</a>
+  </div>
+</div>
+
+<main class="container-wide" id="main">
+
+  <section style="margin-bottom: var(--space-6);">
+    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap;">
+      <div>
+        <span class="eyebrow">RECORDATORIOS Y NPS</span>
+        <h1 class="greeting-lg">Automatizaciones.</h1>
+        <p class="lead">Supabase detecta condiciones (cuota próxima, atrasada, sin sesión, fin de programa, NPS). GHL envía el WhatsApp/email. Frank activa cada regla cuando configure el workflow en GHL.</p>
+      </div>
+      <div style="display: flex; gap: var(--space-2);">
+        <button class="btn btn-secondary btn-sm" id="btn-detectar">Detectar ahora</button>
+        <button class="btn btn-accent btn-sm" id="btn-procesar">Procesar cola</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="config-banner">
+    <div style="font-size: 24px;">⚙</div>
+    <div>
+      <strong>Antes de activar cualquier regla:</strong> Frank tiene que crear el workflow correspondiente en GHL (con su WhatsApp/email template) y pegar el <code>workflowId</code> en cada regla aquí abajo. Las reglas vienen desactivadas por seguridad.
+      <div style="margin-top: 8px; font-size: var(--text-xs); color: var(--text-muted);">
+        Custom values que GHL puede usar en las plantillas: <code>cuota_monto</code>, <code>cuota_fecha</code>, <code>dias_atraso</code>, <code>cuota_numero</code>, <code>fin_programa_fecha</code>.
+      </div>
+    </div>
+  </div>
+
+  <div class="auto-kpi-grid">
+    <div class="auto-kpi">
+      <div class="auto-kpi-label">Reglas activas</div>
+      <div class="auto-kpi-num" id="k-activas">-</div>
+    </div>
+    <div class="auto-kpi">
+      <div class="auto-kpi-label">En cola</div>
+      <div class="auto-kpi-num" id="k-cola">-</div>
+    </div>
+    <div class="auto-kpi">
+      <div class="auto-kpi-label">Enviadas hoy</div>
+      <div class="auto-kpi-num" id="k-enviadas">-</div>
+    </div>
+    <div class="auto-kpi">
+      <div class="auto-kpi-label">NPS · 90 días</div>
+      <div class="auto-kpi-num" id="k-nps">-</div>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-5); padding-bottom: var(--space-3); border-bottom: 1px solid var(--border-soft); flex-wrap: wrap;">
+    <button class="filter-chip active" data-tab="reglas">Reglas (notif. al cliente)</button>
+    <button class="filter-chip" data-tab="cola">Cola de envíos</button>
+    <button class="filter-chip" data-tab="alertas-internas">Alertas internas (al equipo)</button>
+    <button class="filter-chip" data-tab="semaforos">Semáforos engagement/progreso</button>
+  </div>
+
+  <section id="tab-reglas">
+    <div id="reglas-lista"></div>
+  </section>
+
+  <section id="tab-cola" class="hidden">
+    <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-4); flex-wrap: wrap;">
+      <button class="filter-chip active" data-filtro-estado="">Todos</button>
+      <button class="filter-chip" data-filtro-estado="pendiente">Pendientes</button>
+      <button class="filter-chip" data-filtro-estado="enviada">Enviadas</button>
+      <button class="filter-chip" data-filtro-estado="fallida">Fallidas</button>
+    </div>
+    <div id="cola-lista"></div>
+  </section>
+
+  <!-- TAB ALERTAS INTERNAS: reglas que disparan alerta al equipo + push Telegram -->
+  <section id="tab-alertas-internas" class="hidden">
+    <div class="config-banner">
+      <div style="font-size: 24px;">⚠</div>
+      <div>
+        <strong>Alertas internas al equipo, no al cliente.</strong>
+        Cada 15 min, el cron evalúa estas reglas contra el estado de los leads y abre alertas en
+        <a href="seguimiento.html" style="color: var(--text); font-weight: 600;">/admin/seguimiento.html</a>.
+        Las de severidad <code>warn</code>, <code>alerta</code> y <code>critica</code> también disparan push Telegram a Frank/Alex.
+        <div style="margin-top: 8px; font-size: var(--text-xs); color: var(--text-muted);">
+          La condición técnica (jsonb) NO se edita desde aquí (requiere migración SQL). Aquí puedes activar/desactivar, ajustar severidad, mensaje y cooldown.
+        </div>
+      </div>
+    </div>
+    <div id="alertas-reglas-lista"></div>
+  </section>
+
+  <!-- TAB SEMÁFOROS: reglas declarativas para engagement+progreso -->
+  <section id="tab-semaforos" class="hidden">
+    <div class="config-banner">
+      <div style="font-size: 24px;">▼</div>
+      <div>
+        <strong>Reglas de semáforos engagement / progreso.</strong>
+        Cada cliente tiene dos semáforos visibles en /admin/index.html y /admin/seguimiento.html.
+        Las reglas se evalúan en orden de prioridad DESC; la primera que matchea define el color.
+        El cron <code>recalcular_salud_todos</code> (botón en /admin/index.html) los actualiza para todos los activos.
+        <div style="margin-top: 8px; font-size: var(--text-xs); color: var(--text-muted);">
+          Condición (jsonb) NO se edita desde UI (requiere migración SQL). Aquí puedes pausar/activar, cambiar color, prioridad y mensaje.
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-4);">
+      <button class="filter-chip active" data-sem-tipo="todos">Todos</button>
+      <button class="filter-chip" data-sem-tipo="engagement">Engagement</button>
+      <button class="filter-chip" data-sem-tipo="progreso">Progreso</button>
+    </div>
+
+    <div id="semaforo-reglas-lista"></div>
+  </section>
+</main>
+
+<!-- Modal editar regla de semáforo -->
+<div class="modal-backdrop hidden" id="modal-semaforo-regla">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="msr-titulo">Editar regla</span>
+      <button class="modal-close" data-close-msr>✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label class="field-label">Color resultado *</label>
+        <select class="field-input" id="msr-color">
+          <option value="verde">Verde · OK</option>
+          <option value="amarillo">Amarillo · Atención</option>
+          <option value="rojo">Rojo · Riesgo</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label">Mensaje plantilla *</label>
+        <input class="field-input" id="msr-razon" placeholder="No entra hace {dias_sin_login} días" maxlength="200">
+        <div class="field-hint">Placeholders: <code>{dias_sin_login}</code>, <code>{dias_sin_reflexion}</code>, <code>{cuotas_atrasadas}</code>, <code>{pct_reflexiones}</code>.</div>
+      </div>
+      <div class="field">
+        <label class="field-label">Prioridad (mayor primero)</label>
+        <input class="field-input" id="msr-prioridad" type="number" min="0" max="999">
+        <div class="field-hint">100=crítica, 90=alta, 80=media, 1=default.</div>
+      </div>
+      <div class="field">
+        <label class="field-label">Condición (read-only)</label>
+        <code id="msr-condicion-display" style="display: block; background: var(--surface-2); padding: 8px 10px; border-radius: var(--radius-sm); font-size: 11px; word-break: break-all;"></code>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close-msr>Cancelar</button>
+      <button class="btn btn-accent" id="btn-guardar-semaforo-regla">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal editar alerta_regla -->
+<div class="modal-backdrop hidden" id="modal-alerta-regla">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="mar-titulo">Editar regla de alerta</span>
+      <button class="modal-close" data-close-mar>✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label class="field-label">Severidad *</label>
+        <select class="field-input" id="mar-severidad">
+          <option value="info">Info (no notifica Telegram)</option>
+          <option value="warn">Warn (notifica Telegram)</option>
+          <option value="alerta">Alerta (notifica Telegram)</option>
+          <option value="critica">Crítica (notifica Telegram, rojo intenso)</option>
+        </select>
+        <div class="field-hint">Solo <code>warn</code>/<code>alerta</code>/<code>critica</code> disparan push Telegram.</div>
+      </div>
+      <div class="field">
+        <label class="field-label">Mensaje plantilla *</label>
+        <input class="field-input" id="mar-mensaje" placeholder="Sin reflexión hace {dias} días" maxlength="200">
+        <div class="field-hint">Placeholders disponibles: <code>{dias}</code>, <code>{count}</code> (según regla).</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+        <div class="field">
+          <label class="field-label">Evaluar cada (min)</label>
+          <input class="field-input" id="mar-evaluar" type="number" min="5" max="1440">
+          <div class="field-hint">Frecuencia del cron de evaluación.</div>
+        </div>
+        <div class="field">
+          <label class="field-label">Cooldown (horas)</label>
+          <input class="field-input" id="mar-cooldown" type="number" min="1" max="720">
+          <div class="field-hint">Después de notificar, esperar X horas antes de re-alertar.</div>
+        </div>
+      </div>
+      <div class="field" id="mar-condicion-wrap" style="margin-top: var(--space-3);">
+        <label class="field-label">Condición (read-only)</label>
+        <code id="mar-condicion-display" style="display: block; background: var(--surface-2); padding: 8px 10px; border-radius: var(--radius-sm); font-size: 11px; word-break: break-all;"></code>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close-mar>Cancelar</button>
+      <button class="btn btn-accent" id="btn-guardar-alerta-regla">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal editar regla -->
+<div class="modal-backdrop hidden" id="modal-regla">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="mr-titulo">Editar regla</span>
+      <button class="modal-close" data-close-mr>✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label class="field-label">Workflow ID de GHL *</label>
+        <input class="field-input" id="mr-workflow" placeholder="ej. 6f9c8d1e-4a2b-...">
+        <div class="field-hint">Lo encuentras en GHL → Automation → Workflows → tu workflow → URL.</div>
+      </div>
+      <div class="field">
+        <label class="field-label">Canal</label>
+        <select class="field-input" id="mr-canal">
+          <option value="ghl_workflow">GHL Workflow (recomendado)</option>
+          <option value="ghl_conversations">GHL Conversations (mensaje directo)</option>
+          <option value="log">Solo registrar (no enviar)</option>
+        </select>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+        <div class="field">
+          <label class="field-label">Ventana horario inicio</label>
+          <input class="field-input" id="mr-h-ini" type="time" value="08:00">
+        </div>
+        <div class="field">
+          <label class="field-label">Ventana horario fin</label>
+          <input class="field-input" id="mr-h-fin" type="time" value="21:00">
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close-mr>Cancelar</button>
+      <button class="btn btn-accent" id="btn-guardar-regla">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/shared/scripts/config.js?v=20260797"></script>
+<script src="/shared/scripts/supabase-client.js?v=20260797"></script>
+  <script src="/shared/scripts/cache.js?v=20260797"></script>
+<script src="/shared/scripts/utils.js?v=20260797"></script>
+<script src="/shared/scripts/auth.js?v=20260797"></script>
+  <script src="/shared/scripts/event-tracker.js?v=20260797"></script>
+<script src="/shared/scripts/admin-gate.js?v=20260797"></script>
+<script src="/shared/scripts/automatizaciones.js?v=20260797"></script>
+<script src="/shared/nav.js?v=20260797"></script>
+<script>
+(async function () {
+  const auth = await window.requireAdmin();
+  if (!auth) return;
+
+  const api = window.autoApi;
+  const $ = (id) => document.getElementById(id);
+
+  let reglas = [];
+  let reglaEditandoId = null;
+
+  async function pintarKPIs() {
+    try {
+      const [r, cola, nps] = await Promise.all([
+        api.listarReglas(),
+        api.listarCola({ limit: 200 }),
+        api.nps().catch(() => ({})),
+      ]);
+      reglas = r;
+
+      const activas = r.filter((x) => x.activa).length;
+      const colaPend = cola.filter((x) => x.estado === 'pendiente').length;
+      const hoy = new Date().toISOString().slice(0, 10);
+      const enviadasHoy = cola.filter((x) => x.estado === 'enviada' && (x.enviada_at || '').startsWith(hoy)).length;
+
+      $('k-activas').textContent = activas + ' / ' + r.length;
+      $('k-cola').textContent = colaPend;
+      $('k-enviadas').textContent = enviadasHoy;
+      $('k-nps').textContent = (nps.nps_score != null ? nps.nps_score : '—');
+    } catch (e) { console.error(e); }
+  }
+
+  function pintarReglas() {
+    const html = reglas.map((r) => {
+      const ev = api.EVENTO_LABEL[r.evento] || { label: r.evento, icon: '·' };
+      const cls = r.activa ? 'activa' : 'inactiva';
+      const wfOk = !!r.ghl_workflow_id;
+      return `
+        <div class="regla-card ${cls}">
+          <div style="font-size: 22px;">${ev.icon}</div>
+          <div>
+            <div class="regla-nombre">${window.escapeHtml(r.nombre)}</div>
+            <div class="regla-desc">${window.escapeHtml(r.descripcion || '')}</div>
+            <div class="regla-meta">
+              evento: ${r.evento} · slug: ${r.slug}
+              ${wfOk
+                ? '<span style="color: var(--success);"> · workflow OK</span>'
+                : '<span style="color: var(--error);"> · falta workflowId</span>'}
+            </div>
+          </div>
+          <div>
+            <button class="btn btn-ghost btn-sm" data-edit="${r.id}">Configurar</button>
+          </div>
+          <label class="toggle-switch" title="${r.activa ? 'Desactivar' : 'Activar'}">
+            <input type="checkbox" data-toggle="${r.id}" ${r.activa ? 'checked' : ''} ${!wfOk ? 'disabled' : ''}>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>`;
+    }).join('');
+    $('reglas-lista').innerHTML = html || '<div style="color: var(--text-muted); text-align: center; padding: var(--space-6);">Sin reglas configuradas.</div>';
+
+    document.querySelectorAll('[data-edit]').forEach((b) => {
+      b.addEventListener('click', () => abrirModal(b.dataset.edit));
+    });
+    document.querySelectorAll('[data-toggle]').forEach((c) => {
+      c.addEventListener('change', async (e) => {
+        const id = c.dataset.toggle;
+        try {
+          await api.actualizarRegla(id, { activa: c.checked });
+          window.showToast?.(c.checked ? 'Regla activada' : 'Regla pausada', 'success');
+          await pintarKPIs();
+          await refresh();
+        } catch (err) {
+          window.showToast?.('Error: ' + err.message, 'error');
+          c.checked = !c.checked;
+        }
+      });
+    });
+  }
+
+  function abrirModal(id) {
+    const r = reglas.find((x) => x.id === id);
+    if (!r) return;
+    reglaEditandoId = id;
+    $('mr-titulo').textContent = 'Configurar: ' + r.nombre;
+    $('mr-workflow').value = r.ghl_workflow_id || '';
+    $('mr-canal').value = r.canal || 'ghl_workflow';
+    $('mr-h-ini').value = r.ventana_horario_inicio || '08:00';
+    $('mr-h-fin').value = r.ventana_horario_fin || '21:00';
+    const m = $('modal-regla');
+    m.classList.remove('hidden');
+    requestAnimationFrame(() => m.classList.add('show'));
+  }
+  function cerrarModalRegla() {
+    const m = $('modal-regla');
+    m.classList.remove('show');
+    setTimeout(() => m.classList.add('hidden'), 200);
+  }
+  document.querySelectorAll('[data-close-mr]').forEach((b) => b.addEventListener('click', cerrarModalRegla));
+
+  $('btn-guardar-regla').addEventListener('click', async () => {
+    if (!reglaEditandoId) return;
+    try {
+      await api.actualizarRegla(reglaEditandoId, {
+        ghl_workflow_id: $('mr-workflow').value.trim() || null,
+        canal: $('mr-canal').value,
+        ventana_horario_inicio: $('mr-h-ini').value || null,
+        ventana_horario_fin: $('mr-h-fin').value || null,
+      });
+      cerrarModalRegla();
+      window.showToast?.('Regla guardada', 'success');
+      await refresh();
+    } catch (err) {
+      window.showToast?.('Error: ' + err.message, 'error');
+    }
+  });
+
+  async function pintarCola(estado) {
+    const cola = await api.listarCola({ estado: estado || undefined, limit: 100 });
+    if (!cola.length) {
+      $('cola-lista').innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: var(--space-6);">Sin envíos.</div>';
+      return;
+    }
+    const html = cola.map((n) => {
+      let acciones = '';
+      if (n.estado === 'fallida') {
+        acciones = `<button class="btn btn-ghost btn-sm" data-reint="${n.id}">↻ Reintentar</button>`;
+      } else if (n.estado === 'pendiente') {
+        acciones = `<button class="btn btn-ghost btn-sm" data-cancel="${n.id}">✕ Cancelar</button>`;
+      }
+      return `
+      <div class="cola-row ${n.estado === 'fallida' ? 'fallida' : ''}">
+        <div>
+          ${api.badgeEvento(n.tipo)}
+          ${api.badgeEstado(n.estado)}
+        </div>
+        <div>
+          <strong>${window.escapeHtml(n.lead?.nombre || n.lead?.email || '-')}</strong>
+          <div style="font-size: var(--text-xs); color: var(--text-muted);">${window.escapeHtml(n.regla_slug || '')}</div>
+          ${n.ultimo_error ? `<div class="err">${window.escapeHtml(n.ultimo_error)}</div>` : ''}
+        </div>
+        <div style="font-size: var(--text-xs); color: var(--text-muted);">
+          Prog: ${api.formatFecha(n.programada_para)}
+        </div>
+        <div style="font-size: var(--text-xs); color: var(--text-muted);">
+          ${n.enviada_at ? 'Env: ' + api.formatFecha(n.enviada_at) : '-'}
+        </div>
+        <div style="font-family: var(--font-mono); font-size: var(--text-xs); text-align: center;">
+          ${n.intentos || 0}/3 ${acciones}
+        </div>
+      </div>`;
+    }).join('');
+    $('cola-lista').innerHTML = html;
+
+    // Handlers
+    document.querySelectorAll('[data-reint]').forEach((b) => {
+      b.addEventListener('click', async () => {
+        try {
+          b.disabled = true;
+          await api.reintentar(b.dataset.reint);
+          window.showToast?.('Notificación reenvió a la cola', 'success');
+          await pintarCola(estado);
+          await pintarKPIs();
+        } catch (err) { window.showToast?.('Error: ' + err.message, 'error'); b.disabled = false; }
+      });
+    });
+    document.querySelectorAll('[data-cancel]').forEach((b) => {
+      b.addEventListener('click', async () => {
+        if (!confirm('¿Cancelar esta notificación? No se enviará.')) return;
+        try {
+          b.disabled = true;
+          await api.cancelar(b.dataset.cancel);
+          window.showToast?.('Notificación cancelada', 'success');
+          await pintarCola(estado);
+          await pintarKPIs();
+        } catch (err) { window.showToast?.('Error: ' + err.message, 'error'); b.disabled = false; }
+      });
+    });
+  }
+
+  async function refresh() {
+    await pintarKPIs();
+    pintarReglas();
+  }
+
+  // Tabs
+  document.querySelectorAll('[data-tab]').forEach((b) => {
+    b.addEventListener('click', () => {
+      const t = b.dataset.tab;
+      $('tab-reglas').classList.toggle('hidden', t !== 'reglas');
+      $('tab-cola').classList.toggle('hidden', t !== 'cola');
+      $('tab-alertas-internas').classList.toggle('hidden', t !== 'alertas-internas');
+      $('tab-semaforos').classList.toggle('hidden', t !== 'semaforos');
+      document.querySelectorAll('[data-tab]').forEach((x) => x.classList.toggle('active', x === b));
+      if (t === 'cola') pintarCola('');
+      if (t === 'alertas-internas') cargarAlertasReglas();
+      if (t === 'semaforos') cargarSemaforoReglas();
+    });
+  });
+
+  // ============================================================
+  // SEMÁFOROS engagement/progreso (tabla semaforo_reglas)
+  // ============================================================
+  let semaforoReglas = [];
+  let semaforoTipoActivo = 'todos';
+  let semaforoEditandoId = null;
+
+  const SEM_COLOR = {
+    verde: { hex: '#10B981', label: 'Verde · OK' },
+    amarillo: { hex: '#F59E0B', label: 'Amarillo · Atención' },
+    rojo: { hex: '#DC2626', label: 'Rojo · Riesgo' },
+  };
+
+  async function cargarSemaforoReglas() {
+    $('semaforo-reglas-lista').innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: var(--space-6);">Cargando…</div>';
+    try {
+      const { data, error } = await window.db.from('semaforo_reglas')
+        .select('*').order('tipo').order('prioridad', { ascending: false });
+      if (error) throw error;
+      semaforoReglas = data || [];
+      pintarSemaforoReglas();
+    } catch (e) {
+      console.error(e);
+      $('semaforo-reglas-lista').innerHTML = `<div style="color: var(--error); text-align: center; padding: var(--space-6);">Error: ${e.message}</div>`;
+    }
+  }
+
+  function pintarSemaforoReglas() {
+    const filtradas = semaforoReglas.filter(r => semaforoTipoActivo === 'todos' || r.tipo === semaforoTipoActivo);
+    if (!filtradas.length) {
+      $('semaforo-reglas-lista').innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: var(--space-6);">Sin reglas configuradas.</div>';
+      return;
+    }
+    const html = filtradas.map((r) => {
+      const c = SEM_COLOR[r.color] || { hex: '#86868B', label: r.color };
+      const cls = r.activa ? 'activa' : 'inactiva';
+      return `
+        <div class="regla-card ${cls}" data-semaforo-regla-id="${r.id}">
+          <div style="width: 14px; height: 14px; border-radius: 50%; background: ${c.hex}; box-shadow: 0 0 0 2px ${c.hex}33;"></div>
+          <div>
+            <div class="regla-nombre">${window.escapeHtml(r.nombre)}</div>
+            <div class="regla-desc">${window.escapeHtml(r.descripcion || '')}</div>
+            <div class="regla-meta">
+              tipo: <strong>${r.tipo}</strong> · color: <strong style="color: ${c.hex};">${c.label}</strong> · prioridad: ${r.prioridad}
+            </div>
+          </div>
+          <div>
+            <button class="btn btn-ghost btn-sm" data-edit-sem="${r.id}">Editar</button>
+          </div>
+          <label class="toggle-switch" title="${r.activa ? 'Desactivar' : 'Activar'}">
+            <input type="checkbox" data-toggle-sem="${r.id}" ${r.activa ? 'checked' : ''}>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>`;
+    }).join('');
+    $('semaforo-reglas-lista').innerHTML = html;
+
+    document.querySelectorAll('[data-edit-sem]').forEach((b) => {
+      b.addEventListener('click', () => abrirModalSemaforo(b.dataset.editSem));
+    });
+    document.querySelectorAll('[data-toggle-sem]').forEach((c) => {
+      c.addEventListener('change', async () => {
+        const id = c.dataset.toggleSem;
+        try {
+          const { error } = await window.db.from('semaforo_reglas').update({ activa: c.checked }).eq('id', id);
+          if (error) throw error;
+          window.utils?.toast?.(c.checked ? 'Regla activada' : 'Regla pausada', 'success');
+          await cargarSemaforoReglas();
+        } catch (err) {
+          window.utils?.toast?.('Error: ' + err.message, 'error');
+          c.checked = !c.checked;
+        }
+      });
+    });
+  }
+
+  document.querySelectorAll('[data-sem-tipo]').forEach((b) => {
+    b.addEventListener('click', () => {
+      semaforoTipoActivo = b.dataset.semTipo;
+      document.querySelectorAll('[data-sem-tipo]').forEach(x => x.classList.toggle('active', x === b));
+      pintarSemaforoReglas();
+    });
+  });
+
+  function abrirModalSemaforo(id) {
+    const r = semaforoReglas.find(x => x.id === id);
+    if (!r) return;
+    semaforoEditandoId = id;
+    $('msr-titulo').textContent = 'Editar: ' + r.nombre;
+    $('msr-color').value = r.color;
+    $('msr-razon').value = r.razon_template || '';
+    $('msr-prioridad').value = r.prioridad;
+    $('msr-condicion-display').textContent = JSON.stringify(r.condicion, null, 2);
+    const m = $('modal-semaforo-regla');
+    m.classList.remove('hidden');
+    requestAnimationFrame(() => m.classList.add('show'));
+  }
+  function cerrarModalSemaforo() {
+    const m = $('modal-semaforo-regla');
+    m.classList.remove('show');
+    setTimeout(() => m.classList.add('hidden'), 200);
+  }
+  document.querySelectorAll('[data-close-msr]').forEach((b) => b.addEventListener('click', cerrarModalSemaforo));
+
+  $('btn-guardar-semaforo-regla').addEventListener('click', async () => {
+    if (!semaforoEditandoId) return;
+    const cambios = {
+      color: $('msr-color').value,
+      razon_template: $('msr-razon').value.trim(),
+      prioridad: Math.max(0, Math.min(999, parseInt($('msr-prioridad').value || '50', 10))),
+    };
+    if (!cambios.razon_template) {
+      window.utils?.toast?.('El mensaje no puede estar vacío', 'error');
+      return;
+    }
+    try {
+      const { error } = await window.db.from('semaforo_reglas').update(cambios).eq('id', semaforoEditandoId);
+      if (error) throw error;
+      cerrarModalSemaforo();
+      window.utils?.toast?.('Regla actualizada', 'success');
+      await cargarSemaforoReglas();
+    } catch (err) {
+      window.utils?.toast?.('Error: ' + err.message, 'error');
+    }
+  });
+
+  // ============================================================
+  // ALERTAS INTERNAS (tabla alertas_reglas)
+  // ============================================================
+  let alertasReglas = [];
+  let alertaReglaEditandoId = null;
+
+  const SEV_LABEL = {
+    info:    { label: 'Info',     color: '#3B82F6', notif: 'No notifica' },
+    warn:    { label: 'Warn',     color: '#F59E0B', notif: 'Notifica TG' },
+    alerta:  { label: 'Alerta',   color: '#DC2626', notif: 'Notifica TG' },
+    critica: { label: 'Crítica',  color: '#7F1D1D', notif: 'Notifica TG' },
+  };
+
+  async function cargarAlertasReglas() {
+    $('alertas-reglas-lista').innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: var(--space-6);">Cargando…</div>';
+    try {
+      const { data, error } = await window.db.from('alertas_reglas')
+        .select('*').order('severidad').order('slug');
+      if (error) throw error;
+      alertasReglas = data || [];
+      pintarAlertasReglas();
+    } catch (e) {
+      console.error(e);
+      $('alertas-reglas-lista').innerHTML = `<div style="color: var(--error); text-align: center; padding: var(--space-6);">Error: ${e.message}</div>`;
+    }
+  }
+
+  function pintarAlertasReglas() {
+    if (!alertasReglas.length) {
+      $('alertas-reglas-lista').innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: var(--space-6);">Sin reglas configuradas.</div>';
+      return;
+    }
+    const html = alertasReglas.map((r) => {
+      const sev = SEV_LABEL[r.severidad] || { label: r.severidad, color: 'var(--text-muted)', notif: '' };
+      const cls = r.activa ? 'activa' : 'inactiva';
+      return `
+        <div class="regla-card ${cls}" data-alerta-regla-id="${r.id}">
+          <div style="width: 28px; height: 28px; border-radius: 50%; background: ${sev.color}22; color: ${sev.color}; display: flex; align-items: center; justify-content: center; font-weight: 700; font-family: var(--font-mono);">${sev.label[0]}</div>
+          <div>
+            <div class="regla-nombre">${window.escapeHtml(r.nombre)}</div>
+            <div class="regla-desc">${window.escapeHtml(r.descripcion || '')}</div>
+            <div class="regla-meta">
+              slug: <code>${r.slug}</code> · sev: <strong style="color: ${sev.color};">${sev.label}</strong> · ${sev.notif} ·
+              cada ${r.evaluar_cada_min}min · cooldown ${r.cooldown_horas}h
+            </div>
+          </div>
+          <div>
+            <button class="btn btn-ghost btn-sm" data-edit-alerta="${r.id}">Editar</button>
+          </div>
+          <label class="toggle-switch" title="${r.activa ? 'Desactivar' : 'Activar'}">
+            <input type="checkbox" data-toggle-alerta="${r.id}" ${r.activa ? 'checked' : ''}>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>`;
+    }).join('');
+    $('alertas-reglas-lista').innerHTML = html;
+
+    document.querySelectorAll('[data-edit-alerta]').forEach((b) => {
+      b.addEventListener('click', () => abrirModalAlerta(b.dataset.editAlerta));
+    });
+    document.querySelectorAll('[data-toggle-alerta]').forEach((c) => {
+      c.addEventListener('change', async (e) => {
+        const id = c.dataset.toggleAlerta;
+        try {
+          const { error } = await window.db.from('alertas_reglas').update({ activa: c.checked }).eq('id', id);
+          if (error) throw error;
+          window.showToast?.(c.checked ? 'Regla activada' : 'Regla pausada', 'success');
+          await cargarAlertasReglas();
+        } catch (err) {
+          window.showToast?.('Error: ' + err.message, 'error');
+          c.checked = !c.checked;
+        }
+      });
+    });
+  }
+
+  function abrirModalAlerta(id) {
+    const r = alertasReglas.find((x) => x.id === id);
+    if (!r) return;
+    alertaReglaEditandoId = id;
+    $('mar-titulo').textContent = 'Editar: ' + r.nombre;
+    $('mar-severidad').value = r.severidad;
+    $('mar-mensaje').value = r.mensaje_template || '';
+    $('mar-evaluar').value = r.evaluar_cada_min || 30;
+    $('mar-cooldown').value = r.cooldown_horas || 24;
+    $('mar-condicion-display').textContent = JSON.stringify(r.condicion, null, 2);
+    const m = $('modal-alerta-regla');
+    m.classList.remove('hidden');
+    requestAnimationFrame(() => m.classList.add('show'));
+  }
+  function cerrarModalAlerta() {
+    const m = $('modal-alerta-regla');
+    m.classList.remove('show');
+    setTimeout(() => m.classList.add('hidden'), 200);
+  }
+  document.querySelectorAll('[data-close-mar]').forEach((b) => b.addEventListener('click', cerrarModalAlerta));
+
+  $('btn-guardar-alerta-regla').addEventListener('click', async () => {
+    if (!alertaReglaEditandoId) return;
+    const cambios = {
+      severidad: $('mar-severidad').value,
+      mensaje_template: $('mar-mensaje').value.trim(),
+      evaluar_cada_min: Math.max(5, Math.min(1440, parseInt($('mar-evaluar').value || '30', 10))),
+      cooldown_horas: Math.max(1, Math.min(720, parseInt($('mar-cooldown').value || '24', 10))),
+    };
+    if (!cambios.mensaje_template) {
+      window.showToast?.('El mensaje no puede estar vacío', 'error');
+      return;
+    }
+    try {
+      const { error } = await window.db.from('alertas_reglas').update(cambios).eq('id', alertaReglaEditandoId);
+      if (error) throw error;
+      cerrarModalAlerta();
+      window.showToast?.('Regla actualizada', 'success');
+      await cargarAlertasReglas();
+    } catch (err) {
+      window.showToast?.('Error: ' + err.message, 'error');
+    }
+  });
+
+  // Filtro cola
+  document.querySelectorAll('[data-filtro-estado]').forEach((b) => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('[data-filtro-estado]').forEach((x) => x.classList.toggle('active', x === b));
+      pintarCola(b.dataset.filtroEstado);
+    });
+  });
+
+  // Botones
+  $('btn-detectar').addEventListener('click', async () => {
+    try {
+      $('btn-detectar').disabled = true;
+      const r = await api.detectarAhora();
+      window.showToast?.(`Encolados ${r.encolados}, duplicados saltados ${r.duplicados_saltados}`, 'success');
+      await refresh();
+    } catch (err) {
+      window.showToast?.('Error: ' + err.message, 'error');
+    } finally { $('btn-detectar').disabled = false; }
+  });
+
+  $('btn-procesar').addEventListener('click', async () => {
+    if (!confirm('Esto disparará a GHL todas las notificaciones pendientes. ¿Continuar?')) return;
+    try {
+      $('btn-procesar').disabled = true;
+      const r = await api.procesarColaAhora();
+      window.showToast?.(`Procesadas: ${r.procesadas}`, 'success');
+      await refresh();
+    } catch (err) {
+      window.showToast?.('Error: ' + err.message, 'error');
+    } finally { $('btn-procesar').disabled = false; }
+  });
+
+  await refresh();
+  $('main').style.opacity = '1';
+})();
+</script>
+
+
+</body>
+</html>

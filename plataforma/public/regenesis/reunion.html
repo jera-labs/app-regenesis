@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Re-Génesis · Mi reunión con Frank</title>
+  <link rel="icon" type="image/svg+xml" href="/regenesis/favicon.svg">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600&family=Geist:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <script src="/shared/turbo.min.js?v=20260797"></script>
+  <link rel="stylesheet" href="/regenesis/assets/styles/tokens.css?v=20260797">
+  <link rel="stylesheet" href="/regenesis/assets/styles/base.css?v=20260797">
+  <link rel="stylesheet" href="/regenesis/assets/styles/components.css?v=20260797">
+  <link rel="stylesheet" href="/regenesis/assets/styles/platform-sidebar.css?v=20260797">
+
+  <style>
+    body { background: var(--bg); min-height: 100vh; }
+    body.with-sidebar .agenda-shell { padding: var(--space-6); max-width: 1280px; margin: 0 auto; }
+    @media (max-width: 920px) {
+      body.with-sidebar .agenda-shell { padding: var(--space-4); }
+    }
+
+    .agenda-shell {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: var(--space-10) var(--space-6) var(--space-16);
+    }
+
+    .agenda-hero { text-align: center; margin-bottom: var(--space-10); }
+    .agenda-eyebrow {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      color: var(--accent-dark);
+      background: rgba(212, 175, 55, 0.12);
+      padding: 6px 12px;
+      border-radius: var(--radius-full);
+      margin-bottom: var(--space-5);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .agenda-title {
+      font-size: 36px;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin: 0 0 var(--space-4);
+    }
+    .agenda-title-mark {
+      background: var(--accent);
+      padding: 0 8px;
+      border-radius: 6px;
+      color: var(--text);
+    }
+    .agenda-sub {
+      font-size: 16px;
+      color: var(--text-muted);
+      line-height: 1.55;
+      max-width: 580px;
+      margin: 0 auto;
+    }
+
+    .agenda-card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      padding: var(--space-5);
+    }
+    .agenda-iframe-wrap {
+      position: relative;
+      min-height: 800px;
+      background: var(--surface-2);
+      border-radius: var(--radius-md);
+    }
+    .agenda-iframe-wrap iframe {
+      width: 100%;
+      min-height: 800px;
+      border: 0;
+      display: block;
+      background: var(--surface);
+    }
+    .agenda-iframe-loader {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: var(--space-3);
+      color: var(--text-muted); font-size: 14px;
+    }
+    .agenda-iframe-loader.hidden { display: none; }
+
+    .agenda-info {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-4);
+      margin: var(--space-8) 0 var(--space-6);
+    }
+    .agenda-info-item {
+      background: var(--surface-2);
+      padding: var(--space-5);
+      border-radius: var(--radius-md);
+      text-align: center;
+    }
+    .agenda-info-item .icon {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 1px;
+      color: var(--accent-dark);
+      font-weight: 600;
+      margin-bottom: var(--space-2);
+    }
+    .agenda-info-item .text {
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--text);
+    }
+
+    .agenda-fallback {
+      margin-top: var(--space-6);
+      padding-top: var(--space-6);
+      border-top: 1px solid var(--border-soft);
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-faint);
+    }
+    .agenda-fallback a {
+      color: var(--accent-dark);
+      font-weight: 500;
+    }
+
+    @media (max-width: 720px) {
+      .agenda-title { font-size: 26px; }
+      .agenda-info { grid-template-columns: 1fr; }
+      .agenda-iframe-wrap, .agenda-iframe-wrap iframe { min-height: 1100px; }
+    }
+
+    /* Mismo patrón opacity:0 hasta requireAuth termine */
+    .agenda-shell { transition: opacity 0.2s ease; }
+    body.regenesis-ready .agenda-shell { opacity: 1; }
+
+    #regenesis-loader {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 32px; height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: regenesis-spin 0.8s linear infinite;
+      z-index: 10;
+    }
+    @keyframes regenesis-spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+    body.regenesis-ready #regenesis-loader { display: none; }
+  </style>
+</head>
+<body class="with-sidebar">
+
+<div id="regenesis-loader" aria-label="Cargando"></div>
+
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<div data-nav data-active="rg-reunion" data-base="../"></div>
+
+<div class="agenda-shell" style="opacity: 0;">
+  <div class="agenda-hero">
+    <div class="agenda-eyebrow">Espacio de acompañamiento</div>
+    <h1 class="agenda-title">
+      Programa tu reunión<br>
+      <span class="agenda-title-mark">de resultados con Frank.</span>
+    </h1>
+    <p class="agenda-sub">
+      Un espacio breve para revisar contigo cómo está aterrizando el proceso,
+      qué se ha movido en ti y qué se viene. Sin guion, sin presión.
+      Una conversación directa de acompañamiento.
+    </p>
+  </div>
+
+  <div class="agenda-info">
+    <div class="agenda-info-item">
+      <div class="icon">DURACIÓN</div>
+      <div class="text">15 a 20 minutos</div>
+    </div>
+    <div class="agenda-info-item">
+      <div class="icon">MODALIDAD</div>
+      <div class="text">Videollamada con Frank</div>
+    </div>
+    <div class="agenda-info-item">
+      <div class="icon">PREPARACIÓN</div>
+      <div class="text">Solo tu disposición</div>
+    </div>
+  </div>
+
+  <div class="agenda-card">
+    <div class="agenda-iframe-wrap" id="agenda-wrap">
+      <div class="agenda-iframe-loader" id="agenda-loader">
+        <div>Cargando calendario...</div>
+      </div>
+      <iframe
+        src="https://api.leadconnectorhq.com/widget/booking/9gTA1l71Ub3hiZdnY9As"
+        title="Programa tu reunión con Frank"
+        id="9gTA1l71Ub3hiZdnY9As_iframe"
+        style="width: 100%; border: none; overflow: hidden;"
+        scrolling="no"
+        onload="document.getElementById('agenda-loader').classList.add('hidden')"></iframe>
+    </div>
+  </div>
+
+  <div class="agenda-fallback">
+    ¿Problemas para agendar? Escríbele a
+    <a href="mailto:frank@neurohackers.top">frank@neurohackers.top</a>
+    o por WhatsApp.
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/shared/scripts/config.js?v=20260797"></script>
+<script src="/shared/scripts/supabase-client.js?v=20260797"></script>
+  <script src="/shared/scripts/cache.js?v=20260797"></script>
+<script src="/shared/scripts/utils.js?v=20260797"></script>
+<script src="/shared/scripts/auth.js?v=20260797"></script>
+  <script src="/shared/scripts/event-tracker.js?v=20260797"></script>
+  <script src="/shared/scripts/nps.js?v=20260797"></script>
+<script src="/shared/nav.js?v=20260797"></script>
+
+<script>
+  // Fallback iframe: si en 8s no cargó, mostrar link directo.
+  setTimeout(function () {
+    var loader = document.getElementById('agenda-loader');
+    if (loader && !loader.classList.contains('hidden')) {
+      loader.innerHTML = '<div style="text-align:center;line-height:1.6;">' +
+        '<div style="margin-bottom:8px;">El calendario está tardando.</div>' +
+        '<a href="https://api.leadconnectorhq.com/widget/booking/9gTA1l71Ub3hiZdnY9As" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline;">Abrir en una pestaña nueva</a>' +
+        '</div>';
+    }
+  }, 8000);
+</script>
+<script src="https://link.msgsndr.com/js/form_embed.js" type="text/javascript"></script>
+
+<!-- Bootstrap inline: requireAuth + revelar contenido -->
+<script>
+  (async function bootReunion() {
+    let tries = 0;
+    while (typeof window.requireAuth !== 'function' && tries < 60) {
+      await new Promise(r => setTimeout(r, 50));
+      tries++;
+    }
+    if (typeof window.requireAuth !== 'function') {
+      console.error('[Re-Génesis/Reunion] requireAuth no cargó.');
+      return;
+    }
+    try {
+      const auth = await window.requireAuth({ allowAdmin: true, redirectIfNoLead: false });
+      if (!auth || !auth.session) return;
+      const shell = document.querySelector('.agenda-shell');
+      if (shell) shell.style.opacity = '1';
+      document.body.classList.add('regenesis-ready');
+    } catch (e) {
+      console.error('[Re-Génesis/Reunion] init error:', e);
+    }
+  })();
+</script>
+
+</body>
+</html>

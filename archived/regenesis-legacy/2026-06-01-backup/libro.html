@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi libro · Re-Génesis</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600&family=Geist:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <script src="/regenesis/assets/scripts/turbo.min.js?v=20260647"></script>
+  <link rel="stylesheet" href="/regenesis/assets/styles/tokens.css?v=20260647">
+  <link rel="stylesheet" href="/regenesis/assets/styles/base.css?v=20260647">
+
+  <style>
+    body { background: #ECECE7; }
+
+    .libro-toolbar {
+      position: sticky;
+      top: 0;
+      background: var(--black);
+      color: white;
+      padding: 12px var(--space-6);
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      z-index: 100;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .libro-toolbar-tag {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      background: var(--accent);
+      color: var(--black);
+      padding: 4px 10px;
+      border-radius: 999px;
+      letter-spacing: 1.5px;
+      font-weight: 600;
+    }
+
+    .libro-toolbar-title {
+      flex: 1;
+      font-size: 14px;
+      color: rgba(255,255,255,0.85);
+    }
+
+    .libro-toolbar-btn {
+      background: var(--accent);
+      color: var(--black);
+      border: none;
+      padding: 8px 18px;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .libro-toolbar-btn:hover { opacity: 0.9; }
+
+    .libro-toolbar-btn-ghost {
+      background: transparent;
+      color: rgba(255,255,255,0.85);
+      border: 1px solid rgba(255,255,255,0.25);
+    }
+
+    .libro-toolbar-btn-ghost:hover { background: rgba(255,255,255,0.05); }
+
+    .libro-page {
+      max-width: 760px;
+      margin: 32px auto;
+      background: white;
+      box-shadow: 0 4px 20px rgba(10,10,10,0.06);
+      padding: 64px 80px;
+      min-height: 1000px;
+    }
+
+    .libro-portada {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 1000px;
+    }
+
+    .libro-portada-top {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .libro-portada-titulo {
+      font-size: 64px;
+      line-height: 1.05;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      margin: var(--space-4) 0 var(--space-6) 0;
+    }
+
+    .libro-portada-titulo .marca-acento {
+      background: var(--accent);
+      padding: 0 12px;
+    }
+
+    .libro-portada-sub {
+      font-size: 18px;
+      color: var(--text-muted);
+      max-width: 520px;
+      line-height: 1.6;
+    }
+
+    .libro-portada-meta {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-6);
+      padding-top: var(--space-6);
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+    }
+
+    .libro-portada-meta-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .libro-portada-meta-value {
+      font-weight: 500;
+      font-size: 15px;
+    }
+
+    .libro-tema-divisor {
+      page-break-before: always;
+      break-before: page;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 1000px;
+    }
+
+    .libro-tema-num {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      letter-spacing: 2px;
+      color: var(--text-muted);
+    }
+
+    .libro-tema-nombre {
+      font-size: 56px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin: var(--space-3) 0 var(--space-6) 0;
+    }
+
+    .libro-tema-rango {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .libro-entrada {
+      page-break-before: always;
+      break-before: page;
+    }
+
+    .libro-entrada-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding-bottom: var(--space-3);
+      border-bottom: 1px solid var(--border);
+      margin-bottom: var(--space-5);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .libro-entrada-pregunta {
+      font-size: 22px;
+      font-weight: 500;
+      line-height: 1.4;
+      letter-spacing: -0.01em;
+      margin-bottom: var(--space-6);
+      color: var(--text);
+    }
+
+    .libro-section-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: var(--space-2);
+    }
+
+    .libro-respuesta {
+      font-size: 16px;
+      line-height: 1.75;
+      white-space: pre-wrap;
+      margin-bottom: var(--space-6);
+    }
+
+    .libro-analisis {
+      background: var(--surface-2);
+      border-left: 3px solid var(--accent);
+      padding: var(--space-5);
+      border-radius: 4px;
+    }
+
+    .libro-analisis p {
+      font-size: 14px;
+      line-height: 1.7;
+      margin: 0 0 var(--space-3) 0;
+    }
+
+    .libro-analisis p:last-child { margin-bottom: 0; }
+
+    .libro-vacio {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .libro-cierre {
+      page-break-before: always;
+      break-before: page;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 800px;
+      text-align: center;
+    }
+
+    .libro-cierre-titulo {
+      font-size: 36px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: var(--space-4);
+    }
+
+    .libro-cierre-frase {
+      font-size: 18px;
+      line-height: 1.6;
+      max-width: 480px;
+      margin: 0 auto var(--space-6) auto;
+      color: var(--text-muted);
+    }
+
+    .libro-cierre-firma {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .libro-loader {
+      max-width: 760px;
+      margin: 80px auto;
+      text-align: center;
+      padding: var(--space-8);
+      background: white;
+      border-radius: 8px;
+    }
+
+    /* ============================================ */
+    /* PRINT — optimización para PDF                 */
+    /* ============================================ */
+    @media print {
+      @page {
+        size: A4;
+        margin: 18mm 16mm;
+      }
+
+      body {
+        background: white;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        color-adjust: exact;
+      }
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+      .libro-toolbar { display: none; }
+
+      .libro-page {
+        margin: 0;
+        padding: 0;
+        max-width: none;
+        box-shadow: none;
+        min-height: auto;
+        page-break-after: always;
+      }
+
+      .libro-portada,
+      .libro-tema-divisor,
+      .libro-cierre { min-height: 90vh; }
+
+      .libro-entrada { page-break-inside: avoid; }
+
+      .libro-portada-titulo { font-size: 48px; }
+      .libro-tema-nombre { font-size: 42px; }
+      .libro-cierre-titulo { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="libro-toolbar">
+  <span class="libro-toolbar-tag">VISTA PREVIA</span>
+  <div class="libro-toolbar-title">Tu libro de los 70 días · Re-Génesis</div>
+  <button type="button" class="libro-toolbar-btn libro-toolbar-btn-ghost" id="btn-volver">Volver</button>
+  <button type="button" class="libro-toolbar-btn" id="btn-imprimir">Descargar PDF</button>
+</div>
+
+<div id="libro-content"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/regenesis/assets/scripts/config.js?v=20260647"></script>
+<script src="/regenesis/assets/scripts/supabase-client.js?v=20260647"></script>
+<script src="/regenesis/assets/scripts/utils.js?v=20260647"></script>
+
+<script>
+(async function () {
+  'use strict';
+  const { escapeHtml, MESES_UPPER } = window.utils;
+
+  const content = document.getElementById('libro-content');
+  document.getElementById('btn-volver').addEventListener('click', () => {
+    if (window.history.length > 1) window.history.back();
+    else window.location.href = '/regenesis/index.html';
+  });
+  document.getElementById('btn-imprimir').addEventListener('click', () => window.print());
+
+  function loader(texto) {
+    content.innerHTML = `<div class="libro-loader">${escapeHtml(texto)}</div>`;
+  }
+
+  loader('Validando tu sesión…');
+
+  const { data: { session } } = await db.auth.getSession();
+  if (!session) {
+    content.innerHTML = `<div class="libro-loader">
+      Necesitas iniciar sesión para ver tu libro.<br>
+      <a href="/regenesis/index.html">Volver al login</a>
+    </div>`;
+    return;
+  }
+
+  // Quien abre la página: ¿lead o admin?
+  const params = new URLSearchParams(window.location.search);
+  const leadIdParam = params.get('lead_id');
+  const email = session.user.email;
+
+  const [{ data: leadDelUsuario }, { data: adminCheck }] = await Promise.all([
+    db.from('leads').select('*').eq('email', email).maybeSingle(),
+    db.from('usuarios_admin').select('id').eq('email', email).eq('activo', true).maybeSingle(),
+  ]);
+
+  let lead;
+  if (leadIdParam && adminCheck) {
+    // Admin viendo el libro de un cliente.
+    const { data } = await db.from('leads').select('*').eq('id', leadIdParam).maybeSingle();
+    lead = data;
+  } else if (leadIdParam && leadDelUsuario && leadIdParam === leadDelUsuario.id) {
+    lead = leadDelUsuario;
+  } else if (!leadIdParam && leadDelUsuario) {
+    lead = leadDelUsuario;
+  } else if (adminCheck && !leadIdParam) {
+    content.innerHTML = `<div class="libro-loader">Falta <code>?lead_id=...</code> en la URL para ver el libro como administrador.</div>`;
+    return;
+  }
+
+  if (!lead) {
+    content.innerHTML = `<div class="libro-loader">No tenemos un programa asociado a tu cuenta.</div>`;
+    return;
+  }
+
+  loader('Construyendo tu libro…');
+
+  const primerTema = lead.primer_tema_orden || 1;
+
+  const [respuestasRes, temasRes] = await Promise.all([
+    db.from('journaling_respuestas')
+      .select('*, ia_analisis(contenido_analisis)')
+      .eq('lead_id', lead.id)
+      .order('respuesta_recibida_at', { ascending: true }),
+    db.from('temas').select('id, orden, nombre'),
+  ]);
+
+  const respuestas = respuestasRes.data || [];
+  const temas = temasRes.data || [];
+  const temasMap = Object.fromEntries(temas.map(t => [t.orden, t.nombre]));
+
+  // Indexar respuestas por (tema_orden, dia_relativo)
+  const respPorClave = {};
+  respuestas.forEach(r => {
+    if (r.tema_orden && r.dia_relativo) {
+      respPorClave[`${r.tema_orden}-${r.dia_relativo}`] = r;
+    }
+  });
+
+  // Construir páginas: portada + por cada semana (1..10) un divisor + 7 entradas + cierre
+  const partes = [];
+
+  // PORTADA
+  const inicioFmt = formatearFechaLarga(lead.fecha_inicio_programa);
+  const finFmt = lead.fecha_inicio_programa
+    ? formatearFechaLarga(addDays(lead.fecha_inicio_programa, 69))
+    : '—';
+  partes.push(`
+    <div class="libro-page libro-portada">
+      <div>
+        <div class="libro-portada-top">RE-GÉNESIS · NEUROHACKERS</div>
+        <h1 class="libro-portada-titulo">
+          70 días<br>
+          de <span class="marca-acento">re·génesis</span>
+        </h1>
+        <p class="libro-portada-sub">
+          ${escapeHtml(lead.nombre || 'Tu nombre')} escribió este libro día tras día,
+          frente a una pregunta. Lo que sigue son sus palabras y los reflejos que la
+          metodología Re-Génesis le ofreció en el camino.
+        </p>
+      </div>
+      <div class="libro-portada-meta">
+        <div>
+          <div class="libro-portada-meta-label">PROTAGONISTA</div>
+          <div class="libro-portada-meta-value">${escapeHtml(lead.nombre || lead.email)}</div>
+        </div>
+        <div>
+          <div class="libro-portada-meta-label">DESDE</div>
+          <div class="libro-portada-meta-value">${inicioFmt}</div>
+        </div>
+        <div>
+          <div class="libro-portada-meta-label">HASTA</div>
+          <div class="libro-portada-meta-value">${finFmt}</div>
+        </div>
+      </div>
+    </div>`);
+
+  // SEMANAS Y ENTRADAS — solo capítulos con al menos 1 reflexión
+  let totalRespondidas = 0;
+  for (let s = 0; s < 10; s++) {
+    const temaOrden = ((primerTema - 1 + s) % 10) + 1;
+    const temaNombre = temasMap[temaOrden] || `Tema ${temaOrden}`;
+    const diaInicio = s * 7 + 1;
+    const diaFin = (s + 1) * 7;
+
+    // Reunir respuestas de este capítulo en orden de día
+    const respuestasCapitulo = [];
+    for (let d = 1; d <= 7; d++) {
+      const r = respPorClave[`${temaOrden}-${d}`];
+      if (r) respuestasCapitulo.push({ r, dia: d, diaGlobal: s * 7 + d });
+    }
+
+    // Si el capítulo está vacío, lo saltamos (no metemos divisor ni páginas en blanco)
+    if (respuestasCapitulo.length === 0) continue;
+
+    partes.push(`
+      <div class="libro-page libro-tema-divisor">
+        <div class="libro-tema-num">SEMANA ${String(s + 1).padStart(2, '0')} / 10</div>
+        <h2 class="libro-tema-nombre">${escapeHtml(temaNombre)}</h2>
+        <div class="libro-tema-rango">DÍAS ${diaInicio}–${diaFin} · ${respuestasCapitulo.length} reflexión${respuestasCapitulo.length === 1 ? '' : 'es'}</div>
+      </div>`);
+
+    respuestasCapitulo.forEach(({ r, diaGlobal }) => {
+      const ia = Array.isArray(r.ia_analisis) ? r.ia_analisis[0] : r.ia_analisis;
+      const analisis = ia?.contenido_analisis;
+      totalRespondidas++;
+
+      partes.push(`
+        <div class="libro-page libro-entrada">
+          <div class="libro-entrada-header">
+            <span>${escapeHtml(temaNombre.toUpperCase())}</span>
+            <span>DÍA ${diaGlobal} / 70</span>
+          </div>
+          <div class="libro-entrada-pregunta">${escapeHtml(r.pregunta_original || '')}</div>
+          <div class="libro-section-label">Mi reflexión</div>
+          <div class="libro-respuesta">${escapeHtml(r.respuesta_cliente || '')}</div>
+          ${r.pregunta_personaje ? `
+            <div class="libro-section-label">Pregunta para mi personaje</div>
+            <div class="libro-analisis">${formatearAnalisis(r.pregunta_personaje)}</div>
+          ` : ''}
+          ${r.respuesta_personaje ? `
+            <div class="libro-section-label">Respuesta de mi personaje</div>
+            <div class="libro-respuesta">${escapeHtml(r.respuesta_personaje)}</div>
+          ` : ''}
+          ${r.cierre_ia ? `
+            <div class="libro-section-label">Cierre del día</div>
+            <div class="libro-analisis">${formatearAnalisis(r.cierre_ia)}</div>
+          ` : ''}
+          ${analisis && !r.pregunta_personaje ? `
+            <div class="libro-section-label">Reflejo Re-Génesis</div>
+            <div class="libro-analisis">${formatearAnalisis(analisis)}</div>
+          ` : ''}
+        </div>`);
+    });
+  }
+
+  // SECCIÓN ESPECIAL: Sala de espera (reflexiones de calentamiento)
+  const respuestasCal = respuestas.filter(r => r.es_calentamiento === true);
+  if (respuestasCal.length > 0) {
+    partes.push(`
+      <div class="libro-page libro-tema-divisor">
+        <div class="libro-tema-num">PREPARACIÓN</div>
+        <h2 class="libro-tema-nombre">Sala de espera</h2>
+        <div class="libro-tema-rango">${respuestasCal.length} reflexión${respuestasCal.length === 1 ? '' : 'es'} · ANTES DE EMPEZAR EL PROGRAMA</div>
+      </div>`);
+
+    respuestasCal.forEach((r, idx) => {
+      const ia = Array.isArray(r.ia_analisis) ? r.ia_analisis[0] : r.ia_analisis;
+      const analisis = ia?.contenido_analisis;
+      const fecha = new Date(r.respuesta_recibida_at);
+      const fechaFmt = fecha.toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' });
+
+      partes.push(`
+        <div class="libro-page libro-entrada">
+          <div class="libro-entrada-header">
+            <span>SALA DE ESPERA</span>
+            <span>${escapeHtml(fechaFmt)}</span>
+          </div>
+          <div class="libro-entrada-pregunta">${escapeHtml(r.pregunta_original || '')}</div>
+          <div class="libro-section-label">Mi reflexión</div>
+          <div class="libro-respuesta">${escapeHtml(r.respuesta_cliente || '')}</div>
+          ${r.pregunta_personaje ? `
+            <div class="libro-section-label">Pregunta para mi personaje</div>
+            <div class="libro-analisis">${formatearAnalisis(r.pregunta_personaje)}</div>
+          ` : ''}
+          ${r.respuesta_personaje ? `
+            <div class="libro-section-label">Respuesta de mi personaje</div>
+            <div class="libro-respuesta">${escapeHtml(r.respuesta_personaje)}</div>
+          ` : ''}
+          ${r.cierre_ia ? `
+            <div class="libro-section-label">Cierre del día</div>
+            <div class="libro-analisis">${formatearAnalisis(r.cierre_ia)}</div>
+          ` : ''}
+          ${analisis && !r.pregunta_personaje ? `
+            <div class="libro-section-label">Reflejo Re-Génesis</div>
+            <div class="libro-analisis">${formatearAnalisis(analisis)}</div>
+          ` : ''}
+        </div>`);
+    });
+  }
+
+  // CIERRE
+  const totalGeneral = totalRespondidas + respuestasCal.length;
+  partes.push(`
+    <div class="libro-page libro-cierre">
+      <div>
+        <div class="libro-cierre-titulo">Hasta aquí tu libro.</div>
+        <p class="libro-cierre-frase">
+          ${totalGeneral} reflexión${totalGeneral === 1 ? '' : 'es'}, escritas por tu mano. Léelas cuando dudes.
+          Vuelven a hablarte cada vez con una voz distinta.
+        </p>
+        <div class="libro-cierre-firma">RE-GÉNESIS · METODOLOGÍA NEUROHACKERS</div>
+      </div>
+    </div>`);
+
+  content.innerHTML = partes.join('');
+
+  function formatearAnalisis(texto) {
+    const parrafos = (texto || '').split(/\n\n+/).filter(p => p.trim());
+    return parrafos.map(p => {
+      let html = escapeHtml(p);
+      html = html.replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
+      html = html.replace(/\n/g, '<br>');
+      return `<p>${html}</p>`;
+    }).join('');
+  }
+
+  function formatearFechaLarga(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso + 'T00:00:00');
+    return `${d.getDate()} de ${MESES_UPPER[d.getMonth()].toLowerCase()} de ${d.getFullYear()}`;
+  }
+
+  function addDays(iso, n) {
+    const d = new Date(iso + 'T00:00:00');
+    d.setDate(d.getDate() + n);
+    return d.toISOString().slice(0, 10);
+  }
+})();
+</script>
+
+</body>
+</html>

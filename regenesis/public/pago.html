@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Procesando tu inscripción · Re-Génesis</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600&family=Geist:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="assets/styles/tokens.css?v=20260653">
+  <link rel="stylesheet" href="assets/styles/base.css?v=20260653">
+
+  <style>
+    body {
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-6);
+    }
+    .pago-card {
+      background: var(--surface);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-card);
+      padding: var(--space-12) var(--space-10);
+      max-width: 460px;
+      width: 100%;
+      text-align: center;
+    }
+    .pago-logo {
+      font-weight: 700;
+      font-size: 18px;
+      letter-spacing: -0.02em;
+      margin-bottom: var(--space-8);
+    }
+    .pago-logo-dot {
+      width: 6px; height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      margin: 0 4px;
+      display: inline-block;
+    }
+    .pago-eyebrow {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      color: var(--accent-dark);
+      background: rgba(212, 175, 55, 0.12);
+      padding: 6px 12px;
+      border-radius: var(--radius-full);
+      margin-bottom: var(--space-5);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .pago-titulo {
+      font-size: 28px;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      margin-bottom: var(--space-3);
+      color: var(--text);
+    }
+    .pago-titulo-mark {
+      background: var(--accent);
+      padding: 0 8px;
+      border-radius: 6px;
+      color: var(--text);
+    }
+    .pago-sub {
+      color: var(--text-muted);
+      font-size: 15px;
+      line-height: 1.55;
+      margin-bottom: var(--space-8);
+    }
+
+    .pago-spinner {
+      width: 48px; height: 48px;
+      border: 3px solid var(--border-soft);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      margin: 0 auto var(--space-6);
+      animation: pago-spin 1s linear infinite;
+    }
+    @keyframes pago-spin { to { transform: rotate(360deg); } }
+
+    .pago-detalle {
+      background: var(--surface-2);
+      border-radius: var(--radius-md);
+      padding: var(--space-4) var(--space-5);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-muted);
+      letter-spacing: 0.3px;
+      margin-bottom: var(--space-6);
+      text-align: left;
+    }
+    .pago-detalle-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+    }
+    .pago-detalle-row strong { color: var(--text); }
+
+    .pago-error { display: none; }
+    .pago-error.visible { display: block; }
+    .pago-error .pago-spinner { display: none; }
+
+    .pago-efectivo { display: none; }
+    .pago-efectivo.visible { display: block; }
+    .pago-efectivo .pago-spinner { display: none; }
+
+    .pago-efectivo-icono {
+      width: 56px; height: 56px;
+      margin: 0 auto var(--space-5);
+      background: var(--accent-soft);
+      color: var(--accent-dark);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      font-weight: 600;
+    }
+
+    .pago-efectivo-pasos {
+      text-align: left;
+      background: var(--surface-2);
+      border-radius: var(--radius-md);
+      padding: var(--space-5) var(--space-5);
+      margin-bottom: var(--space-6);
+    }
+    .pago-efectivo-paso {
+      display: flex;
+      gap: var(--space-3);
+      padding: var(--space-2) 0;
+      align-items: flex-start;
+    }
+    .pago-efectivo-paso-num {
+      flex: 0 0 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 2px;
+    }
+    .pago-efectivo-paso-texto {
+      flex: 1;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text);
+    }
+    .pago-efectivo-paso-texto strong { color: var(--text); }
+
+    .pago-fallback {
+      margin-top: var(--space-6);
+      padding-top: var(--space-6);
+      border-top: 1px solid var(--border-soft);
+      font-size: 12px;
+      color: var(--text-faint);
+    }
+    .pago-fallback a {
+      color: var(--accent-dark);
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+
+<div class="pago-card" id="pago-card">
+  <div class="pago-logo">Re<span class="pago-logo-dot"></span>Génesis</div>
+
+  <div id="pago-cargando">
+    <div class="pago-spinner"></div>
+    <div class="pago-eyebrow">Preparando tu pago</div>
+    <h1 class="pago-titulo">Te llevamos al<br><span class="pago-titulo-mark" id="pago-plan">checkout</span></h1>
+    <p class="pago-sub" id="pago-sub">Un segundo, estamos cargando tu información…</p>
+
+    <div class="pago-detalle" id="pago-detalle"></div>
+  </div>
+
+  <div id="pago-error" class="pago-error">
+    <div class="pago-eyebrow" style="background: var(--error-bg); color: var(--error);">No pudimos redirigir</div>
+    <h1 class="pago-titulo">Algo no calzó</h1>
+    <p class="pago-sub" id="pago-error-msg">No reconocimos tu plan de pago. Vuelve al formulario o escríbenos.</p>
+    <a href="mailto:frank@neurohackers.top" class="pago-fallback">frank@neurohackers.top</a>
+  </div>
+
+  <div id="pago-efectivo-bloque" class="pago-efectivo">
+    <div class="pago-efectivo-icono">$</div>
+    <div class="pago-eyebrow">Pago en efectivo</div>
+    <h1 class="pago-titulo">Solicitud<br><span class="pago-titulo-mark">registrada</span></h1>
+    <p class="pago-sub" id="pago-efectivo-sub">Frank te enviará la factura de tu primera cuota en las próximas horas. Cuando la pagues, recibirás acceso a la plataforma.</p>
+
+    <div class="pago-detalle" id="pago-efectivo-detalle"></div>
+
+    <div class="pago-efectivo-pasos">
+      <div class="pago-efectivo-paso">
+        <div class="pago-efectivo-paso-num">1</div>
+        <div class="pago-efectivo-paso-texto"><strong>Recibes la factura</strong> por email y WhatsApp en las próximas horas.</div>
+      </div>
+      <div class="pago-efectivo-paso">
+        <div class="pago-efectivo-paso-num">2</div>
+        <div class="pago-efectivo-paso-texto"><strong>Coordinas el pago</strong> en efectivo directamente con Frank.</div>
+      </div>
+      <div class="pago-efectivo-paso">
+        <div class="pago-efectivo-paso-num">3</div>
+        <div class="pago-efectivo-paso-texto"><strong>Recibes acceso</strong> a la plataforma + los contratos para firmar en cuanto el pago se confirme.</div>
+      </div>
+    </div>
+
+    <div style="font-size: 12px; color: var(--text-faint); text-align: center;">
+      ¿Dudas? Escríbele a <a href="mailto:frank@neurohackers.top" style="color: var(--accent-dark); font-weight: 500;">frank@neurohackers.top</a>
+    </div>
+  </div>
+
+  <div class="pago-fallback" id="pago-fallback-redirect">
+    Si en 10 segundos no se abre el checkout,
+    <a href="#" id="pago-link-manual">click aquí</a>.
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ============================================================================
+  // Mapeo de servicios → planes de pago. UN solo pago.html atiende todos los
+  // programas. El formulario GHL de cada servicio redirige aquí con:
+  //   ?servicio=<slug>&cuotas=<valor del select>&metodo=<tarjeta|efectivo>&...
+  //
+  // - ?servicio= elige el SET de links (regenesis | terapia | growth).
+  //   Si NO viene, default 'regenesis' (compatibilidad con el form viejo que
+  //   no pasa servicio). Si viene un slug desconocido → error.
+  // - ?cuotas= es el plan elegido. El valor que llega puede ser:
+  //     · Numero crudo: "1", "2", "3", "4"
+  //     · Label del select GHL: "Pago único ($1,500 USD) — Ahorra $500"
+  //     · Vacío → default 1 cuota.
+  //
+  // Para AGREGAR un servicio nuevo: añade una entrada aquí con sus 4 links y
+  // haz que su form GHL redirija con &servicio=<ese slug>. Nada más.
+  // ============================================================================
+  const SERVICIOS = {
+    // Re-Génesis original (programa terapéutico 70 días). Slug por defecto.
+    regenesis: {
+      nombre: 'Re-Génesis',
+      links: {
+        '1': 'https://link.neurohackers.top/payment-link/69c56295c6a0e600f4d05acf',
+        '2': 'https://link.neurohackers.top/payment-link/699cd118a4cd1da27b85106d',
+        '3': 'https://link.neurohackers.top/payment-link/69e53056557558e89e520fe7',
+        '4': 'https://link.neurohackers.top/payment-link/69e53087557558e89e520fe8',
+      },
+    },
+    // Terapia Re-Génesis. Campo GHL: cuotas_elegidas_terapia.
+    terapia: {
+      nombre: 'Terapia Re-Génesis',
+      links: {
+        '1': 'https://app.neurohackers.top/payment-link/6a288b1903b17c94f571574d',
+        '2': 'https://app.neurohackers.top/payment-link/6a288b4303b17c94f571574f',
+        '3': 'https://app.neurohackers.top/payment-link/6a28a12903b17c94f5715799',
+        '4': 'https://app.neurohackers.top/payment-link/6a28a15303b17c94f571579a',
+      },
+    },
+    // Growth Re-Génesis. Campo GHL: cuotas_elegidas_growth.
+    growth: {
+      nombre: 'Growth Re-Génesis',
+      links: {
+        '1': 'https://app.neurohackers.top/payment-link/6a29e52771a0aa761e4641ec',
+        '2': 'https://app.neurohackers.top/payment-link/6a29e58e03b17c94f5715aab',
+        '3': 'https://app.neurohackers.top/payment-link/6a29e5c503b17c94f5715aad',
+        '4': 'https://app.neurohackers.top/payment-link/6a29e5e271a0aa761e4641ee',
+      },
+    },
+  };
+
+  const SERVICIO_DEFAULT = 'regenesis';
+
+  const NOMBRE_PLAN = {
+    '1': '1 pago',
+    '2': '2 cuotas',
+    '3': '3 cuotas',
+    '4': '4 cuotas',
+  };
+
+  function escapeHtml(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+    }[c]));
+  }
+
+  // Detectar el número de cuotas a partir de varios formatos posibles
+  function parseCuotas(raw) {
+    if (!raw) return '1'; // default
+    const s = String(raw).toLowerCase().trim();
+    // "Pago único" o variantes → 1
+    if (s.includes('único') || s.includes('unico') || s.includes('1 cuota') || s.includes('1 pago')) return '1';
+    // "2 cuotas", "3 cuotas", "4 cuotas"
+    const match = s.match(/(\d+)\s*(cuotas|cuota|pagos|pago)/);
+    if (match) return match[1];
+    // Solo número
+    if (/^\d+$/.test(s)) return s;
+    return '1'; // fallback
+  }
+
+  function mostrarError(msg) {
+    document.getElementById('pago-cargando').style.display = 'none';
+    document.getElementById('pago-fallback-redirect').style.display = 'none';
+    const err = document.getElementById('pago-error');
+    err.classList.add('visible');
+    if (msg) document.getElementById('pago-error-msg').textContent = msg;
+  }
+
+  function mostrarEfectivo(servicioNombre, plan, email, nombre, telefono) {
+    document.getElementById('pago-cargando').style.display = 'none';
+    document.getElementById('pago-fallback-redirect').style.display = 'none';
+    const det = document.getElementById('pago-efectivo-detalle');
+    let html = '';
+    if (nombre)   html += `<div class="pago-detalle-row"><span>NOMBRE</span><strong>${escapeHtml(nombre)}</strong></div>`;
+    if (email)    html += `<div class="pago-detalle-row"><span>EMAIL</span><strong>${escapeHtml(email)}</strong></div>`;
+    if (telefono) html += `<div class="pago-detalle-row"><span>TELÉFONO</span><strong>${escapeHtml(telefono)}</strong></div>`;
+    html +=          `<div class="pago-detalle-row"><span>PROGRAMA</span><strong>${escapeHtml(servicioNombre)}</strong></div>`;
+    html +=          `<div class="pago-detalle-row"><span>PLAN</span><strong>${escapeHtml(NOMBRE_PLAN[plan] || plan)}</strong></div>`;
+    html +=          `<div class="pago-detalle-row"><span>MÉTODO</span><strong>Efectivo</strong></div>`;
+    det.innerHTML = html;
+    document.getElementById('pago-efectivo-bloque').classList.add('visible');
+  }
+
+  function pintarDetalle(servicioNombre, plan, email, nombre) {
+    const det = document.getElementById('pago-detalle');
+    let html = '';
+    if (nombre) html += `<div class="pago-detalle-row"><span>NOMBRE</span><strong>${escapeHtml(nombre)}</strong></div>`;
+    if (email)  html += `<div class="pago-detalle-row"><span>EMAIL</span><strong>${escapeHtml(email)}</strong></div>`;
+    html +=        `<div class="pago-detalle-row"><span>PROGRAMA</span><strong>${escapeHtml(servicioNombre)}</strong></div>`;
+    html +=        `<div class="pago-detalle-row"><span>PLAN</span><strong>${escapeHtml(NOMBRE_PLAN[plan] || plan)}</strong></div>`;
+    det.innerHTML = html;
+  }
+
+  function init() {
+    const params = new URLSearchParams(window.location.search);
+    // ?cuotas es el alias canónico; aceptamos también los nombres de los
+    // custom fields de cada servicio por si el form pasa el campo directo.
+    const cuotasRaw = params.get('cuotas')
+      || params.get('cuotas_elegidas')
+      || params.get('cuotas_elegidas_terapia')
+      || params.get('cuotas_elegidas_growth')
+      || params.get('plan');
+    const email     = (params.get('email') || '').trim();
+    const firstName = (params.get('first_name') || params.get('firstName') || '').trim();
+    const lastName  = (params.get('last_name') || params.get('lastName') || '').trim();
+    const phone     = (params.get('phone') || params.get('telefono') || params.get('tel') || '').trim();
+    const nombre    = [firstName, lastName].filter(Boolean).join(' ').trim();
+    const metodo    = (params.get('metodo') || params.get('metodo_pago') || '').trim().toLowerCase();
+
+    // Servicio: si no viene, default regenesis (no rompe el form viejo).
+    // Si viene un slug que no existe → error explícito (no mandar al link equivocado).
+    const servicioSlug = (params.get('servicio') || SERVICIO_DEFAULT).trim().toLowerCase();
+    const servicio = SERVICIOS[servicioSlug];
+    if (!servicio) {
+      mostrarError('No reconocimos el programa de este pago. Avísale a Frank: frank@neurohackers.top');
+      return;
+    }
+
+    const cuotas = parseCuotas(cuotasRaw);
+
+    // Mostrar plan en el card
+    document.getElementById('pago-plan').textContent = NOMBRE_PLAN[cuotas] || 'checkout';
+    pintarDetalle(servicio.nombre, cuotas, email, nombre);
+
+    // Rama pago en efectivo: no redirigir, mostrar pantalla de confirmación.
+    // GHL recibe el lead vía workflow del form (tag pago-efectivo-pendiente),
+    // crea el invoice desde el template y lo envía al cliente.
+    if (metodo === 'efectivo' || metodo === 'cash') {
+      mostrarEfectivo(servicio.nombre, cuotas, email, nombre, phone);
+      return;
+    }
+
+    const linkBase = servicio.links[cuotas];
+    if (!linkBase || linkBase.startsWith('REEMPLAZAR_')) {
+      mostrarError('No tenemos configurado el link de pago para este plan. Avísale a Frank: frank@neurohackers.top');
+      return;
+    }
+
+    // Construir URL final con los datos del cliente para pre-fill del checkout
+    let urlFinal;
+    try {
+      urlFinal = new URL(linkBase);
+    } catch (e) {
+      mostrarError('El link de pago configurado no es válido.');
+      return;
+    }
+
+    if (email)     urlFinal.searchParams.set('email', email);
+    if (firstName) urlFinal.searchParams.set('first_name', firstName);
+    if (lastName)  urlFinal.searchParams.set('last_name', lastName);
+    if (phone)     urlFinal.searchParams.set('phone', phone);
+    // GHL acepta también estos alias:
+    if (firstName) urlFinal.searchParams.set('firstName', firstName);
+    if (lastName)  urlFinal.searchParams.set('lastName', lastName);
+    if (phone)     urlFinal.searchParams.set('telefono', phone);
+
+    const finalHref = urlFinal.toString();
+
+    // Botón de fallback manual por si la redirección automática no se dispara
+    const linkManual = document.getElementById('pago-link-manual');
+    linkManual.href = finalHref;
+    linkManual.textContent = 'click aquí para abrirlo manualmente';
+
+    // Redirección con un pequeño delay para que el cliente vea la confirmación
+    // visual (sensación de "estamos preparando tu pago"). Esto también permite
+    // detectar por analytics el paso por esta página antes del checkout.
+    setTimeout(() => { window.location.href = finalHref; }, 1500);
+  }
+
+  init();
+})();
+</script>
+
+</body>
+</html>

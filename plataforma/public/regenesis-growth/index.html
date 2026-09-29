@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bienvenido · Growth Re-Génesis</title>
+  <link rel="icon" type="image/svg+xml" href="/regenesis/favicon.svg">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600&family=Geist:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Reutilizamos el sistema visual de Re-Génesis (paleta dorada Apple-style). -->
+  <link rel="stylesheet" href="/regenesis/assets/styles/tokens.css?v=20260797">
+  <link rel="stylesheet" href="/regenesis/assets/styles/base.css?v=20260797">
+  <link rel="stylesheet" href="/regenesis/assets/styles/components.css?v=20260797">
+
+  <style>
+    body {
+      background: var(--bg);
+      min-height: 100vh;
+    }
+
+    .gw-shell {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: var(--space-12) var(--space-6) var(--space-16);
+    }
+
+    .gw-logo {
+      display: flex;
+      align-items: center;
+      font-weight: 700;
+      font-size: 18px;
+      letter-spacing: -0.02em;
+      margin-bottom: var(--space-12);
+    }
+
+    .gw-logo-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      margin: 0 4px;
+      display: inline-block;
+    }
+
+    /* Sello de pago confirmado */
+    .gw-sello {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      color: var(--accent-dark);
+      background: rgba(212, 175, 55, 0.12);
+      padding: 7px 14px;
+      border-radius: var(--radius-full);
+      margin-bottom: var(--space-5);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .gw-sello-check {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: var(--text);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .gw-titulo {
+      font-size: 40px;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      line-height: 1.08;
+      margin-bottom: var(--space-4);
+    }
+
+    .gw-titulo-mark {
+      background: var(--accent);
+      padding: 0 10px;
+      border-radius: 6px;
+      color: var(--text);
+    }
+
+    .gw-sub {
+      font-size: 17px;
+      color: var(--text-muted);
+      line-height: 1.55;
+      margin-bottom: var(--space-10);
+      max-width: 540px;
+    }
+
+    /* Tarjetas de "qué sigue" */
+    .gw-pasos {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+      margin-bottom: var(--space-10);
+    }
+
+    .gw-paso {
+      display: grid;
+      grid-template-columns: 40px 1fr;
+      gap: var(--space-5);
+      background: var(--surface);
+      padding: var(--space-6);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      align-items: start;
+    }
+
+    .gw-paso-numero {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 600;
+      background: var(--surface-3);
+      color: var(--text-muted);
+    }
+
+    .gw-paso-titulo {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      margin-bottom: 4px;
+    }
+
+    .gw-paso-texto {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    /* CTA principal de contacto */
+    .gw-cta-card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      padding: var(--space-8) var(--space-6);
+      text-align: center;
+      margin-bottom: var(--space-8);
+    }
+
+    .gw-cta-titulo {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      margin-bottom: var(--space-2);
+    }
+
+    .gw-cta-texto {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.55;
+      margin-bottom: var(--space-6);
+      max-width: 420px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .gw-cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--accent);
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 600;
+      padding: 13px 26px;
+      border-radius: var(--radius-full);
+      text-decoration: none;
+      transition: background var(--transition-base);
+    }
+
+    .gw-cta-btn:hover { background: var(--accent-bright); }
+
+    .gw-soporte {
+      text-align: center;
+      padding: var(--space-6) 0 0;
+      border-top: 1px solid var(--border-soft);
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .gw-soporte a {
+      color: var(--text);
+      font-weight: 500;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1px;
+    }
+
+    @media (max-width: 640px) {
+      .gw-titulo { font-size: 30px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="gw-shell">
+  <div class="gw-logo">
+    Re<span class="gw-logo-dot"></span>Génesis
+  </div>
+
+  <div class="gw-sello">
+    <span class="gw-sello-check">&#10003;</span>
+    Pago confirmado
+  </div>
+
+  <h1 class="gw-titulo">
+    Bienvenido a <span class="gw-titulo-mark">Growth</span><span id="gw-nombre"></span>
+  </h1>
+
+  <p class="gw-sub">
+    Tu lugar en Growth Re-Génesis está reservado. Acabas de dar el paso que separa
+    a quienes piensan en crecer de quienes de verdad lo hacen. Desde aquí, no caminas solo.
+  </p>
+
+  <div class="gw-pasos">
+    <div class="gw-paso">
+      <div class="gw-paso-numero">1</div>
+      <div>
+        <div class="gw-paso-titulo">Tu pago quedó registrado</div>
+        <div class="gw-paso-texto">
+          Recibimos tu inscripción correctamente. No necesitas hacer nada más en este momento.
+        </div>
+      </div>
+    </div>
+
+    <div class="gw-paso">
+      <div class="gw-paso-numero">2</div>
+      <div>
+        <div class="gw-paso-titulo">Nuestro equipo te contactará</div>
+        <div class="gw-paso-texto">
+          En las próximas horas te escribiremos por WhatsApp y correo para coordinar tu
+          arranque y darte los accesos. Revisa tu bandeja de entrada (y la carpeta de spam).
+        </div>
+      </div>
+    </div>
+
+    <div class="gw-paso">
+      <div class="gw-paso-numero">3</div>
+      <div>
+        <div class="gw-paso-titulo">Prepárate para empezar</div>
+        <div class="gw-paso-texto">
+          Ten a la mano la información de tu negocio. En tu primera sesión definimos el
+          punto de partida y el plan para los próximos meses.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA de contacto: WhatsApp de soporte (407) 408-8501. -->
+  <div class="gw-cta-card">
+    <div class="gw-cta-titulo">¿Tienes una duda ahora mismo?</div>
+    <div class="gw-cta-texto">
+      Si quieres adelantar algo o tienes cualquier pregunta sobre tu inscripción,
+      escríbenos por WhatsApp. Estamos para acompañarte.
+    </div>
+    <a class="gw-cta-btn" id="gw-contacto" href="https://wa.me/14074088501?text=Hola,%20acabo%20de%20inscribirme%20en%20Growth%20Re-G%C3%A9nesis%20y%20tengo%20una%20pregunta." target="_blank" rel="noopener">
+      Escríbenos por WhatsApp
+    </a>
+  </div>
+
+  <div class="gw-soporte">
+    Soporte: <a href="https://wa.me/14074088501" target="_blank" rel="noopener">WhatsApp (407) 408-8501</a> · <a href="mailto:frank@neurohackers.top">frank@neurohackers.top</a><br>
+    Guarda esta página por si quieres volver a estas indicaciones.
+  </div>
+</div>
+
+<script>
+  // Personalización ligera del saludo con ?first_name (lo pasa pago.html / GHL).
+  // Mismo guard que bienvenida.html: ignorar merge-tags sin reemplazar ({{...}}).
+  (function () {
+    function esMergeTagSinReemplazar(v) {
+      if (!v) return false;
+      return v.includes('{{') || v.includes('}}');
+    }
+    function escapeHtml(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c];
+      });
+    }
+    var params = new URLSearchParams(window.location.search);
+    var nombre = (params.get('first_name') || params.get('firstName') || '').trim();
+    if (nombre && !esMergeTagSinReemplazar(nombre)) {
+      document.getElementById('gw-nombre').textContent = ', ' + nombre;
+    }
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Producto · Neurohackers</title>
+  <script src="/shared/turbo.min.js?v=20260797"></script>
+  <link rel="stylesheet" href="/shared/styles.css?v=20260797">
+</head>
+<body>
+
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<div data-nav data-active="marca" data-base="../../"></div>
+
+<main class="container" id="main">
+
+  <div class="crumb">
+    <a href="../../index.html">Hoy</a><span>·</span>
+    <a href="index.html">Marca y Oferta</a><span>·</span>
+    <span id="crumb-nombre">Cargando</span>
+  </div>
+
+  <section style="margin-bottom: var(--space-8);">
+    <span class="eyebrow" id="p-eyebrow">CARGANDO...</span>
+    <h1 class="greeting-lg" id="p-nombre">Cargando producto.</h1>
+    <p class="lead" id="p-descripcion"></p>
+  </section>
+
+  <!-- Scorecard -->
+  <div class="progress-strip">
+    <div class="progress-strip-item"><span class="progress-strip-num" id="kpi-salud">-</span><span class="progress-strip-label" id="kpi-salud-label">Salud</span></div>
+    <div class="progress-strip-divider"></div>
+    <div class="progress-strip-item"><span class="progress-strip-num" id="kpi-tareas">-</span><span class="progress-strip-label">Tareas pendientes</span></div>
+    <div class="progress-strip-divider"></div>
+    <div class="progress-strip-item"><span class="progress-strip-num" id="kpi-posts">-</span><span class="progress-strip-label">Posts derivados</span></div>
+    <div class="progress-strip-divider"></div>
+    <div class="progress-strip-item"><span class="progress-strip-num" id="kpi-ventas">-</span><span class="progress-strip-label">Ventas (próximamente)</span></div>
+  </div>
+
+  <!-- Diagnóstico estratégico -->
+  <div class="section-h">
+    <span class="section-h-title">Diagnóstico estratégico</span>
+    <span class="section-h-meta" id="auditoria-meta">SIN DIAGNOSTICAR</span>
+  </div>
+
+  <div id="auditoria-vacia" class="card" style="text-align: center; padding: var(--space-8);">
+    <p class="text-muted mb-4">Este producto aún no tiene diagnóstico.</p>
+    <button class="btn btn-accent btn-lg" id="btn-auditar">⚡ Diagnosticar · ~30 seg</button>
+    <div class="field-help mt-3">Reescribe la promesa, identifica huecos y deja 3 tareas concretas.</div>
+  </div>
+
+  <div id="auditoria-loading" class="ia-loading hidden">
+    <span class="spinner"></span>
+    <span>Estamos diagnosticando tu producto. Esto toma ~20-30 segundos.</span>
+  </div>
+
+  <div id="auditoria-resultado" class="hidden">
+    <div class="ia-block">
+      <div class="ia-block-head">
+        <span class="ia-block-tag">◌ DIAGNÓSTICO</span>
+      </div>
+      <p id="diagnostico-text" style="font-size: var(--text-md); line-height: 1.65;"></p>
+      <p id="fortaleza-text" style="font-size: var(--text-sm); line-height: 1.6; margin-top: var(--space-3); color: var(--accent-deeper);"></p>
+    </div>
+
+    <div class="section-h" style="margin-top: var(--space-8);">
+      <span class="section-h-title">Tareas para mejorar este producto</span>
+      <span class="section-h-meta" id="tareas-meta"></span>
+    </div>
+
+    <div id="tareas-container"></div>
+
+    <div style="display: flex; gap: var(--space-2); margin-top: var(--space-6); flex-wrap: wrap;">
+      <button class="btn btn-ia" id="btn-reauditar">⚡ Volver a diagnosticar</button>
+      <button class="btn btn-secondary" id="btn-editar">Editar producto</button>
+      <button class="btn btn-ghost" id="btn-archivar">Archivar</button>
+    </div>
+  </div>
+
+  <!-- Datos del producto (fichas internas) -->
+  <div class="section-h" style="margin-top: var(--space-10);">
+    <span class="section-h-title">Fichas internas</span>
+    <span class="section-h-meta">CONTEXTO DEL PRODUCTO</span>
+  </div>
+
+  <div class="grid grid-2" id="fichas-grid"></div>
+
+  <div class="atajos">
+    <a href="index.html" class="atajo">← Volver al catálogo</a>
+    <a href="../../index.html" class="atajo">◌ Hoy</a>
+  </div>
+
+</main>
+
+<!-- Modal editar (reutiliza shape de marca-oferta) -->
+<div class="modal-backdrop hidden" id="modal">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">Editar producto</span>
+      <button class="modal-close" id="modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="producto-form">
+        <div class="field"><label class="field-label">Nombre *</label><input class="field-input" id="f-nombre" required maxlength="120"></div>
+        <div class="field"><label class="field-label">Tipo</label>
+          <select class="field-input" id="f-tipo">
+            <option value="">Selecciona...</option>
+            <option value="servicio_high_ticket">Servicio · Alto Ticket ($2K+)</option>
+            <option value="servicio_medio">Servicio · Ticket Medio</option>
+            <option value="servicio_bajo">Servicio · Bajo Ticket</option>
+            <option value="digital">Digital</option>
+            <option value="fisico">Físico</option>
+            <option value="membresia">Membresía</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:var(--space-3);">
+          <div class="field"><label class="field-label">Precio</label><input class="field-input" id="f-precio" type="number" min="0" step="0.01"></div>
+          <div class="field"><label class="field-label">Moneda</label>
+            <select class="field-input" id="f-moneda"><option>USD</option><option>COP</option><option>MXN</option><option>EUR</option></select>
+          </div>
+        </div>
+        <div class="field"><label class="field-label">Descripción</label><textarea class="field-input field-textarea" id="f-descripcion"></textarea></div>
+        <div class="field"><label class="field-label">Promesa</label><textarea class="field-input field-textarea" id="f-promesa"></textarea></div>
+        <div class="field"><label class="field-label">ICP</label><textarea class="field-input field-textarea" id="f-icp"></textarea></div>
+        <div class="field"><label class="field-label">Entregables</label><textarea class="field-input field-textarea" id="f-entregables"></textarea></div>
+        <div class="field"><label class="field-label">Siguiente escalón</label><input class="field-input" id="f-siguiente" maxlength="200"></div>
+      </form>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="modal-cancel">Cancelar</button>
+      <button class="btn btn-accent" id="modal-save">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/shared/scripts/config.js?v=20260797"></script>
+<script src="/shared/scripts/supabase-client.js?v=20260797"></script>
+  <script src="/shared/scripts/cache.js?v=20260797"></script>
+<script src="/shared/scripts/utils.js?v=20260797"></script>
+<script src="/shared/scripts/auth.js?v=20260797"></script>
+  <script src="/shared/scripts/event-tracker.js?v=20260797"></script>
+<script src="/shared/scripts/productos.js?v=20260797"></script>
+<script src="/shared/nav.js?v=20260797"></script>
+<script>
+(async function () {
+  const { session, lead } = await window.requireAuth() || {};
+  if (!session) return;
+
+  const productoId = window.utils.qs('id');
+  if (!productoId) {
+    window.utils.toast('Falta id del producto', 'error');
+    setTimeout(() => location.href = 'index.html', 1500);
+    return;
+  }
+
+  let producto = null;
+  try {
+    producto = await window.productosApi.obtener(productoId);
+    if (!producto) throw new Error('No encontrado');
+  } catch (e) {
+    window.utils.toast('Producto no encontrado', 'error');
+    setTimeout(() => location.href = 'index.html', 1500);
+    return;
+  }
+
+  function render() {
+    document.getElementById('crumb-nombre').textContent = producto.nombre;
+    document.getElementById('p-eyebrow').textContent =
+      `${window.utils.tipoLabel(producto.tipo).toUpperCase()}${producto.precio ? ' · ' + window.utils.formatMoney(producto.precio, producto.moneda) : ''}`;
+    document.getElementById('p-nombre').textContent = producto.nombre;
+    document.getElementById('p-descripcion').textContent = producto.descripcion || '(Sin descripción todavía. Edita el producto para agregarla.)';
+
+    // KPIs
+    document.getElementById('kpi-salud').textContent = producto.salud_score !== null ? producto.salud_score + '%' : '-';
+    const salud = window.utils.saludLabel(producto.salud_score);
+    document.getElementById('kpi-salud-label').textContent = salud.texto;
+    const tareasCount = producto.auditoria_tareas?.tareas?.length || 0;
+    document.getElementById('kpi-tareas').textContent = tareasCount;
+    document.getElementById('kpi-posts').textContent = producto.posts_generados || 0;
+    document.getElementById('kpi-ventas').textContent = producto.ventas_cerradas || 0;
+
+    // Fichas
+    const fichas = [
+      { label: 'PROMESA', val: producto.promesa },
+      { label: 'ICP', val: producto.icp },
+      { label: 'ENTREGABLES', val: producto.entregables },
+      { label: 'SIGUIENTE ESCALÓN', val: producto.siguiente_escalon },
+    ];
+    document.getElementById('fichas-grid').innerHTML = fichas.map(f => `
+      <div class="card">
+        <span class="eyebrow">${f.label}</span>
+        <p style="font-size: var(--text-sm); line-height: 1.6;">
+          ${f.val ? window.utils.escapeHtml(f.val) : '<span class="text-muted">(Vacío. Edita el producto para agregarlo.)</span>'}
+        </p>
+      </div>
+    `).join('');
+
+    // Auditoría
+    const auditoriaData = producto.auditoria_tareas;
+    if (auditoriaData && auditoriaData.tareas) {
+      document.getElementById('auditoria-vacia').classList.add('hidden');
+      document.getElementById('auditoria-resultado').classList.remove('hidden');
+      document.getElementById('auditoria-meta').textContent =
+        producto.auditoria_at ? `AUDITADO ${new Date(producto.auditoria_at).toLocaleString('es-ES', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }).toUpperCase()}` : 'AUDITADO';
+
+      document.getElementById('diagnostico-text').textContent = auditoriaData.diagnostico || producto.auditoria_diagnostico || '';
+      const fortText = document.getElementById('fortaleza-text');
+      if (auditoriaData.fortaleza) {
+        fortText.innerHTML = '<strong>Lo que sí está bien:</strong> ' + window.utils.escapeHtml(auditoriaData.fortaleza);
+      } else {
+        fortText.classList.add('hidden');
+      }
+
+      document.getElementById('tareas-meta').textContent = `${auditoriaData.tareas.length} TAREAS`;
+      document.getElementById('tareas-container').innerHTML = auditoriaData.tareas.map((t, i) => {
+        const ctaLabel = t.asistencia_ia === 'completa' ? '⚡ Hacerlo por mí'
+                       : t.asistencia_ia === 'parcial'  ? 'Ver material'
+                       : 'Marcar hecho';
+        const ctaClass = t.asistencia_ia === 'completa' ? 'btn-ia' : 'btn-secondary';
+        const asistenciaLabel = t.asistencia_ia === 'completa' ? 'ASISTIDO'
+                              : t.asistencia_ia === 'parcial'  ? 'GUIADO'
+                              : 'MANUAL';
+        return `
+          <div class="action">
+            <div class="action-num">${i + 1}</div>
+            <div class="action-body">
+              <h3 class="action-title">${window.utils.escapeHtml(t.titulo)}</h3>
+              <p class="action-detail">${window.utils.escapeHtml(t.detalle)}</p>
+              <span class="action-meta">
+                <span>${t.prioridad.toUpperCase()}</span><span class="action-meta-dot"></span>
+                <span>~${t.esfuerzo_min} MIN</span><span class="action-meta-dot"></span>
+                <span>${asistenciaLabel}</span>
+              </span>
+            </div>
+            <div class="action-cta"><button class="btn ${ctaClass} btn-sm" disabled title="Próximamente">${ctaLabel}</button></div>
+          </div>`;
+      }).join('');
+    } else {
+      document.getElementById('auditoria-vacia').classList.remove('hidden');
+      document.getElementById('auditoria-resultado').classList.add('hidden');
+    }
+  }
+
+  async function auditar() {
+    const loading = document.getElementById('auditoria-loading');
+    const vacia = document.getElementById('auditoria-vacia');
+    const resultado = document.getElementById('auditoria-resultado');
+    vacia.classList.add('hidden');
+    resultado.classList.add('hidden');
+    loading.classList.remove('hidden');
+
+    try {
+      const contexto = `Cliente en programa Re-Génesis, fase actual: ${lead.tema_actual_orden ? 'tema ' + lead.tema_actual_orden : 'calentamiento inicial'}. Modalidad: ${lead.modalidad || 'desconocida'}.`;
+      const res = await window.productosApi.auditarConIA(producto, contexto);
+      producto = res.producto;
+      window.utils.toast('Auditoría completada · ' + res.auditoria.salud_score + '/100', 'success');
+    } catch (e) {
+      console.error(e);
+      window.utils.toast('Error: ' + (e.message || 'no se pudo auditar'), 'error');
+    } finally {
+      loading.classList.add('hidden');
+      render();
+    }
+  }
+
+  function abrirEditar() {
+    document.getElementById('f-nombre').value = producto.nombre || '';
+    document.getElementById('f-tipo').value = producto.tipo || '';
+    document.getElementById('f-precio').value = producto.precio || '';
+    document.getElementById('f-moneda').value = producto.moneda || 'USD';
+    document.getElementById('f-descripcion').value = producto.descripcion || '';
+    document.getElementById('f-promesa').value = producto.promesa || '';
+    document.getElementById('f-icp').value = producto.icp || '';
+    document.getElementById('f-entregables').value = producto.entregables || '';
+    document.getElementById('f-siguiente').value = producto.siguiente_escalon || '';
+    const modal = document.getElementById('modal');
+    modal.classList.remove('hidden');
+    requestAnimationFrame(() => modal.classList.add('show'));
+  }
+  function cerrarEditar() {
+    const modal = document.getElementById('modal');
+    modal.classList.remove('show');
+    setTimeout(() => modal.classList.add('hidden'), 200);
+  }
+
+  document.getElementById('btn-auditar').addEventListener('click', auditar);
+  document.getElementById('btn-reauditar').addEventListener('click', auditar);
+  document.getElementById('btn-editar').addEventListener('click', abrirEditar);
+  document.getElementById('modal-close').addEventListener('click', cerrarEditar);
+  document.getElementById('modal-cancel').addEventListener('click', cerrarEditar);
+  document.getElementById('modal').addEventListener('click', e => { if (e.target.id === 'modal') cerrarEditar(); });
+
+  document.getElementById('modal-save').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const datos = {
+      nombre: document.getElementById('f-nombre').value.trim(),
+      tipo: document.getElementById('f-tipo').value || null,
+      precio: document.getElementById('f-precio').value !== '' ? Number(document.getElementById('f-precio').value) : null,
+      moneda: document.getElementById('f-moneda').value,
+      descripcion: document.getElementById('f-descripcion').value.trim() || null,
+      promesa: document.getElementById('f-promesa').value.trim() || null,
+      icp: document.getElementById('f-icp').value.trim() || null,
+      entregables: document.getElementById('f-entregables').value.trim() || null,
+      siguiente_escalon: document.getElementById('f-siguiente').value.trim() || null,
+    };
+    if (!datos.nombre) { window.utils.toast('Nombre requerido', 'error'); return; }
+    try {
+      producto = await window.productosApi.actualizar(productoId, datos);
+      window.utils.toast('Guardado', 'success');
+      cerrarEditar();
+      render();
+    } catch (e) {
+      window.utils.toast('Error: ' + e.message, 'error');
+    }
+  });
+
+  document.getElementById('btn-archivar').addEventListener('click', async () => {
+    if (!confirm(`¿Archivar "${producto.nombre}"? Podrás verlo de nuevo desde admin.`)) return;
+    try {
+      await window.productosApi.archivar(productoId);
+      window.utils.toast('Producto archivado', 'success');
+      setTimeout(() => location.href = 'index.html', 800);
+    } catch (e) {
+      window.utils.toast('Error: ' + e.message, 'error');
+    }
+  });
+
+  render();
+  document.getElementById('main').style.opacity = '1';
+})();
+</script>
+
+
+</body>
+</html>

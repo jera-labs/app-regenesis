@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mi perfil · Neurohackers</title>
+  <script src="/shared/turbo.min.js?v=20260797"></script>
+  <link rel="stylesheet" href="/shared/styles.css?v=20260797">
+  <style>
+    .perfil-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-5); margin-bottom: var(--space-8); }
+    @media (max-width: 860px) { .perfil-grid { grid-template-columns: 1fr; } }
+
+    .perfil-card { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); padding: var(--space-5); }
+    .perfil-card-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--space-4); gap: var(--space-3); }
+    .perfil-card-title { font-size: var(--text-md); font-weight: 600; letter-spacing: -0.01em; }
+
+    .fila-readonly { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) 0; border-bottom: 1px solid var(--border-soft); }
+    .fila-readonly:last-child { border-bottom: 0; }
+    .fila-readonly-label { font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; flex-shrink: 0; }
+    .fila-readonly-valor { font-size: var(--text-sm); font-weight: 500; text-align: right; min-width: 0; word-break: break-word; }
+
+    .equipo-mini { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3); background: var(--surface-2); border-radius: var(--radius-sm); margin-bottom: var(--space-2); }
+    .equipo-mini:last-child { margin-bottom: 0; }
+    .equipo-mini-avatar { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; color: #FFF; font-weight: 700; font-size: 13px; flex-shrink: 0; }
+    .equipo-mini-info { flex: 1; min-width: 0; }
+    .equipo-mini-nombre { font-size: var(--text-sm); font-weight: 600; }
+    .equipo-mini-rol { font-size: var(--text-xs); color: var(--text-muted); }
+
+    .dna-cta-card { background: linear-gradient(135deg, rgba(212,175,55,0.08), rgba(212,175,55,0.02)); border: 1px solid var(--accent-soft); border-radius: var(--radius-md); padding: var(--space-6); display: flex; gap: var(--space-5); align-items: center; }
+    .dna-cta-text { flex: 1; min-width: 0; }
+  </style>
+</head>
+<body>
+
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<div data-nav data-active="perfil" data-base="../../"></div>
+
+<main class="container" id="main">
+
+  <div class="crumb">
+    <a href="../../index.html">Hoy</a><span>·</span><span>Mi perfil</span>
+  </div>
+
+  <section style="margin-bottom: var(--space-8);">
+    <span class="eyebrow">TU CUENTA</span>
+    <h1 class="greeting-lg" id="saludo">Mi perfil.</h1>
+    <p class="lead">Tus datos de cuenta, tu programa y tu equipo Neurohackers. Lo que define tu negocio (voz, mercado, números) está en <a href="../dna/index.html"><strong>Mi DNA</strong></a>.</p>
+    <div id="mis-distinciones" style="margin-top: var(--space-4); display: flex; gap: var(--space-2); flex-wrap: wrap;"></div>
+  </section>
+
+  <!-- Banner CTA hacia Mi DNA si está incompleto -->
+  <div id="dna-cta" class="dna-cta-card hidden" style="margin-bottom: var(--space-8);">
+    <div class="dna-cta-text">
+      <div style="font-weight: 600; font-size: var(--text-md); margin-bottom: 4px;">Tu DNA está al <span id="dna-pct">-</span>%</div>
+      <div style="font-size: var(--text-sm); color: var(--text-muted); line-height: 1.55;">Cada paso que llenas mejora drásticamente lo que generamos por ti. Esencia, negocio, datos y diagnóstico.</div>
+    </div>
+    <a href="../dna/index.html" class="btn btn-accent">Continuar mi DNA →</a>
+  </div>
+
+  <div class="perfil-grid">
+
+    <!-- Datos de cuenta editables -->
+    <div class="perfil-card">
+      <div class="perfil-card-head">
+        <span class="perfil-card-title">Datos de cuenta</span>
+      </div>
+      <form id="form-cuenta">
+        <div class="field">
+          <label class="field-label">Nombre completo</label>
+          <input class="field-input" id="f-nombre" maxlength="120">
+        </div>
+        <div class="field">
+          <label class="field-label">Teléfono</label>
+          <input class="field-input" id="f-telefono" maxlength="40" placeholder="+57 300 000 0000">
+        </div>
+        <div class="field">
+          <label class="field-label">País</label>
+          <input class="field-input" id="f-pais" maxlength="60" placeholder="Colombia">
+        </div>
+        <div class="field">
+          <label class="field-label">Email (no se puede cambiar)</label>
+          <input class="field-input" id="f-email" disabled>
+          <div class="field-help">Si necesitas cambiar tu email, escribe a Frank o Alex.</div>
+        </div>
+        <button type="submit" class="btn btn-accent">Guardar cambios</button>
+      </form>
+    </div>
+
+    <!-- Cambiar contraseña -->
+    <div class="perfil-card">
+      <div class="perfil-card-head">
+        <span class="perfil-card-title">Cambiar contraseña</span>
+      </div>
+      <form id="form-pwd">
+        <div class="field">
+          <label class="field-label">Contraseña nueva</label>
+          <input class="field-input" id="f-pwd1" type="password" minlength="8" autocomplete="new-password" placeholder="Mínimo 8 caracteres">
+        </div>
+        <div class="field">
+          <label class="field-label">Repetir contraseña</label>
+          <input class="field-input" id="f-pwd2" type="password" minlength="8" autocomplete="new-password">
+        </div>
+        <button type="submit" class="btn btn-secondary">Cambiar contraseña</button>
+      </form>
+    </div>
+
+    <!-- Estado del programa (read-only) -->
+    <div class="perfil-card">
+      <div class="perfil-card-head">
+        <span class="perfil-card-title">Tu programa</span>
+      </div>
+      <div class="fila-readonly">
+        <span class="fila-readonly-label">Modalidad</span>
+        <span class="fila-readonly-valor" id="v-modalidad">-</span>
+      </div>
+      <div class="fila-readonly">
+        <span class="fila-readonly-label">Fecha de pago</span>
+        <span class="fila-readonly-valor" id="v-pago">-</span>
+      </div>
+      <div class="fila-readonly">
+        <span class="fila-readonly-label">Inicio programa</span>
+        <span class="fila-readonly-valor" id="v-inicio">-</span>
+      </div>
+      <div class="fila-readonly">
+        <span class="fila-readonly-label">Tema actual · Re-Génesis</span>
+        <span class="fila-readonly-valor" id="v-tema">-</span>
+      </div>
+      <div class="fila-readonly">
+        <span class="fila-readonly-label">Semana</span>
+        <span class="fila-readonly-valor" id="v-semana">-</span>
+      </div>
+      <div class="fila-readonly">
+        <span class="fila-readonly-label">Cuotas elegidas</span>
+        <span class="fila-readonly-valor" id="v-cuotas">-</span>
+      </div>
+    </div>
+
+    <!-- Equipo asignado -->
+    <div class="perfil-card">
+      <div class="perfil-card-head">
+        <span class="perfil-card-title">Tu equipo Neurohackers</span>
+      </div>
+      <div id="equipo-asignado">
+        <p class="text-muted" style="font-size: var(--text-sm);">Cargando...</p>
+      </div>
+    </div>
+
+    <!-- Mis pagos con Neurohackers -->
+    <div class="perfil-card" id="mis-pagos-card" style="grid-column: 1 / -1; display: none;">
+      <div class="perfil-card-head">
+        <span class="perfil-card-title">Mis pagos con Neurohackers</span>
+        <span class="text-muted" style="font-size: var(--text-xs); font-family: var(--font-mono);" id="mis-pagos-meta"></span>
+      </div>
+      <div id="mis-pagos-progreso" style="margin-bottom: var(--space-3);"></div>
+      <div id="mis-pagos-lista"></div>
+    </div>
+
+  </div>
+
+  <div class="atajos">
+    <a href="../../index.html" class="atajo">← Volver a Hoy</a>
+    <a href="../dna/index.html" class="atajo">◇ Mi DNA</a>
+    <a href="#" id="logout-link" class="atajo">↪ Salir</a>
+  </div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/shared/scripts/config.js?v=20260797"></script>
+<script src="/shared/scripts/supabase-client.js?v=20260797"></script>
+  <script src="/shared/scripts/cache.js?v=20260797"></script>
+<script src="/shared/scripts/utils.js?v=20260797"></script>
+<script src="/shared/scripts/auth.js?v=20260797"></script>
+  <script src="/shared/scripts/event-tracker.js?v=20260797"></script>
+  <script src="/shared/scripts/nps.js?v=20260797"></script>
+<script src="/shared/scripts/equipo.js?v=20260797"></script>
+<script src="/shared/scripts/perfil.js?v=20260797"></script>
+<script src="/shared/scripts/estados.js?v=20260797"></script>
+<script src="/shared/scripts/finanzas.js?v=20260797"></script>
+<script src="/shared/nav.js?v=20260797"></script>
+<script>
+(async function () {
+  const { session, lead } = await window.requireAuth() || {};
+  if (!session) return;
+
+  const nombre = (lead.nombre || session.user.email.split('@')[0]).split(' ')[0];
+  document.getElementById('saludo').textContent = `Mi perfil, ${nombre}.`;
+
+  // ===== Datos de cuenta =====
+  document.getElementById('f-nombre').value = lead.nombre || '';
+  document.getElementById('f-telefono').value = lead.telefono || '';
+  document.getElementById('f-pais').value = lead.pais || '';
+  document.getElementById('f-email').value = lead.email;
+
+  document.getElementById('form-cuenta').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const datos = {
+      nombre: document.getElementById('f-nombre').value.trim(),
+      telefono: document.getElementById('f-telefono').value.trim() || null,
+      pais: document.getElementById('f-pais').value.trim() || null,
+    };
+    try {
+      const { error } = await window.db.from('leads').update(datos).eq('id', lead.id);
+      if (error) throw error;
+      window.utils.toast('Datos actualizados', 'success');
+      Object.assign(lead, datos);
+    } catch (err) {
+      console.error(err);
+      window.utils.toast('Error: ' + err.message, 'error');
+    }
+  });
+
+  // ===== Cambiar contraseña =====
+  document.getElementById('form-pwd').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const p1 = document.getElementById('f-pwd1').value;
+    const p2 = document.getElementById('f-pwd2').value;
+    if (p1.length < 8) { window.utils.toast('Mínimo 8 caracteres', 'error'); return; }
+    if (p1 !== p2) { window.utils.toast('Las contraseñas no coinciden', 'error'); return; }
+    try {
+      const { error } = await window.db.auth.updateUser({ password: p1 });
+      if (error) throw error;
+      document.getElementById('f-pwd1').value = '';
+      document.getElementById('f-pwd2').value = '';
+      window.utils.toast('Contraseña actualizada', 'success');
+    } catch (err) {
+      console.error(err);
+      window.utils.toast('Error: ' + err.message, 'error');
+    }
+  });
+
+  // ===== Estado del programa =====
+  document.getElementById('v-modalidad').textContent = lead.modalidad
+    ? lead.modalidad.charAt(0).toUpperCase() + lead.modalidad.slice(1)
+    : 'No definida';
+  document.getElementById('v-pago').textContent = lead.fecha_pago
+    ? new Date(lead.fecha_pago).toLocaleDateString('es-ES', { day:'numeric', month:'long', year:'numeric' })
+    : '-';
+  document.getElementById('v-inicio').textContent = lead.fecha_inicio_programa
+    ? new Date(lead.fecha_inicio_programa).toLocaleDateString('es-ES', { day:'numeric', month:'long', year:'numeric' })
+    : '-';
+  document.getElementById('v-tema').textContent = lead.tema_actual_orden
+    ? `Tema ${lead.tema_actual_orden}`
+    : (lead.estado === 'pagado_calentamiento' ? 'Calentamiento' : '-');
+  document.getElementById('v-semana').textContent = lead.semana_actual ? `Semana ${lead.semana_actual}` : '-';
+  document.getElementById('v-cuotas').textContent = lead.cuotas_elegidas || '-';
+
+  // ===== DNA % (banner CTA si no está al 100%) =====
+  try {
+    const perfil = await window.perfilApi.cargarPerfilCompleto(lead.id, lead);
+    const pct = perfil?.score_global || 0;
+    if (pct < 100) {
+      document.getElementById('dna-pct').textContent = pct;
+      document.getElementById('dna-cta').classList.remove('hidden');
+    }
+  } catch (e) { console.warn('No pude cargar DNA score:', e); }
+
+  // ===== Equipo asignado =====
+  try {
+    const asignaciones = await window.equipoApi.asignacionesDelLead(lead.id);
+    const cont = document.getElementById('equipo-asignado');
+    if (!asignaciones.length) {
+      cont.innerHTML = '<p class="text-muted" style="font-size: var(--text-sm); line-height: 1.55;">Aún nadie del equipo te ha sido asignado formalmente. Frank y los admin igual pueden verte y acompañarte.</p>';
+    } else {
+      cont.innerHTML = asignaciones.map(a => {
+        const u = a.usuario_admin || {};
+        const r = a.rol_funcional || {};
+        const ini = (u.nombre || u.email || '?').trim().split(/[\s@]/).filter(Boolean)
+          .slice(0, 2).map(x => x[0]).join('').toUpperCase();
+        return `
+          <div class="equipo-mini">
+            <div class="equipo-mini-avatar" style="background: ${r.color || '#86868B'};">${ini}</div>
+            <div class="equipo-mini-info">
+              <div class="equipo-mini-nombre">${window.utils.escapeHtml(u.nombre || u.email || '?')}</div>
+              <div class="equipo-mini-rol">${window.utils.escapeHtml(r.nombre || '-')}</div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+  } catch (err) {
+    console.warn('No pude cargar equipo:', err);
+    document.getElementById('equipo-asignado').innerHTML = '<p class="text-muted" style="font-size: var(--text-sm);">No pude cargar tu equipo. Recarga la página.</p>';
+  }
+
+  document.getElementById('logout-link').addEventListener('click', (e) => {
+    e.preventDefault();
+    window.signOut();
+  });
+
+  // ===== Distinciones (etiquetas visibles_cliente) =====
+  try {
+    const misEtiquetas = await window.estadosApi.etiquetasDeLead(lead.id);
+    const visibles = misEtiquetas.filter(le => le.etiqueta?.visible_cliente);
+    if (visibles.length > 0) {
+      document.getElementById('mis-distinciones').innerHTML = visibles.map(le => {
+        const et = le.etiqueta;
+        return `<span class="badge" style="background: ${et.color}1A; color: ${et.color}; border: 1px solid ${et.color}40; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: var(--text-sm);">
+          ${et.icono || '◇'} <strong>${window.utils.escapeHtml(et.nombre)}</strong>
+        </span>`;
+      }).join('');
+    }
+  } catch (e) { /* etiquetas opcional */ }
+
+  // ===== Mis pagos con Neurohackers (read-only) =====
+  try {
+    const [finanzas, pagos] = await Promise.all([
+      window.finanzasApi.obtenerFinanzas(lead.id),
+      window.finanzasApi.listarPagos(lead.id),
+    ]);
+    if (finanzas && pagos.length > 0) {
+      const card = document.getElementById('mis-pagos-card');
+      card.style.display = 'block';
+      const total = Number(finanzas.monto_total_usd || 0);
+      const pagado = pagos.filter(p => p.estado === 'pagado').reduce((s, p) => s + Number(p.monto_usd), 0);
+      const pendiente = pagos.filter(p => ['pendiente','atrasado'].includes(p.estado)).reduce((s, p) => s + Number(p.monto_usd), 0);
+      const pct = total > 0 ? Math.round(100 * pagado / total) : 0;
+      document.getElementById('mis-pagos-meta').textContent = pct + '% PAGADO';
+      document.getElementById('mis-pagos-progreso').innerHTML = `
+        <div style="display: flex; gap: var(--space-4); align-items: center; padding: var(--space-3); background: var(--surface-2); border-radius: var(--radius-sm);">
+          <div><div style="font-family: var(--font-mono); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted);">Total</div><div style="font-size: var(--text-md); font-weight: 600;">${window.finanzasApi.formatMoney(total)}</div></div>
+          <div><div style="font-family: var(--font-mono); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted);">Pagado</div><div style="font-size: var(--text-md); font-weight: 600; color: var(--success);">${window.finanzasApi.formatMoney(pagado)}</div></div>
+          <div><div style="font-family: var(--font-mono); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted);">Pendiente</div><div style="font-size: var(--text-md); font-weight: 600;">${window.finanzasApi.formatMoney(pendiente)}</div></div>
+          <div style="flex: 1; min-width: 100px;">
+            <div style="width: 100%; height: 6px; background: var(--surface); border-radius: 3px; overflow: hidden;">
+              <div style="width: ${pct}%; height: 100%; background: linear-gradient(90deg, var(--accent-bright), var(--accent-dark));"></div>
+            </div>
+          </div>
+        </div>`;
+      document.getElementById('mis-pagos-lista').innerHTML = pagos.map(p => {
+        const tipoSafe = p.tipo || 'otro';
+        const tipoLabel = tipoSafe === 'cuota' && p.numero_cuota ? `Cuota ${p.numero_cuota}` : (tipoSafe[0].toUpperCase() + tipoSafe.slice(1));
+        return `
+          <div style="display: grid; grid-template-columns: 1fr auto auto auto; gap: var(--space-3); padding: 10px var(--space-3); border-bottom: 1px solid var(--border-soft); align-items: center;">
+            <div>
+              <div style="font-weight: 600; font-size: var(--text-sm);">${tipoLabel}</div>
+              ${p.fecha_programada ? `<div style="font-size: var(--text-xs); color: var(--text-muted);">Programado: ${window.finanzasApi.formatFecha(p.fecha_programada)}</div>` : ''}
+            </div>
+            <div style="font-family: var(--font-mono); font-weight: 600; font-size: var(--text-sm);">${window.finanzasApi.formatMoney(p.monto_usd)}</div>
+            <div>${window.finanzasApi.badgeEstado(p.estado)}</div>
+            <div style="font-size: var(--text-xs); color: var(--text-muted);">${p.fecha_pagado_at ? window.finanzasApi.formatFecha(p.fecha_pagado_at) : ''}</div>
+          </div>`;
+      }).join('');
+    }
+  } catch (e) { console.warn('Sin pagos visibles:', e); }
+
+  document.getElementById('main').style.opacity = '1';
+})();
+</script>
+
+
+</body>
+</html>

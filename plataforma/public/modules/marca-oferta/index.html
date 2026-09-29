@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Marca y Oferta · Neurohackers</title>
+  <script src="/shared/turbo.min.js?v=20260797"></script>
+  <link rel="stylesheet" href="/shared/styles.css?v=20260797">
+</head>
+<body>
+
+<div id="sidebar-wrapper" data-turbo-permanent></div>
+<div data-nav data-active="marca" data-base="../../"></div>
+
+<main class="container" id="main">
+
+  <div class="crumb">
+    <a href="../../index.html">Hoy</a><span>·</span><span>Marca y Oferta</span>
+  </div>
+
+  <section style="margin-bottom: var(--space-8);">
+    <span class="eyebrow">EL CORAZÓN DE TU NEGOCIO</span>
+    <h1 class="greeting-lg">Tus productos y servicios.</h1>
+    <p class="lead">Todo lo que la plataforma hace por ti (contenido, tareas, guiones, pipeline) arranca acá. Sin oferta clara, no hay sistema.</p>
+  </section>
+
+  <div class="progress-strip">
+    <div class="progress-strip-item"><span class="progress-strip-num" id="kpi-total">-</span><span class="progress-strip-label">Productos activos</span></div>
+    <div class="progress-strip-divider"></div>
+    <div class="progress-strip-item"><span class="progress-strip-num" id="kpi-salud">-</span><span class="progress-strip-label">Salud promedio</span></div>
+    <div class="progress-strip-divider"></div>
+    <div class="progress-strip-item"><span class="progress-strip-num" id="kpi-auditados">-</span><span class="progress-strip-label">Diagnosticados</span></div>
+  </div>
+
+  <!-- Panel de recomendaciones inteligente (visible si hay productos) -->
+  <div id="panel-recomendaciones" class="hidden" style="margin: var(--space-6) 0;"></div>
+
+  <div class="section-h">
+    <span class="section-h-title">Tu catálogo</span>
+    <span class="section-h-meta" id="catalogo-meta">CARGANDO</span>
+  </div>
+
+  <!-- Filtros catálogo -->
+  <div id="filtros-catalogo" class="hidden" style="display: flex; gap: var(--space-2); margin-bottom: var(--space-4); flex-wrap: wrap;">
+    <button class="filter-chip active" data-fcat="todos">Todos</button>
+    <button class="filter-chip" data-fcat="auditados">Auditados</button>
+    <button class="filter-chip" data-fcat="sin-auditar">Sin auditar</button>
+    <button class="filter-chip" data-fcat="con-contenido">Con contenido generado</button>
+  </div>
+
+  <div id="lista-productos"></div>
+
+  <div id="empty-state" class="empty hidden">
+    <div class="empty-icon">◈</div>
+    <h3 class="empty-title">Aún no tienes productos en tu catálogo</h3>
+    <p class="empty-detail">Empieza agregando uno. Si no tienes nada claro todavía, podemos ayudarte a empaquetar un MVP paso a paso.</p>
+    <div class="empty-actions">
+      <button class="btn btn-accent btn-lg" id="btn-nuevo-empty">+ Agregar mi primer producto</button>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: var(--space-2); margin-top: var(--space-6); flex-wrap: wrap;" id="acciones-bar">
+    <button class="btn btn-accent" id="btn-nuevo">+ Agregar producto</button>
+  </div>
+
+  <div class="atajos">
+    <a href="../../index.html" class="atajo">← Volver a Hoy</a>
+  </div>
+</main>
+
+<!-- MODAL NUEVO/EDITAR PRODUCTO -->
+<div class="modal-backdrop hidden" id="modal">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="modal-title">Nuevo producto</span>
+      <button class="modal-close" id="modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="producto-form">
+        <div class="field">
+          <label class="field-label" for="f-nombre">Nombre del producto o servicio *</label>
+          <input class="field-input" id="f-nombre" required maxlength="120" placeholder="Ej. Auditoría Express de Embudo">
+        </div>
+        <div class="field">
+          <label class="field-label" for="f-tipo">Tipo</label>
+          <select class="field-input" id="f-tipo">
+            <option value="">Selecciona...</option>
+            <option value="servicio_high_ticket">Servicio · Alto Ticket ($2K+)</option>
+            <option value="servicio_medio">Servicio · Ticket Medio ($200-$2K)</option>
+            <option value="servicio_bajo">Servicio · Bajo Ticket (&lt;$200)</option>
+            <option value="digital">Producto Digital (curso, plantilla)</option>
+            <option value="fisico">Producto Físico</option>
+            <option value="membresia">Membresía recurrente</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-3);">
+          <div class="field">
+            <label class="field-label" for="f-precio">Precio</label>
+            <input class="field-input" id="f-precio" type="number" min="0" step="0.01" placeholder="497">
+          </div>
+          <div class="field">
+            <label class="field-label" for="f-moneda">Moneda</label>
+            <select class="field-input" id="f-moneda">
+              <option value="USD">USD</option>
+              <option value="COP">COP</option>
+              <option value="MXN">MXN</option>
+              <option value="EUR">EUR</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label" for="f-descripcion">¿Qué es exactamente?</label>
+          <textarea class="field-input field-textarea" id="f-descripcion" placeholder="Sesión de 90 min de revisión de embudo, con entregable y video..."></textarea>
+        </div>
+        <div class="field">
+          <label class="field-label" for="f-promesa">Promesa tangible al cliente</label>
+          <textarea class="field-input field-textarea" id="f-promesa" placeholder="Ej. Recupera 20-40% de conversiones perdidas en 30 días"></textarea>
+          <div class="field-help">No "transformamos tu vida". Algo medible.</div>
+        </div>
+        <div class="field">
+          <label class="field-label" for="f-icp">¿Quién es tu cliente ideal?</label>
+          <textarea class="field-input field-textarea" id="f-icp" placeholder="Ej. Consultores B2B con $10K-$50K MRR que tienen tráfico pero no convierten"></textarea>
+        </div>
+        <div class="field">
+          <label class="field-label" for="f-entregables">¿Qué entregas exactamente?</label>
+          <textarea class="field-input field-textarea" id="f-entregables" placeholder="Ej. Video de Loom de 30 min + PDF con cambios + sesión de seguimiento"></textarea>
+        </div>
+        <div class="field">
+          <label class="field-label" for="f-siguiente">Siguiente escalón (qué venden después)</label>
+          <input class="field-input" id="f-siguiente" maxlength="200" placeholder="Ej. Consultoría 90 días $4,800">
+        </div>
+      </form>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="modal-cancel">Cancelar</button>
+      <button class="btn btn-accent" id="modal-save">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/shared/scripts/config.js?v=20260797"></script>
+<script src="/shared/scripts/supabase-client.js?v=20260797"></script>
+  <script src="/shared/scripts/cache.js?v=20260797"></script>
+<script src="/shared/scripts/utils.js?v=20260797"></script>
+<script src="/shared/scripts/auth.js?v=20260797"></script>
+  <script src="/shared/scripts/event-tracker.js?v=20260797"></script>
+  <script src="/shared/scripts/nps.js?v=20260797"></script>
+<script src="/shared/scripts/productos.js?v=20260797"></script>
+<script src="/shared/nav.js?v=20260797"></script>
+<script>
+(async function () {
+  const { session, lead } = await window.requireAuth() || {};
+  if (!session) return;
+
+  const lista = document.getElementById('lista-productos');
+  const emptyState = document.getElementById('empty-state');
+  const accionesBar = document.getElementById('acciones-bar');
+  const modal = document.getElementById('modal');
+
+  let editandoId = null;
+
+  // Producto de ejemplo que se crea automático para clientes nuevos
+  async function seedEjemploSiVacio() {
+    const existentes = await window.productosApi.listarPorLead(lead.id);
+    if (existentes.length > 0) return existentes;
+
+    // Crear 1 producto de ejemplo, marcado como borrador, para que el cliente
+    // entienda el formato y lo edite o lo borre.
+    const ejemplo = {
+      nombre: 'Mi producto o servicio (edítame)',
+      tipo: 'servicio_medio',
+      precio: 497,
+      moneda: 'USD',
+      descripcion: 'Este es un producto de ejemplo. Bórralo o conviértelo en el tuyo: cambia nombre, precio, promesa e ICP. Mientras más específico, mejor sale lo que el sistema genera para ti.',
+      promesa: 'Cambia esta línea por el resultado tangible que tu producto entrega. Ej: "20% más conversión en 30 días".',
+      icp: 'Describe a tu cliente ideal por situación, no por demografía. Ej: "Consultores B2B con $10K-$50K MRR sin equipo de marketing".',
+      entregables: 'Lista exactamente qué entregas. Loom, PDF, sesiones, plantillas, acceso a comunidad, etc.',
+      siguiente_escalon: 'Si después de este producto vendes otro más grande, escríbelo aquí.',
+      estado: 'borrador',
+    };
+    try {
+      await window.productosApi.crear(lead.id, ejemplo);
+      window.utils.toast('Creamos un producto de ejemplo para ti. Edítalo o bórralo.', 'success', 5000);
+      return await window.productosApi.listarPorLead(lead.id);
+    } catch (e) {
+      console.error('No se pudo crear ejemplo:', e);
+      return [];
+    }
+  }
+
+  let productosCache = [];
+  let contenidoCountPorProducto = {};
+  let filtroCatActual = 'todos';
+
+  async function refrescar() {
+    let productos = [];
+    try { productos = await seedEjemploSiVacio(); }
+    catch (e) { console.error(e); window.utils.toast('Error cargando productos', 'error'); }
+    productosCache = productos;
+
+    // Studio se archivó (2026-05-31, migración 70 dropó contenido_generado).
+    // El contador queda vacío; el filtro "con-contenido" usará Set() = falso siempre.
+    contenidoCountPorProducto = {};
+
+    document.getElementById('kpi-total').textContent = productos.length;
+    const auditados = productos.filter(p => p.salud_score !== null);
+    document.getElementById('kpi-auditados').textContent = auditados.length;
+    if (auditados.length) {
+      const avg = Math.round(auditados.reduce((s, p) => s + p.salud_score, 0) / auditados.length);
+      document.getElementById('kpi-salud').textContent = avg + '%';
+    } else {
+      document.getElementById('kpi-salud').textContent = '-';
+    }
+
+    document.getElementById('catalogo-meta').textContent = productos.length === 0
+      ? 'SIN PRODUCTOS' : `${productos.length} PRODUCTO${productos.length === 1 ? '' : 'S'}`;
+
+    if (productos.length === 0) {
+      lista.innerHTML = '';
+      emptyState.classList.remove('hidden');
+      accionesBar.classList.add('hidden');
+      document.getElementById('panel-recomendaciones').classList.add('hidden');
+      document.getElementById('filtros-catalogo').classList.add('hidden');
+    } else {
+      emptyState.classList.add('hidden');
+      accionesBar.classList.remove('hidden');
+      document.getElementById('filtros-catalogo').classList.remove('hidden');
+      pintarPanelRecomendaciones(productos);
+      pintarLista();
+    }
+  }
+
+  function pintarPanelRecomendaciones(productos) {
+    const panel = document.getElementById('panel-recomendaciones');
+    const sinAuditar = productos.filter(p => p.salud_score === null);
+    const auditados = productos.filter(p => p.salud_score !== null);
+    const sinContenido = productos.filter(p => !contenidoCountPorProducto[p.id]);
+    const top = auditados.length ? [...auditados].sort((a, b) => b.salud_score - a.salud_score)[0] : null;
+    const peor = auditados.length ? [...auditados].sort((a, b) => a.salud_score - b.salud_score)[0] : null;
+
+    let recs = [];
+
+    if (sinAuditar.length >= 2) {
+      recs.push({
+        tipo: 'audit-batch',
+        titulo: `Tienes ${sinAuditar.length} productos sin diagnosticar`,
+        detalle: 'Podemos revisarlos uno por uno en ~30 segundos cada uno. Eso desbloquea tareas concretas y contenido por cada producto.',
+        cta: 'Diagnosticar el primero',
+        href: `producto.html?id=${sinAuditar[0].id}`,
+      });
+    } else if (sinAuditar.length === 1) {
+      recs.push({
+        tipo: 'audit-1',
+        titulo: `Te falta diagnosticar "${sinAuditar[0].nombre}"`,
+        detalle: 'Sin diagnóstico, este producto no genera tareas ni contenido específico.',
+        cta: 'Diagnosticar ahora',
+        href: `producto.html?id=${sinAuditar[0].id}`,
+      });
+    }
+
+    if (top && sinContenido.includes(top)) {
+      recs.push({
+        tipo: 'generate-top',
+        titulo: `"${top.nombre}" tiene la mejor salud (${top.salud_score}%) y no tiene contenido aún`,
+        detalle: 'Es tu producto más sólido para empezar a comunicar. Te preparamos 3-5 piezas listas para publicar en minutos.',
+        cta: 'Generar contenido',
+        href: `../contenido/index.html?producto=${top.id}`,
+      });
+    }
+
+    if (peor && peor.salud_score < 50) {
+      recs.push({
+        tipo: 'fix-low',
+        titulo: `"${peor.nombre}" tiene salud baja (${peor.salud_score}%)`,
+        detalle: `Detectamos un hueco en la propuesta. ${peor.auditoria_diagnostico ? peor.auditoria_diagnostico.slice(0, 120) + '...' : 'Revisa las tareas pendientes.'}`,
+        cta: 'Ver tareas pendientes',
+        href: `producto.html?id=${peor.id}`,
+      });
+    }
+
+    const conSiguienteEscalon = productos.filter(p => p.siguiente_escalon && p.siguiente_escalon.trim()).length;
+    if (productos.length >= 2 && conSiguienteEscalon === 0) {
+      recs.push({
+        tipo: 'escalon',
+        titulo: 'Ninguno de tus productos tiene "siguiente escalón" definido',
+        detalle: 'El siguiente escalón es lo que vendes después del producto inicial. Sin esto, dejas dinero sobre la mesa cada vez que cierras un cliente.',
+        cta: 'Editar productos',
+        href: '#',
+      });
+    }
+
+    if (recs.length === 0) {
+      panel.classList.add('hidden');
+      return;
+    }
+
+    panel.classList.remove('hidden');
+    panel.innerHTML = `
+      <div class="ia-block">
+        <div class="ia-block-head">
+          <span class="ia-block-tag">⚡ TU SIGUIENTE PASO</span>
+        </div>
+        ${recs.slice(0, 2).map(r => `
+          <div style="display: flex; align-items: flex-start; gap: var(--space-4); padding: var(--space-3) 0; border-top: 1px solid var(--border-soft);">
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-weight: 600; font-size: var(--text-sm); margin-bottom: 4px;">${window.utils.escapeHtml(r.titulo)}</div>
+              <div style="font-size: var(--text-xs); color: var(--text-muted); line-height: 1.55;">${window.utils.escapeHtml(r.detalle)}</div>
+            </div>
+            ${r.href === '#' ? '' : `<a href="${r.href}" class="btn btn-accent btn-sm" style="white-space: nowrap;">${r.cta}</a>`}
+          </div>
+        `).join('')}
+      </div>`;
+  }
+
+  function pintarLista() {
+    let filtrados = productosCache.slice();
+    if (filtroCatActual === 'auditados') filtrados = filtrados.filter(p => p.salud_score !== null);
+    else if (filtroCatActual === 'sin-auditar') filtrados = filtrados.filter(p => p.salud_score === null);
+    else if (filtroCatActual === 'con-contenido') filtrados = filtrados.filter(p => contenidoCountPorProducto[p.id]?.total > 0);
+
+    if (filtrados.length === 0) {
+      lista.innerHTML = '<p class="text-muted text-center" style="padding: var(--space-8);">Sin productos en este filtro.</p>';
+      return;
+    }
+
+    lista.innerHTML = filtrados.map(p => {
+      const tareasCount = p.auditoria_tareas?.tareas?.length || 0;
+      const cont = contenidoCountPorProducto[p.id] || { total: 0, aprobados: 0, publicados: 0 };
+      const saludBar = p.salud_score !== null
+        ? `<div class="progress" style="margin-top: 8px;"><div class="progress-fill" style="width: ${p.salud_score}%"></div></div>`
+        : '';
+      return `
+        <a href="producto.html?id=${p.id}" class="producto">
+          <div class="producto-icon">${window.utils.iconoTipo(p.tipo)}</div>
+          <div class="producto-body">
+            <h3 class="producto-title">${window.utils.escapeHtml(p.nombre)}</h3>
+            <div class="producto-tipo">${window.utils.escapeHtml(window.utils.tipoLabel(p.tipo))}${p.precio ? ' · ' + window.utils.formatMoney(p.precio, p.moneda) : ''}</div>
+            ${p.descripcion ? `<p class="producto-resumen">${window.utils.escapeHtml(p.descripcion.slice(0, 180))}${p.descripcion.length > 180 ? '...' : ''}</p>` : ''}
+            ${saludBar}
+            <div class="producto-stats" style="margin-top: 10px;">
+              <span class="producto-stat"><span class="producto-stat-num">${p.salud_score ?? '-'}${p.salud_score !== null ? '%' : ''}</span> SALUD</span>
+              <span class="producto-stat"><span class="producto-stat-num">${tareasCount}</span> TAREAS</span>
+              <span class="producto-stat"><span class="producto-stat-num">${cont.total}</span> CONTENIDO</span>
+              ${cont.publicados > 0 ? `<span class="producto-stat"><span class="producto-stat-num">${cont.publicados}</span> PUBLICADOS</span>` : ''}
+            </div>
+          </div>
+          <div class="producto-cta">→</div>
+        </a>`;
+    }).join('');
+  }
+
+  // Filtros
+  document.querySelectorAll('[data-fcat]').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('[data-fcat]').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      filtroCatActual = chip.dataset.fcat;
+      pintarLista();
+    });
+  });
+
+  function abrirModal(prod = null) {
+    editandoId = prod?.id || null;
+    document.getElementById('modal-title').textContent = prod ? 'Editar producto' : 'Nuevo producto';
+    document.getElementById('f-nombre').value = prod?.nombre || '';
+    document.getElementById('f-tipo').value = prod?.tipo || '';
+    document.getElementById('f-precio').value = prod?.precio || '';
+    document.getElementById('f-moneda').value = prod?.moneda || 'USD';
+    document.getElementById('f-descripcion').value = prod?.descripcion || '';
+    document.getElementById('f-promesa').value = prod?.promesa || '';
+    document.getElementById('f-icp').value = prod?.icp || '';
+    document.getElementById('f-entregables').value = prod?.entregables || '';
+    document.getElementById('f-siguiente').value = prod?.siguiente_escalon || '';
+    modal.classList.remove('hidden');
+    requestAnimationFrame(() => modal.classList.add('show'));
+    setTimeout(() => document.getElementById('f-nombre').focus(), 100);
+  }
+
+  function cerrarModal() {
+    modal.classList.remove('show');
+    setTimeout(() => modal.classList.add('hidden'), 200);
+  }
+
+  document.getElementById('btn-nuevo').addEventListener('click', () => abrirModal());
+  document.getElementById('btn-nuevo-empty').addEventListener('click', () => abrirModal());
+  document.getElementById('modal-close').addEventListener('click', cerrarModal);
+  document.getElementById('modal-cancel').addEventListener('click', cerrarModal);
+  modal.addEventListener('click', (e) => { if (e.target === modal) cerrarModal(); });
+
+  document.getElementById('modal-save').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const nombre = document.getElementById('f-nombre').value.trim();
+    if (!nombre) { window.utils.toast('El nombre es requerido', 'error'); return; }
+
+    const datos = {
+      nombre,
+      tipo: document.getElementById('f-tipo').value || null,
+      precio: document.getElementById('f-precio').value,
+      moneda: document.getElementById('f-moneda').value,
+      descripcion: document.getElementById('f-descripcion').value.trim(),
+      promesa: document.getElementById('f-promesa').value.trim(),
+      icp: document.getElementById('f-icp').value.trim(),
+      entregables: document.getElementById('f-entregables').value.trim(),
+      siguiente_escalon: document.getElementById('f-siguiente').value.trim(),
+    };
+
+    try {
+      if (editandoId) {
+        await window.productosApi.actualizar(editandoId, datos);
+        window.utils.toast('Producto actualizado', 'success');
+      } else {
+        await window.productosApi.crear(lead.id, datos);
+        window.utils.toast('Producto creado', 'success');
+      }
+      cerrarModal();
+      await refrescar();
+    } catch (e) {
+      console.error(e);
+      window.utils.toast('Error: ' + (e.message || 'no se pudo guardar'), 'error');
+    }
+  });
+
+  await refrescar();
+  document.getElementById('main').style.opacity = '1';
+})();
+</script>
+
+
+</body>
+</html>
