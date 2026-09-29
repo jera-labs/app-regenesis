@@ -1,0 +1,17 @@
+.git
+.env
+.env.*
+.mcp.json
+deploy.ps1
+deploy.cmd
+deploy.bat
+docs
+archived
+supabase
+loadtest
+tools
+.claude
+.skills
+**/*.md
+*.zip
+*.log
